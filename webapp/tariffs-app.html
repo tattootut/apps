@@ -2171,7 +2171,18 @@
                                   signal: _ctl.signal });
       } finally { clearTimeout(_tmr); }
       if (resp.status === 401) {
-        showError('Сессия истекла. Закрой и открой Кабинет снова.');
+        showError('Вход устарел. Жми кнопку — бот пришлёт свежий.');
+        try {
+          var _fx2 = document.createElement('div');
+          _fx2.style.cssText = 'margin:10px 0';
+          _fx2.innerHTML = '<a href="https://t.me/ta2_blockbot?start=cabinet_auth"'
+            + ' style="display:block;text-align:center;padding:12px;'
+            + 'background:var(--accent,#c4f000);color:#0b1208;border-radius:12px;'
+            + 'font-weight:700;text-decoration:none">Получить вход в Кабинет</a>';
+          var _er2 = document.querySelector('.err, #err, [data-err]');
+          (_er2 && _er2.parentNode ? _er2.parentNode : document.body)
+            .insertBefore(_fx2, _er2 ? _er2.nextSibling : null);
+        } catch (e) {}
         applySignup(FALLBACK_TARIFFS);
         return;
       }
