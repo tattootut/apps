@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Николай Блок · AI-примерка тату</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-card: #161616;
+    --bg-card-h: #1f1f1f;
+    --fg: #ededed;
+    --fg-mute: #888;
+    --accent: #c8a878;
+    --accent-bright: #e6c692;
+    --border: #2a2a2a;
+    --danger: #c54141;
+    --success: #4f9d52;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", sans-serif; line-height: 1.5; min-height: 100vh; }
+  body { padding: 16px 16px 80px; max-width: 480px; margin: 0 auto; }
+
+  /* Header */
+  .hero { text-align: center; padding: 24px 0 32px; }
+  .hero__logo { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 12px; background: var(--bg-card); display: flex; align-items: center; justify-content: center; border: 1px solid var(--accent); }
+  .hero__logo span { font-size: 28px; }
+  .hero__title { font-size: 22px; font-weight: 600; letter-spacing: 0.2px; margin-bottom: 4px; }
+  .hero__subtitle { font-size: 14px; color: var(--fg-mute); }
+
+  /* Cards */
+  .section { margin-bottom: 16px; }
+  .section__title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--fg-mute); margin-bottom: 8px; padding-left: 4px; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; gap: 14px; }
+  .card:active { transform: scale(0.98); background: var(--bg-card-h); }
+  .card__icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(200, 168, 120, 0.1); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .card__body { flex: 1; }
+  .card__title { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .card__desc { font-size: 13px; color: var(--fg-mute); }
+  .card__arrow { color: var(--fg-mute); font-size: 18px; }
+
+  /* Step flow */
+  .flow { display: none; }
+  .flow.active { display: block; }
+  .step { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
+  .step__num { display: inline-block; background: var(--accent); color: var(--bg); font-weight: 700; padding: 2px 10px; border-radius: 10px; font-size: 12px; margin-bottom: 8px; }
+  .step__title { font-size: 16px; margin-bottom: 6px; }
+  .step__desc { font-size: 13px; color: var(--fg-mute); margin-bottom: 12px; }
+  .dropzone { border: 1.5px dashed var(--border); border-radius: 12px; padding: 30px 10px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .dropzone:active { border-color: var(--accent); background: rgba(200, 168, 120, 0.05); }
+  .dropzone__icon { font-size: 32px; opacity: 0.5; margin-bottom: 6px; }
+  .dropzone__text { color: var(--fg-mute); font-size: 13px; }
+
+  /* Size selector */
+  .size-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .size-btn { background: var(--bg-card-h); border: 1px solid var(--border); border-radius: 10px; padding: 14px 10px; text-align: center; color: var(--fg); cursor: pointer; transition: border-color 0.15s; font-size: 14px; }
+  .size-btn:active, .size-btn.active { border-color: var(--accent); background: rgba(200, 168, 120, 0.06); }
+  .size-btn__title { font-weight: 600; margin-bottom: 2px; }
+  .size-btn__sub { font-size: 11px; color: var(--fg-mute); }
+
+  /* Primary CTA */
+  .cta { width: 100%; background: var(--accent); color: var(--bg); border: 0; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: background 0.15s; }
+  .cta:active { background: var(--accent-bright); }
+  .cta--ghost { background: transparent; color: var(--fg-mute); border: 1px solid var(--border); }
+  .cta--ghost:active { background: var(--bg-card-h); }
+
+  /* Result */
+  .result { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; }
+  .result__img { width: 100%; aspect-ratio: 1; background: var(--bg-card-h); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 42px; opacity: 0.4; margin-bottom: 12px; }
+  .result__cap { font-size: 13px; color: var(--fg-mute); margin-bottom: 12px; }
+  .nudge-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0; }
+  .nudge-btn { background: var(--bg-card-h); border: 1px solid var(--border); border-radius: 8px; padding: 12px 0; font-size: 18px; color: var(--fg); cursor: pointer; }
+  .nudge-btn:active { background: var(--accent); color: var(--bg); }
+  .nudge-row--2 { grid-template-columns: 1fr 1fr; }
+  .fb-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .fb-btn { padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card-h); color: var(--fg); cursor: pointer; font-size: 14px; }
+  .fb-btn--up:active { background: rgba(79, 157, 82, 0.2); border-color: var(--success); }
+  .fb-btn--down:active { background: rgba(197, 65, 65, 0.2); border-color: var(--danger); }
+
+  /* Back */
+  .back { color: var(--fg-mute); font-size: 14px; padding: 8px 0; cursor: pointer; display: inline-block; }
+  .back:active { color: var(--fg); }
+
+  /* Footer note */
+  .note { font-size: 11px; color: var(--fg-mute); text-align: center; padding: 16px 12px; line-height: 1.6; }
+  .note a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ ГЛАВНОЕ МЕНЮ ═══════════════ -->
+<div id="screen-home" class="flow active">
+  <div class="hero">
+    <div class="hero__logo"><span>🎨</span></div>
+    <div class="hero__title">Николай Блок · Тату</div>
+    <div class="hero__subtitle">AI-помощник · Москва, Королёв</div>
+  </div>
+
+  <div class="section">
+    <div class="section__title">Что хочешь сделать</div>
+
+    <div class="card" data-go="tryon">
+      <div class="card__icon">🖼</div>
+      <div class="card__body">
+        <div class="card__title">Примерить тату</div>
+        <div class="card__desc">Увидишь как ляжет эскиз на твоё тело</div>
+      </div>
+      <div class="card__arrow">›</div>
+    </div>
+
+    <div class="card" data-go="sketch">
+      <div class="card__icon">✨</div>
+      <div class="card__body">
+        <div class="card__title">Создать эскиз</div>
+        <div class="card__desc">AI собьёт идею с нуля</div>
+      </div>
+      <div class="card__arrow">›</div>
+    </div>
+
+    <div class="card" data-go="meaning">
+      <div class="card__icon">🔮</div>
+      <div class="card__body">
+        <div class="card__title">Что значит твоя тату</div>
+        <div class="card__desc">3 культуры · 3 факта · цены 4 региона</div>
+      </div>
+      <div class="card__arrow">›</div>
+    </div>
+
+    <div class="card" data-go="consult">
+      <div class="card__icon">💬</div>
+      <div class="card__body">
+        <div class="card__title">Поговорить с мастером</div>
+        <div class="card__desc">Идея, размер, цена, запись</div>
+      </div>
+      <div class="card__arrow">›</div>
+    </div>
+  </div>
+
+  <div class="note">
+    Это макет Mini App. Полностью повторяет логику бота, но в удобном веб-интерфейсе.<br>
+    Реальные генерации — через <a href="https://telegram.me/ta2_blockbot">@ta2_blockbot</a>.
+  </div>
+</div>
+
+<!-- ═══════════════ TRYON FLOW ═══════════════ -->
+<div id="screen-tryon" class="flow">
+  <span class="back" onclick="go('home')">← Назад</span>
+  <div class="hero" style="padding-bottom: 12px;">
+    <div class="hero__title">Примерка тату</div>
+  </div>
+
+  <div class="step">
+    <span class="step__num">ШАГ 1</span>
+    <div class="step__title">Эскиз тату</div>
+    <div class="step__desc">Картинка с дизайном который хочешь</div>
+    <div class="dropzone">
+      <div class="dropzone__icon">📷</div>
+      <div class="dropzone__text">Нажми чтобы выбрать</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <span class="step__num">ШАГ 2</span>
+    <div class="step__title">Фото места</div>
+    <div class="step__desc">Рука / плечо / нога — куда наносить</div>
+    <div class="dropzone">
+      <div class="dropzone__icon">📷</div>
+      <div class="dropzone__text">Нажми чтобы выбрать</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <span class="step__num">ШАГ 3</span>
+    <div class="step__title">Размер тату</div>
+    <div class="step__desc">Можно стандартный или указать своё</div>
+    <div class="size-grid">
+      <button class="size-btn"><div class="size-btn__title">🪶 Маленькая</div><div class="size-btn__sub">~8 см</div></button>
+      <button class="size-btn active"><div class="size-btn__title">📏 Средняя</div><div class="size-btn__sub">~15 см</div></button>
+      <button class="size-btn"><div class="size-btn__title">🎯 Большая</div><div class="size-btn__sub">~28 см</div></button>
+      <button class="size-btn"><div class="size-btn__title">📝 Уточнить</div><div class="size-btn__sub">своё описание</div></button>
+    </div>
+  </div>
+
+  <button class="cta" onclick="go('result')">🎨 Сделать примерку</button>
+</div>
+
+<!-- ═══════════════ RESULT ═══════════════ -->
+<div id="screen-result" class="flow">
+  <span class="back" onclick="go('tryon')">← Назад</span>
+  <div class="hero" style="padding-bottom: 12px;">
+    <div class="hero__title">Готово ✨</div>
+  </div>
+
+  <div class="result">
+    <div class="result__img">🖼</div>
+    <div class="result__cap">AI-симуляция. Финальный эскиз Николай дорисовывает на консультации.</div>
+
+    <div class="fb-row">
+      <button class="fb-btn fb-btn--up">👍 Понравилось</button>
+      <button class="fb-btn fb-btn--down">👎 Не то</button>
+    </div>
+
+    <div class="nudge-row">
+      <button class="nudge-btn">⬅️</button>
+      <button class="nudge-btn">⬆️</button>
+      <button class="nudge-btn">⬇️</button>
+      <button class="nudge-btn">➡️</button>
+    </div>
+    <div class="nudge-row nudge-row--2">
+      <button class="nudge-btn">➖ Меньше</button>
+      <button class="nudge-btn">➕ Больше</button>
+    </div>
+
+    <button class="cta">🖨 Сделать stencil для печати</button>
+    <button class="cta cta--ghost" onclick="go('tryon')">🆕 Новая примерка</button>
+  </div>
+</div>
+
+<!-- ═══════════════ ОСТАЛЬНОЕ — Заглушки ═══════════════ -->
+<div id="screen-sketch" class="flow">
+  <span class="back" onclick="go('home')">← Назад</span>
+  <div class="hero"><div class="hero__title">✨ Создание эскиза</div></div>
+  <div class="card" style="display:block; text-align: center; padding: 32px 16px;">
+    <div style="font-size: 48px; opacity: 0.3; margin-bottom: 12px;">🚧</div>
+    <div>Скоро здесь будет генератор эскизов с нуля.</div>
+    <div style="color: var(--fg-mute); font-size: 13px; margin-top: 8px;">Сейчас доступно через @ta2_blockbot → ✨ Создать эскиз</div>
+  </div>
+</div>
+
+<div id="screen-meaning" class="flow">
+  <span class="back" onclick="go('home')">← Назад</span>
+  <div class="hero"><div class="hero__title">🔮 Что значит твоя тату</div></div>
+  <div class="card" style="display:block; text-align: center; padding: 32px 16px;">
+    <div style="font-size: 48px; opacity: 0.3; margin-bottom: 12px;">🚧</div>
+    <div>Скоро здесь будет культурный разбор по фото.</div>
+    <div style="color: var(--fg-mute); font-size: 13px; margin-top: 8px;">Сейчас — @ta2_blockbot → 🔮 Что значит твоя тату</div>
+  </div>
+</div>
+
+<div id="screen-consult" class="flow">
+  <span class="back" onclick="go('home')">← Назад</span>
+  <div class="hero"><div class="hero__title">💬 Консультация</div></div>
+  <div class="card" style="display:block; text-align: center; padding: 32px 16px;">
+    <div style="font-size: 48px; opacity: 0.3; margin-bottom: 12px;">💬</div>
+    <div>Открой чат с Николаем</div>
+    <button class="cta" style="margin-top: 16px;" onclick="openTelegram()">Перейти в @ta2_blockbot</button>
+  </div>
+</div>
+
+<script>
+  // Telegram WebApp init
+  if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor('#0a0a0a');
+    tg.setBackgroundColor('#0a0a0a');
+  }
+
+  function go(screen) {
+    document.querySelectorAll('.flow').forEach(el => el.classList.remove('active'));
+    const target = document.getElementById('screen-' + screen);
+    if (target) target.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  document.querySelectorAll('.card[data-go]').forEach(card => {
+    card.addEventListener('click', () => go(card.dataset.go));
+  });
+
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  function openTelegram() {
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.openTelegramLink('https://t.me/ta2_blockbot');
+    } else {
+      window.location.href = 'https://telegram.me/ta2_blockbot';
+    }
+  }
+</script>
+
+</body>
+</html>

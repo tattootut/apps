@@ -1,0 +1,105 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🧠 Живой мозг + стратегическая карта — ТАТУ ТУТ</title>
+<style>
+  :root{--ink:#eef0e6;--muted:#8a9080;--accent:#C4F000;--p1:#C4F000;--p2:#7fb0c8;--p3:#7a8068}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:radial-gradient(950px 640px at 50% 42%,#101a13,#070a08 76%);color:var(--ink);font-family:-apple-system,Inter,Segoe UI,sans-serif;overflow:hidden}
+  .hdr{position:fixed;top:0;left:0;right:0;padding:14px 20px;z-index:5;pointer-events:none}
+  .hdr h1{margin:0;font-size:18px}.hdr .s{color:var(--muted);font-size:12.5px;margin-top:3px}.hdr b{color:var(--accent)}
+  svg{width:100vw;height:100vh;display:block}
+  .legend{position:fixed;bottom:14px;left:20px;font-size:12px;color:var(--muted);z-index:5;line-height:1.9}
+  .legend .d{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin:0 5px 0 0}
+  .legend .ln{display:inline-block;width:16px;border-top:2px dashed;vertical-align:3px;margin:0 5px 0 14px}
+  .panel{position:fixed;top:50%;right:16px;transform:translateY(-50%);width:308px;max-width:78vw;background:rgba(16,22,14,.93);border:1px solid #2c3322;border-radius:16px;padding:16px 18px;z-index:6;backdrop-filter:blur(8px);box-shadow:0 10px 40px rgba(0,0,0,.5);transition:opacity .25s;opacity:0}
+  .panel.show{opacity:1}.panel h3{margin:0 0 5px;font-size:16px}
+  .panel .st{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px}
+  .panel .desc{font-size:13px;line-height:1.5;opacity:.92;margin-bottom:9px}
+  .panel .row{font-size:12.5px;line-height:1.5;border-top:1px solid #2c3322;padding-top:8px;margin-top:8px}
+  .panel .row b{color:var(--ink)}
+  text{font-family:-apple-system,Inter,sans-serif;pointer-events:none;user-select:none}
+  .node{cursor:pointer}.node circle{transition:r .25s ease,filter .25s ease,opacity .25s ease}
+  @keyframes breathe{0%,100%{opacity:1}50%{opacity:.62}}
+</style></head><body>
+<div class="hdr"><h1>🧠 Живой мозг + стратегическая карта — <b>ТАТУ ТУТ</b></h1>
+<div class="s">сплошные — отделы работают (мысли текут) · пунктир — <b>куда расти</b> (я как стратег): 🟢 сейчас · 🔵 след. · ⚪ потом · кликни кружок</div></div>
+<svg id="svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid meet"></svg>
+<div class="legend">
+  <span class="d" style="background:var(--accent)"></span>работает
+  <span class="ln" style="border-color:var(--p1)"></span>растить сейчас
+  <span class="ln" style="border-color:var(--p2)"></span>следующее
+  <span class="ln" style="border-color:var(--p3)"></span>потом
+</div>
+<div class="panel" id="panel"></div>
+<script>
+const CX=600, CY=388, R_IN=222, R_OUT=336;
+// active: a=угол. frontier: a=угол, prio 1/2/3, why=зачем, conn=что связывает
+const N=[
+ {id:'brain',e:'🧠',l:'Мозг / CTO',k:'core',d:'Держу архитектуру, код, деплой, дроблю задачи, запускаю воркеров, проверяю до выпуска.'},
+ {id:'qa',e:'🛡',l:'Стены / QA',k:'active',a:112,d:'126 тестов + проверка кнопок + safe_deploy. Не пускают сломанный код к тебе.'},
+ {id:'mem',e:'🗄',l:'Память',k:'active',a:157,d:'BOT_BRAIN, memory, уроки. Растёт после каждой сессии.'},
+ {id:'gen',e:'🖼',l:'Генерация ИИ',k:'active',a:200,d:'Примерка, трансфер, эскиз, ретушь, видео + запаски.'},
+ {id:'learn',e:'🔁',l:'Самообучение',k:'active',a:244,d:'Петля: 👎 → подкрутка качества примерки + авто-откат. Пока узкая.'},
+ {id:'workers',e:'👷',l:'Воркеры',k:'active',a:292,d:'Параллельные ИИ-сессии под задачи. Сдают отчёты, я ревьюю.'},
+ {id:'pay',e:'💳',l:'Платежи',k:'active',a:337,d:'СБП, карта+автопродление, рефералка, овередж.'},
+ {id:'analytics',e:'📊',l:'Аналитика',k:'active',a:22,d:'Кабинет: деньги, воронка, удержание, расход ИИ.'},
+ {id:'deploy',e:'🚀',l:'Деплой / Инфра',k:'active',a:67,d:'Railway, авто-деплой ~3 мин, healthcheck, cache-bust.'},
+ // ── ФРОНТИР: мои стратегические ветки ──
+ {id:'funnel',e:'🎯',l:'Воронка / Конверсия',k:'pot',a:305,prio:1,d:'Где люди отваливаются (триал→платно) + отток. ГЛАВНОЕ узкое горло к деньгам.',conn:'связывает Маркетинг → Платежи (трафик → деньги)'},
+ {id:'mkt',e:'📣',l:'Маркетинг',k:'pot',a:215,prio:1,d:'Привлечение: аватар-ролики продают подписку мастерам. Монтажёр готов.',conn:'кормит весь бот трафиком → Воронка'},
+ {id:'finance',e:'💰',l:'Финансы',k:'pot',a:35,prio:1,d:'Окупаемость 100к/мес = +15–30 платящих. Модель дохода.',conn:'питается от Аналитики + Разведки'},
+ {id:'marketplace',e:'🏪',l:'Маркетплейс-лиды',k:'pot',a:340,prio:2,d:'Фаза 2 (вывод разведки): лиды как Tattoodo. Выше потолок дохода, чем подписка.',conn:'надстройка над Платежи + Воронка'},
+ {id:'partners',e:'🤝',l:'Партнёрства',k:'pot',a:255,prio:2,d:'Интеграция/альянс с CRM (Tattoo Manager и т.п. — у них 0 AI, мы добавляем).',conn:'канал дистрибуции → Маркетинг'},
+ {id:'support',e:'🛟',l:'Поддержка-автопилот',k:'pot',a:120,prio:2,d:'AI-ответы клиентам по реестру допусков (как client-autopilot в студии).',conn:'снимает нагрузку с тебя'},
+ {id:'voice',e:'🗣',l:'Голос / Аватар',k:'pot',a:80,prio:3,d:'Говорить со мной голосом без кнопок + аватар. «Лицо» поверх мозга.',conn:'когда продукт кормит'},
+ {id:'media',e:'📰',l:'Медиа-канал',k:'pot',a:160,prio:3,d:'Контент/медиа НЕ как ядро (драка с iNKPPL 5млн), а как маркетинг-рычаг.',conn:'питает Маркетинг, не доход сам по себе'},
+];
+const L=[['qa'],['mem'],['gen'],['learn'],['workers'],['pay'],['analytics'],['deploy'],['mem','learn'],['pay','analytics'],['gen','workers'],
+ // стратегические пунктирные связи (ветки роста)
+ ['mkt','funnel'],['funnel','pay'],['finance','analytics'],['marketplace','pay'],['partners','mkt'],['media','mkt']];
+const SVGNS='http://www.w3.org/2000/svg', X='http://www.w3.org/1999/xlink';
+const svg=document.getElementById('svg'), panel=document.getElementById('panel');
+const PC={1:'#C4F000',2:'#7fb0c8',3:'#7a8068'};
+function pos(n){if(n.k==='core')return[CX,CY];const r=n.k==='pot'?R_OUT:R_IN,t=n.a*Math.PI/180;return[CX+r*Math.cos(t),CY-r*Math.sin(t)];}
+N.forEach(n=>{const p=pos(n);n.x=p[0];n.y=p[1];});
+const byId=Object.fromEntries(N.map(n=>[n.id,n])); const ACT=N.filter(n=>n.k==='active');
+function el(t,a){const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function rnd(a,k){const c=a.slice(),o=[];while(c.length&&o.length<k)o.push(c.splice(Math.floor(Math.random()*c.length),1)[0]);return o;}
+const defs=el('defs',{});defs.innerHTML=`<radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(196,240,0,.18)"/><stop offset="100%" stop-color="rgba(196,240,0,0)"/></radialGradient><filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>`;svg.appendChild(defs);
+svg.appendChild(el('ellipse',{cx:CX-150,cy:CY-10,rx:300,ry:255,fill:'rgba(120,168,0,.05)',filter:'url(#soft)'}));
+svg.appendChild(el('ellipse',{cx:CX+150,cy:CY-10,rx:300,ry:255,fill:'rgba(120,168,0,.05)',filter:'url(#soft)'}));
+const glowC=el('circle',{cx:CX,cy:CY,r:300,fill:'url(#glow)'});svg.appendChild(glowC);
+// связи
+L.forEach((lk,i)=>{
+ const a=byId[lk[0]],b=lk[1]?byId[lk[1]]:byId['brain'],strat=a.k==='pot'||b.k==='pot',id='ln'+i;
+ const col= strat ? (PC[a.prio||b.prio||3]) : 'rgba(196,240,0,.16)';
+ svg.appendChild(el('path',{id,d:`M ${a.x.toFixed(1)} ${a.y.toFixed(1)} L ${b.x.toFixed(1)} ${b.y.toFixed(1)}`,fill:'none',stroke:strat?col:col,'stroke-opacity':strat?'.5':'1','stroke-width':strat?1.5:1.6,'stroke-dasharray':strat?'5 7':''}));
+ if(!strat){const dot=el('circle',{r:2.2,fill:'rgba(196,240,0,.55)'});const am=el('animateMotion',{dur:(4+i*0.13).toFixed(1)+'s',begin:(i*0.5).toFixed(1)+'s',repeatCount:'indefinite'});const mp=el('mpath',{});mp.setAttribute('href','#'+id);mp.setAttributeNS(X,'href','#'+id);am.appendChild(mp);dot.appendChild(am);svg.appendChild(dot);}
+});
+// узлы
+N.forEach(n=>{
+ const core=n.k==='core',act=n.k==='active',pot=n.k==='pot';n._r=core?52:act?33:26;
+ const stroke = pot ? PC[n.prio||3] : (core?'#C4F000':'#a6d400');
+ const g=el('g',{class:'node'});
+ const c=el('circle',{cx:n.x,cy:n.y,r:n._r,fill:core?'rgba(196,240,0,.14)':act?'rgba(196,240,0,.07)':'rgba(140,150,110,.03)',stroke,'stroke-width':core?2.5:2,'stroke-dasharray':pot?'4 5':'','stroke-opacity':pot?(n.prio===1?'.95':n.prio===2?'.7':'.5'):'1'});
+ n._c=c; if(!pot){c.style.filter='drop-shadow(0 0 9px rgba(196,240,0,.4))';c.style.animation=`breathe ${(3+Math.random()*2).toFixed(1)}s ease-in-out infinite`;}
+ g.appendChild(c);
+ g.appendChild(Object.assign(el('text',{x:n.x,y:n.y+(core?4:3),'text-anchor':'middle','font-size':core?30:act?21:16}),{textContent:n.e}));
+ if(!core){const t=n.a*Math.PI/180,ox=Math.cos(t),oy=-Math.sin(t),lx=n.x+ox*(n._r+11),ly=n.y+oy*(n._r+11)+(Math.abs(oy)<0.3?0:(oy>0?-2:11)),anc=ox>0.3?'start':ox<-0.3?'end':'middle';
+  g.appendChild(Object.assign(el('text',{x:lx.toFixed(1),y:ly.toFixed(1),'text-anchor':anc,'font-size':12,fill:pot?'#9aa088':'#eef0e6','font-weight':'600'}),{textContent:n.l}));}
+ const prioTxt={1:'🟢 РАСТИТЬ СЕЙЧАС',2:'🔵 СЛЕДУЮЩЕЕ',3:'⚪ ПОТОМ'};
+ const show=()=>{panel.className='panel show';panel.innerHTML=`<h3>${n.e} ${n.l}</h3>`+
+   `<div class="st" style="color:${pot?PC[n.prio||3]:'#C4F000'}">${core?'ЯДРО':act?'🟢 РАБОТАЕТ':prioTxt[n.prio||3]}</div>`+
+   `<div class="desc">${n.d}</div>`+(n.conn?`<div class="row">🔗 <b>${n.conn}</b></div>`:'')+
+   (pot?`<div class="row" style="color:var(--accent)">⚡ Скажи «развиваем ${n.l}» — заведу отдел/воркера.</div>`:'');};
+ g.addEventListener('mouseenter',show);g.addEventListener('click',show);svg.appendChild(g);
+});
+// движок мыслей (живость)
+function swell(n,m){const c=n._c;if(!c)return;c.setAttribute('r',(n._r*(m||1.5)).toFixed(1));c.style.filter='drop-shadow(0 0 20px rgba(214,255,58,.9))';setTimeout(()=>{c.setAttribute('r',n._r);c.style.filter=n.k==='pot'?'':'drop-shadow(0 0 9px rgba(196,240,0,.4))';},460);}
+let fp=0;const brain=byId['brain'];
+function pulse(a,b,cb){const id='fp'+(fp++);const p=el('path',{id,d:`M ${a.x.toFixed(1)} ${a.y.toFixed(1)} L ${b.x.toFixed(1)} ${b.y.toFixed(1)}`,fill:'none',stroke:'none'});svg.appendChild(p);const dot=el('circle',{r:5,fill:'#eaffae'});dot.style.filter='drop-shadow(0 0 9px rgba(214,255,58,1))';const am=el('animateMotion',{dur:'0.7s',begin:'0s',repeatCount:'1',fill:'freeze'});const mp=el('mpath',{});mp.setAttribute('href','#'+id);mp.setAttributeNS(X,'href','#'+id);am.appendChild(mp);dot.appendChild(am);svg.appendChild(dot);if(am.beginElement)try{am.beginElement();}catch(e){}setTimeout(()=>{dot.remove();p.remove();cb&&cb();},710);}
+function think(){rnd(ACT,1+Math.floor(Math.random()*3)).forEach((s,i)=>setTimeout(()=>{swell(s,1.45);pulse(s,brain,()=>{swell(brain,1.3);glowC.setAttribute('r',330);setTimeout(()=>glowC.setAttribute('r',300),300);rnd(ACT.filter(x=>x!==s),1+Math.floor(Math.random()*2)).forEach((o,j)=>setTimeout(()=>pulse(brain,o,()=>swell(o,1.28)),120+j*140));});},i*170));}
+setTimeout(think,600);setInterval(think,2300);
+panel.className='panel show';
+panel.innerHTML='<h3>🧠 Мозг + карта роста</h3><div class="desc">Сплошные кружки — отделы, что уже работают (по ним текут мысли). Пунктирные — куда я как стратег предлагаю расти: цвет = приоритет (🟢 сейчас, 🔵 следующее, ⚪ потом), а линии показывают <b>что с чем связывать</b>.</div><div class="row" style="color:var(--accent)">⚡ Идём по веткам: кликни пунктирный отдел → вижу зачем он и что соединяет. Скажешь «развиваем X» — завожу его воркером, и он становится сплошным.</div>';
+</script></body></html>

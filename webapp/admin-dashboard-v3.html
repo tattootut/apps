@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ТАТУ ТУТ — ЦУП</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  /* v3 «ПРОСТОЙ ЦУП» (заказ владельца 29.07: «сколько в день заработали,
+     сколько до этого, куда идём — понятно, с графиком, без наворотов»).
+     Принципы: один экран · большие цифры · только правда из кассы ·
+     всё умное живёт в «Подробном режиме» (v2) по ссылке внизу. */
+  :root{--bg:#0b1208;--card:#111a10;--border:#1e2a1c;--text:#f4f4f0;
+        --muted:#8a938e;--lime:#c4f000;--red:#ff6b6b;--green:#4ade80;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);
+       font-family:-apple-system,'Inter',system-ui,sans-serif;
+       padding:18px 16px calc(24px + env(safe-area-inset-bottom));}
+  .src{font-size:11px;color:var(--muted);margin-bottom:14px;}
+  .src b{color:var(--green);font-weight:600;}
+  .warn{background:#3a2a10;border:1px solid #6b5320;color:#ffd27a;
+        border-radius:12px;padding:10px 12px;font-size:12.5px;margin-bottom:14px;}
+  .hidden{display:none;}
+  /* сегодня — главная цифра */
+  .today{background:var(--card);border:1px solid var(--border);border-radius:20px;
+         padding:22px 20px 18px;margin-bottom:12px;}
+  .today .lbl{font-size:13px;color:var(--muted);margin-bottom:6px;}
+  .today .big{font-size:44px;font-weight:800;letter-spacing:-1px;line-height:1;}
+  .today .big small{font-size:22px;color:var(--muted);font-weight:600;}
+  .today .cmp{font-size:13px;margin-top:10px;color:var(--muted);}
+  .today .cmp b{font-weight:700;}
+  .up{color:var(--green);} .down{color:var(--red);}
+  /* три плитки */
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+  .tile{background:var(--card);border:1px solid var(--border);border-radius:16px;
+        padding:14px 12px;}
+  .tile .l{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .tile .v{font-size:18px;font-weight:800;}
+  .tile .s{font-size:10.5px;color:var(--muted);margin-top:3px;}
+  /* график */
+  .chart{background:var(--card);border:1px solid var(--border);border-radius:20px;
+         padding:16px 16px 10px;margin-bottom:12px;}
+  .chart .t{font-size:13px;color:var(--muted);margin-bottom:12px;}
+  .bars{display:flex;align-items:flex-end;gap:4px;height:110px;}
+  .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+       cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .bar .b{width:100%;border-radius:5px 5px 2px 2px;background:#2a3a26;
+          min-height:3px;transition:background .15s;}
+  .bar.best .b{background:var(--lime);}
+  .bar.today-b .b{background:#7ea832;}
+  .bar .d{font-size:8.5px;color:var(--muted);}
+  .bar.picked .b{background:var(--lime);}
+  .pick{font-size:12.5px;margin-top:10px;min-height:16px;color:var(--muted);}
+  .pick b{color:var(--text);}
+  /* итог месяца */
+  .month{background:var(--card);border:1px solid var(--border);border-radius:20px;
+         padding:16px;margin-bottom:12px;}
+  .month .kv{display:flex;justify-content:space-between;padding:7px 0;
+             font-size:14px;border-bottom:1px solid var(--border);}
+  .month .kv:last-child{border-bottom:none;}
+  .month .kv .k{color:var(--muted);}
+  .month .kv .v{font-weight:700;}
+  .month .kv.total .v{font-size:16px;}
+  .note{font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.45;}
+  /* прогноз */
+  .fcast{background:linear-gradient(135deg,#141f12,#0f1a0d);border:1px solid #2a3a26;
+         border-radius:20px;padding:16px;margin-bottom:16px;font-size:14px;}
+  .fcast b{color:var(--lime);}
+  .fcast .s{font-size:11px;color:var(--muted);margin-top:6px;}
+  .deep{display:block;text-align:center;color:var(--muted);font-size:13px;
+        padding:12px;text-decoration:none;border:1px dashed var(--border);
+        border-radius:14px;}
+  .state{color:var(--muted);font-size:14px;padding:30px 0;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="src" id="src">источник: …</div>
+<div class="warn hidden" id="warnKassa">⚠️ Касса ЮKassa сейчас недоступна — цифры ниже из журналов бота (обычно совпадают копейка в копейку, но первоисточник — касса).</div>
+<div class="state" id="state">Загружаю…</div>
+
+<div id="dash" class="hidden">
+
+  <div class="today">
+    <div class="lbl" id="todayLbl">Заработано сегодня</div>
+    <div class="big"><span id="todayV">…</span> <small>₽</small></div>
+    <div class="cmp" id="todayCmp"></div>
+  </div>
+
+  <div class="row3">
+    <div class="tile"><div class="l">Вчера</div><div class="v" id="yestV">…</div><div class="s">₽</div></div>
+    <div class="tile"><div class="l">7 дней</div><div class="v" id="d7V">…</div><div class="s">₽</div></div>
+    <div class="tile"><div class="l">30 дней</div><div class="v" id="d30V">…</div><div class="s" id="d30S">₽</div></div>
+  </div>
+
+  <div class="chart">
+    <div class="t">По дням, две недели · тапни столбик — покажу число</div>
+    <div class="bars" id="bars"></div>
+    <div class="pick" id="pick">Лаймовый — лучший день.</div>
+  </div>
+
+  <div class="month">
+    <div class="kv"><span class="k">Выручка за 30 дней</span><span class="v" id="mRev">…</span></div>
+    <div class="kv"><span class="k">Расход на нейросети</span><span class="v" id="mAi">…</span></div>
+    <div class="kv total"><span class="k">Остаётся с продукта</span><span class="v" id="mNet">…</span></div>
+    <div class="note">Это прибыль самого продукта. Люди, реклама и контент-завод сюда не входят — они в твоих руках и меняются решениями, а не кодом.</div>
+  </div>
+
+  <div class="fcast" id="fcast">…</div>
+
+  <a class="deep" id="deepLink" href="#">🔬 Подробный режим — воронки, каналы, продления</a>
+
+</div>
+
+<script>
+const API_BASE = 'https://worker-production-c1cb.up.railway.app';
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg){ try{ tg.ready(); tg.expand(); }catch(e){} }
+const $ = id => document.getElementById(id);
+const fmt = n => (Math.round(n)||0).toLocaleString('ru-RU');
+
+function draw(p){
+  // ── честный источник: ЮKassa первым, журналы — запасной с плашкой ──
+  const yk = p.yk_revenue && p.yk_revenue.ok ? p.yk_revenue : null;
+  const rev = p.revenue || {};
+  const today = yk ? yk.today : (rev.today||0);
+  const yest  = yk ? yk.yest  : (rev.yest||0);
+  const d7    = yk ? yk.d7    : (rev.week||0);
+  const d30   = yk ? yk.d30   : (rev.month||0);
+  $('src').innerHTML = yk
+    ? 'источник: <b>ЮKassa, касса</b> · обновлено только что'
+    : 'источник: журналы бота';
+  if (!yk) $('warnKassa').classList.remove('hidden');
+
+  $('todayV').textContent = fmt(today);
+  if (yest > 0){
+    const diff = today - yest;
+    const cls = diff >= 0 ? 'up' : 'down';
+    const sign = diff >= 0 ? '+' : '−';
+    $('todayCmp').innerHTML =
+      'вчера за весь день: ' + fmt(yest) + ' ₽ · пока <b class="'+cls+'">' +
+      sign + fmt(Math.abs(diff)) + ' ₽</b> к нему';
+  } else {
+    $('todayCmp').textContent = 'вчера продаж не было — сегодня уже лучше';
+  }
+  $('yestV').textContent = fmt(yest);
+  $('d7V').textContent = fmt(d7);
+  $('d30V').textContent = fmt(d30);
+  if (yk && yk.count_30d) $('d30S').textContent = yk.count_30d + ' оплат';
+
+  // ── график 14 дней ──
+  const series = (p.revenue_series||[]).slice(-14);
+  const mx = Math.max(1, ...series.map(x=>x.amount||0));
+  const best = Math.max(...series.map(x=>x.amount||0));
+  const bars = $('bars');
+  series.forEach((x,i)=>{
+    const el = document.createElement('div');
+    el.className = 'bar' + ((x.amount===best && best>0)?' best':'') +
+                   (i===series.length-1?' today-b':'');
+    const h = Math.max(3, Math.round((x.amount||0)/mx*100));
+    el.innerHTML = '<div class="b" style="height:'+h+'px"></div>' +
+                   '<div class="d">'+(x.date||'').slice(0,5)+'</div>';
+    el.onclick = ()=>{
+      bars.querySelectorAll('.bar').forEach(b=>b.classList.remove('picked'));
+      el.classList.add('picked');
+      $('pick').innerHTML = (x.date||'') + ': <b>' + fmt(x.amount||0) + ' ₽</b>';
+    };
+    bars.appendChild(el);
+  });
+
+  // ── итог месяца ──
+  const ai = (p.ai_costs && p.ai_costs.month_rub) || 0;
+  $('mRev').textContent = fmt(d30) + ' ₽';
+  $('mAi').textContent = '− ' + fmt(ai) + ' ₽';
+  const net = d30 - ai;
+  $('mNet').textContent = (net>=0?'':'−') + fmt(Math.abs(net)) + ' ₽';
+  $('mNet').className = 'v ' + (net>=0?'up':'down');
+
+  // ── прогноз: средний темп 7 дней × 30 ──
+  const pace = d7/7;
+  $('fcast').innerHTML =
+    'Куда идём: при темпе последней недели месяц закроется примерно на ' +
+    '<b>' + fmt(pace*30) + ' ₽</b>.' +
+    '<div class="s">Темп: ' + fmt(pace) + ' ₽/день в среднем за 7 дней. ' +
+    'Вырос темп — вырос прогноз. Всё честно, без фантазий.</div>';
+
+  $('deepLink').href = 'admin-dashboard-v2.html' + location.search;
+}
+
+(async function(){
+  try{
+    if (!tg || !tg.initData){
+      $('state').textContent = 'Открой из бота — кнопка «📊 ЦУП».';
+      return;
+    }
+    const resp = await fetch(API_BASE + '/api/admin?initData=' +
+      encodeURIComponent(tg.initData), {cache:'no-store'});
+    if (resp.status === 403){ $('state').textContent='ЦУП доступен только владельцу.'; return; }
+    const p = await resp.json();
+    $('state').classList.add('hidden');
+    $('dash').classList.remove('hidden');
+    draw(p);
+  }catch(e){
+    $('state').textContent = 'Не смог получить данные: ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>

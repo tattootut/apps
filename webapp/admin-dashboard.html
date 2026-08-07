@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ТАТУ ТУТ — Кабинет бизнеса</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#0d1510;
+    --bg2:#11201a;
+    --surface:#16271e;
+    --surface2:#1c3326;
+    --accent:#c4f000;
+    --accent-dim:#8fb000;
+    --text:#f4f4f0;
+    --muted:#8a978f;
+    --border:#243a30;
+    --green:#c4f000;
+    --red:#ff6b5e;
+    --amber:#ffb547;
+    --radius:18px;
+    --radius-sm:12px;
+    --font:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{
+    background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:var(--font);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body{
+    padding:20px 16px calc(40px + env(safe-area-inset-bottom));
+    max-width:560px;margin:0 auto;font-size:15px;line-height:1.45;
+    overflow-x:hidden;
+  }
+
+  /* HEADER */
+  .header{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+  .h-mark{width:34px;height:34px;flex:0 0 34px;border-radius:9px;
+    background:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:15px;color:var(--bg);letter-spacing:-0.5px;}
+  .h-title{font-weight:800;font-size:17px;letter-spacing:0.4px;text-transform:uppercase;line-height:1;}
+  .h-sub{color:var(--muted);font-size:12px;margin-top:4px;}
+  .src-line{font-size:11px;color:var(--muted);margin:10px 0 16px;letter-spacing:0.4px;text-transform:uppercase;}
+  .src-line.live{color:var(--accent);}
+
+  /* DEMO BANNER */
+  .demo-banner{background:rgba(196,240,0,0.08);border:1px dashed var(--accent);
+    border-radius:var(--radius-sm);padding:10px 13px;font-size:12px;color:var(--text);
+    margin-bottom:16px;line-height:1.5;}
+  .demo-banner b{color:var(--accent);}
+
+  /* SECTION TITLE */
+  .sec{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1.4px;
+    color:var(--muted);margin:26px 2px 12px;}
+  .sec:first-of-type{margin-top:14px;}
+  .sec .emoji{font-size:14px;margin-right:5px;}
+
+  /* CARD */
+  .card{
+    background:radial-gradient(130% 90% at 100% 0%,rgba(196,240,0,0.05),transparent 56%),var(--surface);
+    border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 16px;margin-bottom:12px;
+  }
+  .hidden{display:none !important;}
+
+  /* MONEY HERO */
+  .money-hero{border-color:rgba(196,240,0,0.30);box-shadow:0 0 22px rgba(196,240,0,0.06);
+    background:linear-gradient(160deg,var(--surface) 0%,var(--surface2) 130%);}
+  .mh-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;}
+  .mh-top > div:first-child{min-width:0;flex:1 1 auto;}
+  .mh-value{overflow:hidden;text-overflow:ellipsis;}
+  .mh-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+  .mh-value{font-weight:800;font-size:40px;line-height:0.95;letter-spacing:-0.5px;color:var(--accent);}
+  .mh-value .cur{font-size:22px;color:var(--accent-dim);font-weight:700;margin-left:3px;}
+  .mh-delta{font-size:12px;font-weight:600;text-align:right;white-space:nowrap;}
+  .mh-delta.up{color:var(--accent);}
+  .mh-delta.down{color:var(--red);}
+  .mh-delta.flat{color:var(--muted);}
+  .mh-sub{font-size:12px;color:var(--muted);margin-top:7px;}
+
+  .money-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .mg-cell{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 13px;}
+  .mg-cell .num{font-weight:800;font-size:21px;letter-spacing:-0.3px;line-height:1;}
+  .mg-cell .num.accent{color:var(--accent);}
+  .mg-cell .num.red{color:var(--red);}
+  .mg-cell .lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:6px;line-height:1.3;}
+
+  /* MARGIN BAR */
+  .margin-row{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px;gap:10px;}
+  .margin-row .ml{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;}
+  .margin-row .mv{font-weight:800;font-size:18px;color:var(--accent);}
+  .margin-track{height:7px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:9px;}
+  .margin-fill{height:100%;background:linear-gradient(90deg,var(--accent-dim),var(--accent));border-radius:99px;width:0%;transition:width .7s ease;}
+
+  /* FUNNEL */
+  .funnel-row{display:flex;align-items:center;gap:12px;padding:9px 0;}
+  .funnel-bar-wrap{flex:1 1 auto;min-width:0;}
+  .funnel-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px;}
+  .funnel-name{font-size:13px;color:var(--text);font-weight:600;}
+  .funnel-count{font-weight:800;font-size:15px;color:var(--text);white-space:nowrap;}
+  .funnel-track{height:11px;background:var(--bg);border-radius:99px;overflow:hidden;}
+  .funnel-fill{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .7s ease;}
+  .funnel-conv{flex:0 0 auto;width:50px;text-align:right;font-size:12px;font-weight:700;color:var(--accent-dim);}
+  .funnel-conv.drop{color:var(--amber);}
+  .funnel-conv.empty{color:var(--muted);font-weight:500;}
+
+  /* GROWTH BARS */
+  .growth-chart{display:flex;align-items:flex-end;gap:4px;height:90px;margin:6px 0 4px;}
+  .gc-col{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;min-width:0;}
+  .gc-bar{width:100%;max-width:18px;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;transition:height .6s ease;}
+  .gc-bar.visits{background:var(--surface2);border:1px solid var(--border);}
+  .gc-date{font-size:8.5px;color:var(--muted);white-space:nowrap;transform:scale(0.92);}
+  .growth-legend{display:flex;gap:16px;font-size:11px;color:var(--muted);margin-top:10px;}
+  .growth-legend .dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px;}
+  .growth-legend .dot.reg{background:var(--accent);}
+  .growth-legend .dot.vis{background:var(--surface2);border:1px solid var(--border);}
+  .growth-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;}
+  .gs-cell{text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 6px;}
+  .gs-cell .num{font-weight:800;font-size:19px;color:var(--accent);}
+  .gs-cell .lab{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;}
+
+  /* PRODUCT USAGE */
+  .usage-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .usage-row:last-child{border-bottom:none;}
+  .usage-icon{flex:0 0 28px;font-size:18px;text-align:center;}
+  .usage-name{flex:1 1 auto;font-size:13px;color:var(--text);}
+  .usage-num{font-weight:800;font-size:18px;color:var(--accent);white-space:nowrap;}
+
+  /* SOURCES / REFERRERS TABLE */
+  .tbl{width:100%;}
+  .tbl-head{display:grid;grid-template-columns:minmax(0,1fr) 58px 58px;gap:12px;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .tbl-row{display:grid;grid-template-columns:minmax(0,1fr) 58px 58px;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
+  .tbl-row:last-child{border-bottom:none;}
+  .tc-name{flex:1 1 0;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tc-name .tag{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;
+    padding:2px 6px;border-radius:5px;margin-left:6px;vertical-align:1px;}
+  .tag.utm{background:rgba(196,240,0,0.14);color:var(--accent);}
+  .tag.direct{background:var(--surface2);color:var(--muted);}
+  /* v628: таблица каналов — 5 колонок (расход/оплаты/выручка/ROI) */
+  .tbl5 .tbl-head,.tbl5 .tbl-row{grid-template-columns:minmax(0,1fr) 64px 40px 64px 46px;gap:8px;}
+  .tbl5 .tc-num{font-size:13px;flex-basis:auto;}
+  .tc-num{flex:0 0 60px;text-align:right;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;}
+  .tc-num.muted{color:var(--muted);font-weight:500;}
+  .tc-num.accent{color:var(--accent);}
+  .src-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+  .src-note b{color:var(--text);}
+
+  /* EMPTY */
+  .empty{font-size:13px;color:var(--muted);line-height:1.5;padding:6px 2px;}
+
+  /* STATE / SPINNER */
+  .state{padding:40px 16px;text-align:center;}
+  .state-msg{color:var(--muted);font-size:14px;margin-bottom:16px;}
+  .spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);
+    border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .state-retry{background:var(--accent);color:var(--bg);border:none;border-radius:var(--radius-sm);
+    padding:11px 22px;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--font);}
+
+  .footer-note{text-align:center;font-size:10.5px;color:var(--muted);margin-top:26px;letter-spacing:0.4px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="h-mark">ТТ</div>
+  <div>
+    <div class="h-title">Кабинет бизнеса</div>
+    <div class="h-sub">ТАТУ ТУТ · центр управления</div>
+  </div>
+</div>
+
+<div id="srcLine" class="src-line">источник: загрузка…</div>
+<div id="demoBanner" class="demo-banner hidden">
+  <b>Демо-режим.</b> Показаны примерные данные — открой кабинет внутри Telegram, чтобы увидеть реальные цифры.
+</div>
+
+<!-- STATE -->
+<div id="state" class="state hidden">
+  <div class="state-msg" id="stateMsg">Загружаю…</div>
+  <div class="spinner" id="stateSpin"></div>
+  <button class="state-retry hidden" id="stateRetry">Повторить</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="hidden">
+
+  <!-- 0. ПУЛЬС ОТ ДЖАРВИСА (v592) -->
+  <style>
+    .pulse{border-radius:18px;padding:18px 18px 16px;margin-bottom:18px;
+      border:1px solid var(--border);background:var(--surface)}
+    .pulse.ok{border-color:rgba(196,240,0,.35);box-shadow:0 0 22px rgba(196,240,0,.07)}
+    .pulse.warn{border-color:rgba(255,181,71,.4)}
+    .pulse.alert{border-color:rgba(255,107,94,.45)}
+    .pulse-h{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+    .pulse-h .dot{font-size:20px}
+    .pulse-h .ttl{font-family:var(--font);font-weight:800;font-size:15px;color:var(--text)}
+    .pulse-h .dt{margin-left:auto;font-size:11.5px;color:var(--muted)}
+    .pulse-verdict{font-size:15px;line-height:1.5;color:var(--text);font-weight:600;margin-bottom:12px}
+    .pulse-facts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+    .pulse-facts .f{background:var(--bg);border-radius:10px;padding:8px 11px;font-size:12px;color:var(--muted)}
+    .pulse-facts .f b{color:var(--text);font-size:14px;font-family:var(--font);font-weight:800;display:block}
+    .pulse-look{font-size:12.5px;line-height:1.55;color:var(--muted);border-top:1px solid var(--border);padding-top:11px}
+    .pulse-look b{color:var(--accent)}
+  </style>
+  <div class="pulse ok" id="pulseCard">
+    <div class="pulse-h"><span class="dot" id="pulseDot">🧠</span>
+      <span class="ttl">Пульс от Джарвиса</span>
+      <span class="dt" id="pulseDate"></span></div>
+    <div class="pulse-verdict" id="pulseVerdict">—</div>
+    <div class="pulse-facts" id="pulseFacts"></div>
+    <div class="pulse-look" id="pulseLook"></div>
+  </div>
+
+  <!-- 1. ДЕНЬГИ -->
+  <div class="sec"><span class="emoji">💰</span>Деньги</div>
+  <div class="card money-hero">
+    <div class="mh-top">
+      <div>
+        <div class="mh-label">Выручка · ЮKassa · 30 дней</div>
+        <div class="mh-value" id="mMrr">0<span class="cur">₽</span></div>
+        <div class="mh-sub" id="mMrrSub">0 платящих мастеров</div>
+      </div>
+      <div class="mh-delta flat" id="mRevDelta">—</div>
+    </div>
+
+    <div class="money-grid">
+      <div class="mg-cell">
+        <div class="num accent" id="mRevMonth">0 ₽</div>
+        <div class="lab">Выручка 30 дней</div>
+      </div>
+      <div class="mg-cell">
+        <div class="num" id="mArpu">0 ₽</div>
+        <div class="lab">📢 Маркетинг 30д</div>
+      </div>
+      <div class="mg-cell">
+        <div class="num red" id="mAiCost">0 ₽</div>
+        <div class="lab">AI-расходы 30 дней</div>
+      </div>
+      <div class="mg-cell">
+        <div class="num accent" id="mNet">0 ₽</div>
+        <div class="lab">Валовая прибыль 30д</div>
+      </div>
+    </div>
+
+    <div id="marginBlock">
+      <div class="margin-row">
+        <span class="ml">Маржинальность</span>
+        <span class="mv" id="mMarginPct">—</span>
+      </div>
+      <div class="margin-track"><div class="margin-fill" id="mMarginFill"></div></div>
+    </div>
+  </div>
+
+  <!-- 2. ВОРОНКА (v589 редизайн: срезы 7/30/всё, старое/новое, 1-я генерация) -->
+  <style>
+    .fnl-toggle{display:flex;gap:6px;background:var(--bg);border:1px solid var(--border);
+      border-radius:12px;padding:4px;margin-bottom:14px}
+    .fnl-toggle button{flex:1;border:none;background:transparent;color:var(--muted);
+      font-weight:700;font-size:13px;padding:9px 6px;border-radius:9px;cursor:pointer;
+      font-family:var(--font);transition:.15s}
+    .fnl-toggle button.active{background:var(--accent);color:#0d1510}
+    .fnl-note{font-size:12px;line-height:1.5;color:var(--muted);background:var(--bg);
+      border:1px solid var(--border);border-left:3px solid var(--amber);
+      border-radius:10px;padding:10px 12px;margin-bottom:16px}
+    .fnl-note b{color:var(--text)}
+    .fnl-sub{font-size:15px;font-weight:800;color:var(--text);margin:18px 0 12px;
+      display:flex;align-items:center;gap:8px}
+    .fnl-sub .badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;
+      background:var(--surface2);color:var(--muted)}
+    .fnl-step{margin-bottom:4px}
+    .fnl-conn{display:flex;align-items:center;gap:8px;padding:2px 0 2px 6px;height:20px}
+    .fnl-conn .arrow{color:var(--muted);font-size:11px}
+    .fnl-conn .pct{font-size:12px;font-weight:800}
+    .fnl-conn .pct.good{color:var(--accent)}
+    .fnl-conn .pct.mid{color:var(--amber)}
+    .fnl-conn .pct.bad{color:var(--red)}
+    .fnl-conn .drop{font-size:11px;color:var(--red);font-weight:700}
+    .fnl-bar{display:flex;align-items:center;gap:12px}
+    .fnl-bar .info{flex:1;min-width:0}
+    .fnl-bar .nm{font-size:14px;font-weight:700;color:var(--text)}
+    .fnl-bar .desc{font-size:11.5px;color:var(--muted);margin-top:1px}
+    .fnl-bar .num{font-family:var(--font);font-weight:800;font-size:22px;color:var(--text);
+      white-space:nowrap}
+    .fnl-track{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:6px}
+    .fnl-fill{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .6s ease}
+    .fnl-fill.dim{background:var(--accent-dim);opacity:.6}
+  </style>
+  <div class="sec"><span class="emoji">🎯</span>Воронка — от захода до оплаты</div>
+  <div class="card" id="funnelCard">
+    <div class="fnl-toggle" id="fnlToggle">
+      <button data-win="d7" class="active">7 дней</button>
+      <button data-win="d30">30 дней</button>
+      <button data-win="all">Всё время</button>
+    </div>
+    <div class="fnl-note" id="fnlNote"></div>
+    <div class="fnl-sub">🎨 Тату-мастера</div>
+    <div id="funnelBody"></div>
+    <div class="fnl-sub">💄 Перманент <span class="badge" id="pmuBadge">воронка</span></div>
+    <div id="pmuBody"></div>
+  </div>
+
+  <!-- 3. РОСТ -->
+  <div class="sec"><span class="emoji">📈</span>Рост</div>
+  <div class="card" id="growthCard">
+    <div class="growth-chart" id="growthChart"></div>
+    <div class="growth-legend">
+      <span><span class="dot reg"></span>Новые мастера</span>
+      <span><span class="dot vis"></span>Заходы в бота</span>
+    </div>
+    <div class="growth-summary" id="growthSummary"></div>
+  </div>
+
+  <!-- 4. ПРОДУКТ -->
+  <div class="sec"><span class="emoji">🎨</span>Использование функций</div>
+  <div class="card" id="usageCard">
+    <div id="usageBody"></div>
+  </div>
+
+  <!-- 5. ИСТОЧНИКИ -->
+  <div class="sec"><span class="emoji">🔗</span>Источники трафика</div>
+  <div class="card" id="sourcesCard">
+    <div class="tbl">
+      <div class="tbl-head">
+        <span class="tc-name">Источник</span>
+        <span class="tc-num">Зашло</span>
+        <span class="tc-num">Оплат</span>
+      </div>
+      <div id="sourcesBody"></div>
+    </div>
+    <div class="src-note">
+      <b>«прямой»</b> — заходы без метки. <b>«метка»</b> — твои отслеживаемые кампании (реклама, блогеры).
+    </div>
+  </div>
+
+  <!-- 5b. КАНАЛЫ (v628): расход канала vs выручка его метки -->
+  <div class="sec" id="channelsSec"><span class="emoji">📡</span>Каналы: расход vs выручка</div>
+  <div class="card tbl5" id="channelsCard">
+    <div class="tbl">
+      <div class="tbl-head">
+        <span class="tc-name">Канал</span>
+        <span class="tc-num">Расход</span>
+        <span class="tc-num">Оплат</span>
+        <span class="tc-num">Выручка</span>
+        <span class="tc-num">ROI</span>
+      </div>
+      <div id="channelsBody"></div>
+    </div>
+    <div class="src-note">
+      <b>Расход</b> = фикс + KPI за просмотры (живой пересчёт по роликам ниже).
+      <b>ROI</b> = выручка метки ÷ полный расход. Порог здоровья — 50% в первый месяц.
+      Канал с расходом и нулями = «слепая» закупка (трафик без метки).
+    </div>
+  </div>
+
+  <!-- 5c. РОЛИКИ БЛОГЕРОВ (v629): просмотры → KPI-доплаты живьём -->
+  <div class="card tbl5" id="reelsCard" style="margin-top:10px">
+    <div class="tbl">
+      <div class="tbl-head">
+        <span class="tc-name">Ролик</span>
+        <span class="tc-num">Дата</span>
+        <span class="tc-num">Блогер</span>
+        <span class="tc-num">Просм.</span>
+        <span class="tc-num">KPI ₽</span>
+      </div>
+      <div id="reelsBody"></div>
+    </div>
+    <div class="src-note">
+      Просмотры вносятся <b>/reel_add</b> и <b>/reel_views</b> в боте — KPI
+      (Арман: 500к→5к ₽, 1М→10к ₽ · Глинская: 250к→5к, 500к→10к, 1М→20к)
+      пересчитывается сам и попадает в «Расход» канала.
+    </div>
+  </div>
+
+  <!-- 6. АМБАССАДОРЫ -->
+  <div class="sec"><span class="emoji">🤝</span>Амбассадоры</div>
+  <div class="card" id="referrersCard">
+    <div class="tbl">
+      <div class="tbl-head">
+        <span class="tc-name">Кто приводит</span>
+        <span class="tc-num">Привёл</span>
+        <span class="tc-num">Оплат</span>
+      </div>
+      <div id="referrersBody"></div>
+    </div>
+  </div>
+
+  <div class="footer-note" id="footerNote">Тату? Тут.</div>
+</div>
+
+<script>
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const API_BASE = 'https://worker-production-c1cb.up.railway.app';
+const $ = (id) => document.getElementById(id);
+const DEMO_MODE = new URLSearchParams(location.search).get('demo') === '1';
+
+// ── helpers ──
+const fmtRub = (n) => (Math.round(Number(n) || 0)).toLocaleString('ru-RU');
+const fmtNum = (n) => (Number(n) || 0).toLocaleString('ru-RU');
+
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// Метка-источник: UTM (blog_/yt_/ig_/латиница с _) vs прямой/органика
+function isUtmSource(s){
+  const v = String(s || '').toLowerCase();
+  if (!v || v === 'прямой' || v === 'органика' || v === 'direct') return false;
+  return /^(blog_|yt_|ig_|utm_|tg_|ads_)/.test(v) || (/[a-z]/.test(v) && v.includes('_'));
+}
+
+// ── DEMO payload (реалистичный, осмысленный) ──
+const MOCK = {
+  ok: true,
+  masters: { total: 38, paying: 5, active: 9, trial: 6, expired: 29 },
+  revenue: { mrr: 0, avg_price: 0, today: 0, today_payments: 0,
+             week: 8970, week_payments: 3, month: 18430, month_payments: 7 },
+  yk_revenue: null, _yk_off: { ok: true, today: 0, yest: 0, d7: 0, d30: 0,
+                count_today: 1, count_7d: 3, count_30d: 7, delta_today: 1500 },
+  ad_spend: { total: 0, d30: 0, month: 0, planned: 0 },
+  channels: { rows: [
+    { code: 'arman', label: 'Арман · блогер IG', spend_rub: 25000, kpi_due_rub: 5000, total_due_rub: 30000, entered: 3, paid: 1, revenue_rub: 2990, roi_pct: 10 },
+    { code: 'ig_tt', label: 'Дядя Кольщик · Instagram', spend_rub: 10000, kpi_due_rub: 0, total_due_rub: 10000, entered: 758, paid: 7, revenue_rub: 14930, roi_pct: 149 },
+    { code: 'blg2', spend_rub: 10000, kpi_due_rub: 0, total_due_rub: 10000, entered: 6, paid: 2, revenue_rub: 5480, roi_pct: 55 },
+  ] },
+  reels: { rows: [
+    { n: 1, date: '2026-07-20', blogger: 'arman', views: 512000, kpi_rub: 5000 },
+    { n: 2, date: '2026-07-14', blogger: 'blg2', views: 4800, kpi_rub: 0 },
+  ], kpi_by_blogger: { arman: 5000, blg2: 0 } },
+  ai_costs: { today_rub: 180, week_rub: 1240, month_rub: 4870,
+              today_usd: 1.9, month_usd: 51.3, rate: 95,
+              by_service: { openai: 3100, gemini: 980, anthropic: 790 } },
+  usage: { stencils: 84, tryons: 152, extracts: 47, videos: 6, photo_retouch: 39 },
+  master_clients: { clients_today: 14, clients_total: 211, tryons_total: 153, wants_total: 27 },
+  funnel: { entered: 312, registered: 38, trial: 11, paid: 7, renewed: 2,
+            conv_reg: 12, conv_trial: 29, conv_paid: 18, conv_renew: 29 },
+  role_select_launch: '2026-07-05',
+  funnels: {
+    d7:  { entered: 367, chose_tattoo: 96, registered: 20, first_gen: 19, paid: 9, renewed: 0,
+           chose_client: 210, chose_pmu: 40,
+           cv_chose: 26, cv_reg: 21, cv_gen: 95, cv_paid: 47, cv_renew: 0 },
+    d30: { entered: 980, chose_tattoo: 240, registered: 55, first_gen: 44, paid: 18, renewed: 3,
+           chose_client: 560, chose_pmu: 95,
+           cv_chose: 24, cv_reg: 23, cv_gen: 80, cv_paid: 41, cv_renew: 17 },
+    all: { entered: 1800, chose_tattoo: 300, registered: 127, first_gen: 74, paid: 24, renewed: 4,
+           chose_client: 620, chose_pmu: 110,
+           cv_chose: 17, cv_reg: 42, cv_gen: 58, cv_paid: 32, cv_renew: 17 },
+  },
+  pmu_funnels: {
+    d7:  { entered: 18, tried: 11, paid: 2, active: 2, revenue: 798, cv_tried: 61, cv_paid: 18, cv_active: 100 },
+    d30: { entered: 18, tried: 11, paid: 2, active: 2, revenue: 798, cv_tried: 61, cv_paid: 18, cv_active: 100 },
+    all: { entered: 18, tried: 11, paid: 2, active: 2, revenue: 798, cv_tried: 61, cv_paid: 18, cv_active: 100 },
+  },
+  visitors: {
+    today_unique: 21, today_total: 34, yest_unique: 17, yest_total: 28,
+    days7: [
+      { date:'07.06', unique:9,  total:14 },
+      { date:'08.06', unique:12, total:19 },
+      { date:'09.06', unique:8,  total:13 },
+      { date:'10.06', unique:15, total:24 },
+      { date:'11.06', unique:18, total:31 },
+      { date:'12.06', unique:17, total:28 },
+      { date:'13.06', unique:21, total:34 },
+    ],
+  },
+  registrations: [
+    {date:'31.05',count:1},{date:'01.06',count:2},{date:'02.06',count:0},
+    {date:'03.06',count:3},{date:'04.06',count:1},{date:'05.06',count:2},
+    {date:'06.06',count:1},{date:'07.06',count:2},{date:'08.06',count:4},
+    {date:'09.06',count:2},{date:'10.06',count:5},{date:'11.06',count:3},
+    {date:'12.06',count:4},{date:'13.06',count:5},
+  ],
+  momentum: { masters_today: 5, masters_yest: 4, masters_delta: 1,
+              revenue_today: 2990, revenue_yest: 1490, revenue_delta: 1500 },
+  retention_v2: { ltv_rub: 4380, dau: 12, churn_pct: 21, trial_to_paid_pct: 45 },
+  sources: [
+    { source: 'демо·прямой',    leads: 794, masters: 67, paid: 14 },
+    { source: 'демо·источник1', leads: 469, masters: 35, paid: 2 },
+    { source: 'демо·источник2', leads: 56,  masters: 9,  paid: 4 },
+    { source: 'демо·источник3', leads: 7,   masters: 1,  paid: 1 },
+  ],
+  top_referrers: [
+    { name: 'ДЕМО · пример мастера', promo: 'DEMO1', count: 4, paid: 2 },
+    { name: 'ДЕМО · пример мастера', promo: 'DEMO2', count: 3, paid: 1 },
+    { name: 'ДЕМО · пример мастера', promo: 'DEMO3', count: 2, paid: 0 },
+  ],
+  health: { uptime_human: '3д 4ч', margin_pct: 74, errors_24h: 6, errors_top: ['BadRequest','Forbidden'], complaints_24h: 1 },
+  version: { build: 'demo', uptime_human: '3д 4ч' },
+};
+
+// ── 1. ДЕНЬГИ ──
+function renderMoney(d){
+  const rev = d.revenue || {};
+  const ai = d.ai_costs || {};
+  const mom = d.momentum || {};
+  const m = d.masters || {};
+  const yk = d.yk_revenue || null;   // v404: РЕАЛЬНАЯ касса ЮKassa (источник правды)
+
+  // Геро-число = реальная выручка ЮKassa за 30 дн (fallback — MRR-прогноз)
+  $('mMrr').innerHTML = fmtRub(yk ? yk.d30 : rev.mrr) + '<span class="cur">₽</span>';
+  const paying = m.paying || 0;
+  if (yk){
+    let _sub = (yk.count_30d || 0) + ' оплат за 30 дн · прогноз MRR ' + fmtRub(rev.mrr) + ' ₽';
+    // v753: второй канал денег. ЮKassa его не видит — без строки иностранные
+    // оплаты невидимы владельцу.
+    if (d.rk_revenue && Number(d.rk_revenue.d30) > 0){
+      _sub += ' · 🌍 Робокасса ' + fmtRub(d.rk_revenue.d30) + ' ₽ (' + (d.rk_revenue.count_30d||0) + ')';
+    }
+    $('mMrrSub').textContent = _sub;
+  } else {
+    $('mMrrSub').textContent = paying + ' ' + plMaster(paying) + ' платят (внутр. оценка, ЮKassa недоступна)';
+  }
+
+  // дельта выручки сегодня vs вчера (из кассы, если есть)
+  const delta = yk ? (Number(yk.delta_today) || 0) : (Number(mom.revenue_delta) || 0);
+  const revToday = yk ? (Number(yk.today) || 0) : (Number(mom.revenue_today) || 0);
+  const dEl = $('mRevDelta');
+  if (delta > 0){ dEl.textContent = '▲ +' + fmtRub(delta) + ' ₽\nсегодня'; dEl.className = 'mh-delta up'; }
+  else if (delta < 0){ dEl.textContent = '▼ ' + fmtRub(delta) + ' ₽\nсегодня'; dEl.className = 'mh-delta down'; }
+  else { dEl.textContent = 'сегодня\n' + fmtRub(revToday) + ' ₽'; dEl.className = 'mh-delta flat'; }
+  dEl.style.whiteSpace = 'pre-line';
+
+  const revMonth = yk ? (Number(yk.d30) || 0) : (Number(rev.month) || 0);
+  const aiMonth = Number(ai.month_rub) || 0;
+  // v753: МЕСЯЦ = календарный месяц. total за всё время (140 800 июньского
+  // сида) подписывался как месячный маркетинг — август мерился чужими
+  // тратами. month приходит из бота; старый payload без month → 0, а не ложь.
+  const adMonth = (d.ad_spend && Number(d.ad_spend.month)) || 0;   // v597: ОБЩИЙ маркетинг-расход (владелец хочет видеть всего потрачено, не за 30 дней)
+  // v408: ОПЕРАЦ. маржа = выручка − AI (юнит-экономика продукта), БЕЗ рекламы.
+  // Реклама — это инвестиция в рост, НЕ операционный убыток (так просил владелец).
+  const opMargin = revMonth - aiMonth;
+
+  $('mRevMonth').textContent = fmtRub(revMonth) + ' ₽';
+  // Маркетинг показываем как инвестицию (нейтрально), НЕ как убыток бизнеса
+  $('mArpu').textContent = '−' + fmtRub(adMonth) + ' ₽';
+  $('mArpu').className = 'num';
+  $('mAiCost').textContent = '−' + fmtRub(aiMonth) + ' ₽';
+  $('mNet').textContent = (opMargin < 0 ? '−' : '+') + fmtRub(Math.abs(opMargin)) + ' ₽';
+  $('mNet').className = 'num ' + (opMargin < 0 ? 'red' : 'accent');
+
+  // v408: маржинальность = ОПЕРАЦИОННАЯ (выручка − AI), без рекламы. Реклама —
+  // инвестиция в рост, не операционный убыток (так просил владелец).
+  let marginPct = revMonth > 0 ? Math.round(opMargin / revMonth * 100) : null;
+  if (marginPct == null){
+    $('marginBlock').classList.add('hidden');
+  } else {
+    $('marginBlock').classList.remove('hidden');
+    $('mMarginPct').textContent = marginPct + '%';
+    const fillPct = Math.max(0, Math.min(100, marginPct));
+    setTimeout(() => { $('mMarginFill').style.width = fillPct + '%'; }, 80);
+  }
+}
+
+function plMaster(n){
+  const a = n % 10, b = n % 100;
+  if (a === 1 && b !== 11) return 'мастер';
+  if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return 'мастера';
+  return 'мастеров';
+}
+
+// ── 2. ВОРОНКА ──
+// ── 0. ПУЛЬС ОТ ДЖАРВИСА (v592) — статус бизнеса простым языком + мой коммент.
+//    Все деньги — из yk_revenue (РЕАЛЬНАЯ касса ЮKassa, источник правды). ──
+function renderPulse(d){
+  const yk = d.yk_revenue || null;
+  const mom = d.momentum || {};
+  const H = d.health || {};
+  const week = yk ? Number(yk.d7||0) : 0;
+  const today = yk ? Number(yk.today||0) : Number(mom.revenue_today||0);
+  const weekCount = yk ? Number(yk.count_7d||0) : null;
+  const errors = Number(H.errors_24h||0);
+  const complaints = Number(H.complaints_24h||0);
+  const active = Number((d.activity&&d.activity.active_today)||0);
+  const errTop = H.errors_top||[];
+  const entered7 = Number(((d.funnels&&d.funnels.d7)||{}).entered||0);
+  const errWord = errors<=8?'штатно':(errors<=25?'повышенно':'всплеск');
+  // статус
+  let cls='ok', dot='🟢';
+  if((weekCount!==null && weekCount<=0) || errors>25 || complaints>=3){ cls='warn'; dot='🟡'; }
+  if(errors>70 || complaints>=8){ cls='alert'; dot='🔴'; }
+  // ВЕРДИКТ — ситуативно, моим голосом
+  let parts=[];
+  if(weekCount===null || weekCount>0){
+    parts.push('💚 Касса живая: '+(weekCount!==null?weekCount+' оплат':'оплаты идут')+' за 7 дней ('+fmtNum(week)+' ₽), деньги капают.');
+  } else {
+    parts.push('🟡 За 7 дней оплат в кассе нет — скорее затишье после рекламы, чем поломка.');
+  }
+  // трафик
+  if(entered7>0 && entered7<40){
+    parts.push('⚠️ Заходов мало ('+entered7+' за неделю) — труба пересыхает, оптимизировать нечего. Нужен <b>трафик</b>: реклама или виральная петля на оживлении.');
+  } else if(entered7>=40){
+    parts.push('Заходов достаточно ('+entered7+' за неделю) — есть на ком крутить конверсию.');
+  }
+  // здоровье
+  parts.push('Ошибки — <b>'+errWord+'</b> (в основном юзеры блокируют бота, не поломки).'+(complaints>0?' Жалоб за сутки: <b>'+complaints+'</b>'+(complaints>=3?' — гляну.':'.'):' Жалоб нет.'));
+  document.getElementById('pulseVerdict').innerHTML=parts.join(' ');
+  // ФАКТЫ
+  const facts=[
+    ['Касса 7 дней', fmtNum(week)+' ₽'],
+    ['Сегодня', fmtNum(today)+' ₽'],
+  ];
+  if(weekCount!==null) facts.push(['Оплат за неделю', weekCount+' шт']);
+  facts.push(['Заходов 7д', String(entered7)]);
+  facts.push(['Ошибки 24ч', errors+' · '+errWord]);
+  facts.push(['Жалобы 24ч', String(complaints)]);
+  facts.push(['Активны сегодня', String(active)]);
+  // ЦЕЛЬ + на что смотреть
+  const look='🎯 <b>Ближайшая цель — до 31 июля:</b> держим заморозку, копим данные, тест перманента + экзамен продлений (когда июньская когорта дойдёт до даты). Не наращиваем стройку.<br><br><b>Рычаг сейчас:</b> вернуть <b>94 не-купивших</b> (трафик за ₽0) + виральная петля на оживлении. Зарубеж — не сейчас.';
+  document.getElementById('pulseCard').className='pulse '+cls;
+  document.getElementById('pulseDot').textContent=dot;
+  document.getElementById('pulseDate').textContent='обновлено '+(d.generated_at||'').slice(0,16).replace('T',' ');
+  document.getElementById('pulseFacts').innerHTML=facts.map(f=>'<div class="f">'+f[0]+'<b>'+f[1]+'</b></div>').join('');
+  document.getElementById('pulseLook').innerHTML=look;
+}
+
+// ── ВОРОНКА v589: срезы 7/30/всё, метрика «1-я генерация», старое/новое ──
+let _fnlWin = 'd7', _fnlData = null, _fnlWired = false;
+// v596 (фикс «129 из 50»): «Выбрал роль» УБРАН из цепочки воронки — это событие
+// логируется только с 06.07 (≈все с той даты), а «Оформил/Генерация/Купил» —
+// за всё время, поэтому шаги не вкладывались (129 > 50 = бред 258%). Теперь
+// воронка на ОДНОЙ популяции и вкладывается: Зашёл ≥ Оформил ≥ Генерация ≥ Купил
+// ≥ Продлил. Разбивку ролей (тату/клиент/перманент) показываем ОТДЕЛЬНЫМ блоком.
+const FNL_STEPS_FULL = [
+  {k:'entered',      nm:'Зашёл в бота',           desc:'открыл бот — мастера И клиенты вместе'},
+  {k:'registered',   nm:'Оформил доступ',         desc:'активировал триал 199 ₽ или купил — тут появляется запись мастера', cv:'cv_reg'},
+  {k:'first_gen',    nm:'Сделал 1-ю генерацию',   desc:'реально попробовал продукт — ГЛАВНАЯ активация', cv:'cv_gen'},
+  {k:'paid',         nm:'Купил платный тариф',    desc:'оплатил тариф (не 1₽-триал)', cv:'cv_paid'},
+  {k:'renewed',      nm:'Продлил',                desc:'купил второй раз — удержание (только «Всё время»)', cv:'cv_renew'},
+];
+// v591: в срезах 7/30 дней «Продлил» УБРАН — продление требует ~30 дней после
+// покупки, в коротком окне почти всегда 0 и вводит в заблуждение (ложный
+// «провал удержания»). Показываем «Продлил» только во «Всё время».
+const FNL_STEPS_SHORT = FNL_STEPS_FULL.slice(0, 4);
+const PMU_STEPS = [
+  {k:'entered', nm:'Вошёл в перманент', desc:'открыл режим ПМ'},
+  {k:'tried',   nm:'Попробовал бесплатно', desc:'сделал бесплатную обработку или коллаж', cv:'cv_tried'},
+  {k:'paid',    nm:'Купил ПМ-тариф',    desc:'оплатил ПМ-тариф: 399 / 990 / 1490 ₽', cv:'cv_paid'},
+  {k:'active',  nm:'Активен сейчас',    desc:'тариф ещё действует', cv:'cv_active'},
+];
+
+function _fnlSteps(f, steps){
+  if(!f) return '<div style="color:var(--muted);font-size:13px;padding:6px 0">Нет данных за период.</div>';
+  const max = Math.max(Number(f[steps[0].k])||1, 1);
+  // самый большой отвал (мин. конверсия среди переходов) — для подсветки
+  let worstIdx=-1, worstCv=101;
+  steps.forEach((s,i)=>{ if(i>0){const c=Number(f[s.cv]||0); if(c<worstCv){worstCv=c; worstIdx=i;}} });
+  return steps.map((s,i)=>{
+    const count=Number(f[s.k]||0);
+    const w=Math.max(2, Math.round(count/max*100));
+    let conn='';
+    if(i>0){
+      const c=Number(f[s.cv]||0);
+      const cls=c>=40?'good':(c>=15?'mid':'bad');
+      const drop=(i===worstIdx && count<(Number(f[steps[i-1].k])||0))
+        ? '<span class="drop">← тут теряешь больше всего</span>' : '';
+      conn='<div class="fnl-conn"><span class="arrow">↓</span><span class="pct '+cls+'">'+c+'%</span>'+drop+'</div>';
+    }
+    return conn+'<div class="fnl-step"><div class="fnl-bar">'+
+      '<div class="info"><div class="nm">'+s.nm+'</div><div class="desc">'+s.desc+'</div></div>'+
+      '<div class="num">'+fmtNum(count)+'</div></div>'+
+      '<div class="fnl-track"><div class="fnl-fill'+(i===0?'':' dim')+'" data-w="'+w+'"></div></div></div>';
+  }).join('');
+}
+
+function renderFunnels(d){
+  if(d) _fnlData=d;
+  const dd=_fnlData; if(!dd) return;
+  // разовая привязка переключателя
+  if(!_fnlWired){
+    document.querySelectorAll('#fnlToggle button').forEach(b=>{
+      b.addEventListener('click',()=>{
+        document.querySelectorAll('#fnlToggle button').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active'); _fnlWin=b.dataset.win; renderFunnels();
+      });
+    });
+    _fnlWired=true;
+  }
+  const f=(dd.funnels||{})[_fnlWin], p=(dd.pmu_funnels||{})[_fnlWin];
+  const launch=dd.role_select_launch||'—';
+  $('fnlNote').innerHTML = (_fnlWin==='all')
+    ? '📅 <b>Всё время</b> — смешивает СТАРЫЙ и новый вход (экран выбора роли запущен '+launch+'). Старые цифры копились месяцами через прежние двери. Для чистой картины смотри <b>«7 дней»</b>.'
+    : '🆕 <b>Свежий срез</b> за '+(_fnlWin==='d7'?'7':'30')+' дней — это уже НОВЫЙ вход (тату / перманент / клиент, с '+launch+'). По нему судим, работает ли воронка сейчас.';
+  $('pmuBadge').textContent = (_fnlWin==='all'?'всё время':(_fnlWin==='d7'?'7 дней':'30 дней'));
+  const steps = (_fnlWin==='all') ? FNL_STEPS_FULL : FNL_STEPS_SHORT;
+  let fnlHtml=_fnlSteps(f, steps);
+  // Пояснение про продления в коротких срезах (не ложный «провал удержания»).
+  if(_fnlWin!=='all'){
+    fnlHtml+='<div style="margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5">🔁 «Продлил» здесь не показан: продление считается ~через 30 дней после покупки — в срезе '+(_fnlWin==='d7'?'7':'30')+' дней его почти нет, и это НЕ провал (тарифы 30-дневные). Проверка удержания — во «Всё время» или через ~месяц по первой когорте.</div>';
+  }
+  // Разбивка «куда ушли зашедшие» — тату vs клиент vs перманент (с 06.07).
+  if(f && (f.chose_tattoo || f.chose_client || f.chose_pmu)){
+    const split=[['🎨 тату', f.chose_tattoo||0],['🙋 клиент', f.chose_client||0],['💄 перманент', f.chose_pmu||0]];
+    fnlHtml+='<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">'+
+      '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Кого выбрали зашедшие (с 06.07 — часть уходит в клиента/перманента, поэтому «мастеров» меньше):</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:8px">'+
+      split.map(c=>'<span style="background:var(--bg);border-radius:9px;padding:7px 11px;font-size:12px;color:var(--text)"><b style="color:var(--accent)">'+fmtNum(c[1])+'</b> '+c[0]+'</span>').join('')+'</div></div>';
+  }
+  $('funnelBody').innerHTML=fnlHtml;
+  $('pmuBody').innerHTML=_fnlSteps(p, PMU_STEPS);
+  animateBars('#funnelBody .fnl-fill'); animateBars('#pmuBody .fnl-fill');
+}
+
+// ── 3. РОСТ ──
+function renderGrowth(d){
+  const reg = d.registrations || [];
+  const vis = (d.visitors && d.visitors.days7) || [];
+  if (!reg.length && !vis.length){ hideSection('growthCard'); return; }
+  showSection('growthCard');
+
+  // последние 7 дней регистраций для компактности с заходами
+  const reg7 = reg.slice(-7);
+  // совмещаем по дате с заходами (visitors.days7)
+  const visMap = {};
+  vis.forEach(v => { visMap[v.date] = v.unique || v.total || 0; });
+
+  const days = reg7.length ? reg7 : vis.map(v => ({ date: v.date, count: 0 }));
+  const maxReg = Math.max(1, ...days.map(x => x.count || 0));
+  const maxVis = Math.max(1, ...vis.map(v => v.unique || 0));
+
+  $('growthChart').innerHTML = days.map(day => {
+    const rc = day.count || 0;
+    const vc = visMap[day.date] || 0;
+    const rh = Math.round(rc / maxReg * 100);
+    const vh = Math.round(vc / maxVis * 100);
+    return '<div class="gc-col">' +
+      '<div class="gc-bar" data-h="' + rh + '" title="' + rc + ' мастеров"></div>' +
+      '<div class="gc-bar visits" data-h="' + vh + '" title="' + vc + ' заходов"></div>' +
+      '<div class="gc-date">' + escapeHtml(day.date) + '</div>' +
+    '</div>';
+  }).join('');
+  // bars высота
+  setTimeout(() => {
+    document.querySelectorAll('#growthChart .gc-bar').forEach(b => {
+      const h = Math.max(2, Number(b.getAttribute('data-h')) || 0);
+      b.style.height = h + '%';
+    });
+  }, 80);
+
+  // summary: всего за 7д + сегодня + retention метрики
+  const r2 = d.retention_v2 || {};
+  const visToday = (d.visitors && d.visitors.today_unique) || 0;
+  const regWeek = reg7.reduce((a, x) => a + (x.count || 0), 0);
+  const cells = [
+    { num: fmtNum(regWeek), lab: 'мастеров за 7д' },
+    { num: fmtNum(visToday), lab: 'заходов сегодня' },
+  ];
+  if (r2.dau != null) cells.push({ num: fmtNum(r2.dau), lab: 'активны сегодня' });
+  else if (r2.trial_to_paid_pct != null) cells.push({ num: r2.trial_to_paid_pct + '%', lab: 'триал → оплата' });
+  $('growthSummary').innerHTML = cells.map(c =>
+    '<div class="gs-cell"><div class="num">' + c.num + '</div><div class="lab">' + c.lab + '</div></div>'
+  ).join('');
+}
+
+// ── 4. ПРОДУКТ ──
+function renderUsage(d){
+  const u = d.usage || {};
+  const mc = d.master_clients || {};
+  const items = [
+    { key: 'tryons',        icon: '🖼', name: 'Примерки тату' },
+    { key: 'stencils',      icon: '🩹', name: 'Трансферы (стенсилы)' },
+    { key: 'extracts',      icon: '✏️', name: 'Эскизы из фото' },
+    { key: 'sketches',      icon: '🎨', name: 'Создать эскиз (с нуля)' },
+    { key: 'photo_retouch', icon: '✨', name: 'Ретушь фото' },
+    { key: 'animations',    icon: '🪄', name: 'Оживить тату' },
+    { key: 'videos',        icon: '🎬', name: 'Видео-примерки' },
+  ];
+  const rows = items
+    .filter(it => (Number(u[it.key]) || 0) > 0)
+    .sort((a, b) => (u[b.key] || 0) - (u[a.key] || 0))
+    .map(it =>
+      '<div class="usage-row"><span class="usage-icon">' + it.icon + '</span>' +
+      '<span class="usage-name">' + it.name + '</span>' +
+      '<span class="usage-num">' + fmtNum(u[it.key]) + '</span></div>'
+    );
+  // клиенты мастеров по ссылкам (если есть)
+  if ((mc.tryons_total || 0) > 0){
+    rows.push('<div class="usage-row"><span class="usage-icon">🔥</span>' +
+      '<span class="usage-name">Примерок клиентами по ссылкам · «хочу» ' + fmtNum(mc.wants_total) + '</span>' +
+      '<span class="usage-num">' + fmtNum(mc.tryons_total) + '</span></div>');
+  }
+  if (!rows.length){ hideSection('usageCard'); return; }
+  showSection('usageCard');
+  $('usageBody').innerHTML = rows.join('');
+}
+
+// ── 5. ИСТОЧНИКИ ──
+function renderSources(d){
+  const HIDE = ['buy_trial','bind_card','trial'];
+  const src = (d.sources || []).filter(s => !HIDE.includes((s.source||'').trim()));
+  if (!src.length){ hideSection('sourcesCard'); return; }
+  showSection('sourcesCard');
+  $('sourcesBody').innerHTML = src.map(s => {
+    const name = s.source || 'прямой';
+    const tag = isUtmSource(name) ? ' <span class="tag utm">метка</span>' : '';
+    const paidCls = (s.paid || 0) > 0 ? 'accent' : 'muted';
+    return '<div class="tbl-row">' +
+      '<span class="tc-name">' + escapeHtml(name) + tag + '</span>' +
+      '<span class="tc-num">' + fmtNum(s.leads || 0) + '</span>' +
+      '<span class="tc-num ' + paidCls + '">' + fmtNum(s.paid) + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+// ── 5b. КАНАЛЫ (v628): расход по /ad_add (who=код метки) ↔ воронка/доход метки ──
+function renderChannels(d){
+  const rows = ((d.channels || {}).rows || [])
+    .filter(r => (r.spend_rub || 0) > 0 || (r.entered || 0) > 0);
+  if (!rows.length){ hideSection('channelsCard'); hideSection('channelsSec'); return; }
+  showSection('channelsCard'); showSection('channelsSec');
+  $('channelsBody').innerHTML = rows.map(r => {
+    const roi = (r.roi_pct == null) ? '—' : (r.roi_pct + '%');
+    const roiCls = (r.roi_pct == null) ? 'muted' : (r.roi_pct >= 50 ? 'accent' : 'red');
+    const paidCls = (r.paid || 0) > 0 ? 'accent' : 'muted';
+    // v629: расход = фикс + KPI за просмотры (total_due_rub); фолбэк на spend_rub
+    const due = (r.total_due_rub != null) ? r.total_due_rub : (r.spend_rub || 0);
+    const kpiMark = (r.kpi_due_rub || 0) > 0 ? ' <span class="tag utm">+KPI</span>' : '';
+    const chName = r.label || r.code;
+    const codeTag = (r.label && r.label !== r.code)
+      ? ' <span class="tag direct">' + escapeHtml(r.code) + '</span>' : '';
+    return '<div class="tbl-row">' +
+      '<span class="tc-name">' + escapeHtml(chName) + codeTag + kpiMark + '</span>' +
+      '<span class="tc-num">' + fmtRub(due) + '</span>' +
+      '<span class="tc-num ' + paidCls + '">' + fmtNum(r.paid || 0) + '</span>' +
+      '<span class="tc-num">' + fmtRub(r.revenue_rub || 0) + '</span>' +
+      '<span class="tc-num ' + roiCls + '">' + roi + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+// ── 5c. РОЛИКИ БЛОГЕРОВ (v629): просмотры → KPI-доплаты живьём ──
+function renderReels(d){
+  const rows = ((d.reels || {}).rows || []);
+  if (!rows.length){ hideSection('reelsCard'); return; }
+  showSection('reelsCard');
+  $('reelsBody').innerHTML = rows.map(r => {
+    const kpiCls = (r.kpi_rub || 0) > 0 ? 'accent' : 'muted';
+    const dShort = (r.date || '').slice(5);  // ММ-ДД
+    return '<div class="tbl-row">' +
+      '<span class="tc-name">#' + r.n + '</span>' +
+      '<span class="tc-num muted">' + escapeHtml(dShort) + '</span>' +
+      '<span class="tc-num">' + escapeHtml((r.blogger_label || r.blogger || '').split(' ·')[0]) + '</span>' +
+      '<span class="tc-num">' + fmtNum(r.views || 0) + '</span>' +
+      '<span class="tc-num ' + kpiCls + '">' + fmtRub(r.kpi_rub || 0) + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+// ── 6. АМБАССАДОРЫ ──
+function renderReferrers(d){
+  const refs = (d.top_referrers || []).filter(r => (r.count || 0) > 0);
+  if (!refs.length){ hideSection('referrersCard'); return; }
+  showSection('referrersCard');
+  $('referrersBody').innerHTML = refs.map(r => {
+    const paidCls = (r.paid || 0) > 0 ? 'accent' : 'muted';
+    const promo = r.promo ? ' <span class="tag direct">' + escapeHtml(r.promo) + '</span>' : '';
+    return '<div class="tbl-row">' +
+      '<span class="tc-name">' + escapeHtml(r.name) + promo + '</span>' +
+      '<span class="tc-num">' + fmtNum(r.count) + '</span>' +
+      '<span class="tc-num ' + paidCls + '">' + fmtNum(r.paid) + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+// ── section show/hide ──
+function hideSection(cardId){
+  const card = $(cardId);
+  if (!card) return;
+  card.classList.add('hidden');
+  // прячем заголовок секции (предыдущий .sec)
+  let p = card.previousElementSibling;
+  while (p && !p.classList.contains('sec')) p = p.previousElementSibling;
+  if (p) p.classList.add('hidden');
+}
+function showSection(cardId){
+  const card = $(cardId);
+  if (!card) return;
+  card.classList.remove('hidden');
+  let p = card.previousElementSibling;
+  while (p && !p.classList.contains('sec')) p = p.previousElementSibling;
+  if (p) p.classList.remove('hidden');
+}
+
+function animateBars(sel){
+  setTimeout(() => {
+    document.querySelectorAll(sel).forEach(el => {
+      el.style.width = (Number(el.getAttribute('data-w')) || 0) + '%';
+    });
+  }, 80);
+}
+
+// ── master render ──
+function render(d){
+  $('dash').classList.remove('hidden');
+  renderPulse(d);
+  renderMoney(d);
+  renderFunnels(d);
+  renderGrowth(d);
+  renderUsage(d);
+  renderSources(d);
+  renderChannels(d);
+  renderReels(d);
+  renderReferrers(d);
+  const v = d.version || {};
+  $('footerNote').textContent = 'build ' + (v.build || '—') + ' · uptime ' + (v.uptime_human || '—') + ' · Тату? Тут.';
+}
+
+// ── state ──
+function showState(msg, retry){
+  $('state').classList.remove('hidden');
+  $('stateMsg').textContent = msg;
+  $('stateSpin').classList.toggle('hidden', !!retry);
+  $('stateRetry').classList.toggle('hidden', !retry);
+}
+function hideState(){ $('state').classList.add('hidden'); }
+
+// ── load ──
+async function load(){
+  if (DEMO_MODE){
+    $('demoBanner').classList.remove('hidden');
+    $('srcLine').textContent = 'источник: ДЕМО';
+    render(MOCK);
+    hideState();
+    return;
+  }
+  showState('Загружаю кабинет…', false);
+  // нет Telegram-контекста → demo-просмотр (как в текущем файле)
+  if (!tg || !tg.initData){
+    $('demoBanner').classList.remove('hidden');
+    $('srcLine').textContent = 'источник: ДЕМО';
+    render(MOCK);
+    hideState();
+    return;
+  }
+  try {
+    const url = API_BASE + '/api/admin?initData=' + encodeURIComponent(tg.initData);
+    const resp = await fetch(url, { method: 'GET', cache: 'no-store' });
+    if (resp.status === 403){
+      showState('Кабинет бизнеса доступен только владельцу.', false);
+      $('stateSpin').classList.add('hidden');
+      return;
+    }
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (!data || data.error) throw new Error(data && data.error || 'bad payload');
+    $('srcLine').textContent = 'источник: LIVE ●';
+    $('srcLine').classList.add('live');
+    render(data);
+    hideState();
+  } catch (e){
+    console.error('[admin] load failed:', e);
+    showState('Не удалось загрузить данные. Проверь связь.', true);
+  }
+}
+$('stateRetry').addEventListener('click', load);
+
+if (tg){
+  try { tg.ready(); tg.expand(); } catch(e){}
+  try { tg.setHeaderColor('#0d1510'); tg.setBackgroundColor('#0d1510'); } catch(e){}
+}
+load();
+</script>
+</body>
+</html>

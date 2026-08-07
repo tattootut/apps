@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ТАТУ ТУТ — мой кабинет</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  /* v584 КАБИНЕТ КЛИЕНТА по КАНОНУ тату-кабинета (владелец 06.07): кабинет =
+     ИНФО (остаток пакета) + ПРАЙС (разовые пакеты). Функций-кнопок НЕТ (они на
+     нижней панели). Клиент разовый → нет тарифа/дней/карты («где не можем — по-
+     другому»). Зелёная спокойная тема (не кричащая — прошлый «шум» убран). */
+  :root{
+    --bg:#EEF3EC; --surface:#FFFFFF; --surface-2:#F4F8F2;
+    --green:#3E9E56; --green-2:#2E7D46; --ink:#0E1A14; --muted:#7A857C;
+    --border:#DFE6DC; --font-display:'Oswald',sans-serif; --font-text:'Inter',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-text);
+       padding:16px 14px 40px;max-width:520px;margin:0 auto;font-size:15px}
+  .header{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+  .header img{width:40px;height:40px;border-radius:10px}
+  .header-title{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.3px}
+  .header-sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+        padding:16px;margin-bottom:13px;box-shadow:0 2px 10px rgba(14,26,20,.04)}
+  .card-label{font-family:var(--font-display);font-weight:600;font-size:12px;
+        letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .pack-strip{display:flex;align-items:center;justify-content:space-between;gap:14px}
+  .ps-title{font-family:var(--font-display);font-weight:700;font-size:18px}
+  .ps-meta{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .ps-btn{background:var(--green);color:#fff;border:none;border-radius:11px;
+        padding:11px 18px;font-family:var(--font-display);font-weight:700;font-size:13px;
+        letter-spacing:.3px;cursor:pointer;flex:0 0 auto}
+  .ps-btn:active{background:var(--green-2)}
+  .qrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:14px;
+        border-bottom:1px dashed var(--border)}
+  .qrow:last-child{border-bottom:none}
+  .qrow b{font-family:var(--font-display);font-weight:600;font-variant-numeric:tabular-nums}
+  .free{background:var(--surface-2);border:1px solid var(--border);border-radius:11px;
+        padding:11px 13px;font-size:12.5px;color:var(--green-2);font-weight:600;margin-top:12px}
+  #priceView{display:none}
+  .back{background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;
+        cursor:pointer;padding:4px 0;margin-bottom:6px}
+  .price-card{background:var(--surface);border:2px solid var(--border);border-radius:14px;
+        padding:18px;margin-bottom:13px;position:relative}
+  .price-card.best{border-color:var(--green)}
+  .price-card.best::after{content:"ПОПУЛЯРНЫЙ";position:absolute;top:-10px;right:16px;
+        background:var(--green);color:#fff;font-size:10.5px;font-weight:800;padding:3px 11px;
+        border-radius:99px;font-family:var(--font-display)}
+  /* v676: штучная ступень — своя компактная карточка ПЕРЕД пакетами (тот же
+     порядок, что в чат-пейволе: сначала штука, потом «если нужно больше»). */
+  .price-card.single{padding:14px 16px}
+  .sec-label{font-family:var(--font-display);font-weight:600;font-size:12px;
+        letter-spacing:1px;text-transform:uppercase;color:var(--muted);
+        margin:2px 0 10px}
+  .sec-label.more{margin-top:20px}
+  .buy.ghost{background:var(--surface);color:var(--green-2);
+        border:2px solid var(--green);padding:12px}
+  .buy.ghost:active{background:var(--surface-2)}
+  .note{color:var(--muted);font-size:12.5px;padding:10px 0}
+  .price-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+  .price-title{font-family:var(--font-display);font-weight:700;font-size:17px}
+  .price-num{font-family:var(--font-display);font-weight:700;font-size:23px}
+  .price-per{font-size:12px;color:var(--muted)}
+  .feat{list-style:none;margin:12px 0 14px}
+  .feat li{padding:6px 0;font-size:13.5px;border-bottom:1px dashed var(--border)}
+  .feat li:last-child{border-bottom:none}
+  .feat li::before{content:"✓  ";color:var(--green);font-weight:800}
+  .buy{width:100%;background:var(--green);color:#fff;border:none;border-radius:12px;
+       padding:14px;font-family:var(--font-display);font-weight:700;font-size:15px;
+       letter-spacing:.3px;cursor:pointer}
+  .buy:active{background:var(--green-2)}
+  .foot{color:var(--muted);font-size:11.5px;text-align:center;margin-top:14px}
+</style>
+</head>
+<body>
+  <div class="header">
+    <img src="img/logo.png" alt="ТАТУ ТУТ">
+    <div>
+      <div class="header-title">ТАТУ ТУТ</div>
+      <div class="header-sub">Кабинет клиента</div>
+    </div>
+  </div>
+
+  <!-- ═══ КАБИНЕТ (инфо) ═══ -->
+  <div id="cabinetView">
+    <div class="card pack-strip">
+      <div>
+        <div class="ps-title">Мой пакет</div>
+        <div class="ps-meta" id="pmeta">загрузка…</div>
+      </div>
+      <button class="ps-btn" onclick="showPrice()">Пополнить</button>
+    </div>
+
+    <div class="card">
+      <div class="card-label">📦 Остаток</div>
+      <div class="qrow"><span>✨ Эскизы</span><b id="q-sk">—</b></div>
+      <div class="qrow"><span>🖼 Примерки на своё фото</span><b id="q-tr">—</b></div>
+      <div class="qrow" id="row-an" style="display:none"><span>🎬 Оживления тату</span><b id="q-an">—</b></div>
+      <div class="qrow" id="row-az" style="display:none"><span>🔮 Разборы тату сегодня</span><b id="q-az">—</b></div>
+      <div class="free" id="freeNote">⚡ Первый эскиз — в подарок за подписку на @tatututai.</div>
+    </div>
+  </div>
+
+  <!-- ═══ ПРАЙС ═══ -->
+  <!-- v676: карточки рисуются ИЗ PAYLOAD сервера (/api/client_cabinet), где
+       цены и состав приходят из тех же словарей, что и начисление. Статики с
+       ценами тут больше нет: в tariffs-app.html именно она пережила снятие
+       тарифа и продолжала врать числами. Нет ответа сервера → честное «цены
+       не загрузились» и выход в чат, а не выдуманный прайс. -->
+  <div id="priceView">
+    <button class="back" onclick="showCabinet()">← Назад в кабинет</button>
+    <div id="priceBody"><div class="note">Загружаю цены…</div></div>
+  </div>
+
+  <div class="foot">ТАТУ ТУТ · эскизы и примерки · @ta2_blockbot</div>
+
+<script>
+  const tg = window.Telegram?.WebApp; tg?.ready(); tg?.expand();
+  try { tg?.setHeaderColor('#EEF3EC'); tg?.setBackgroundColor('#EEF3EC'); } catch(e){}
+  const API = 'https://worker-production-c1cb.up.railway.app';
+
+  function go(a){ try{ tg?.openTelegramLink('https://t.me/ta2_blockbot?start='+a); }catch(e){} try{ tg?.close(); }catch(e){} }
+  /* v755: выбор канала В СТРАНИЦЕ (заказ владельца: как в мастерском окне).
+     СБП — прежний путь через чат (там QR и обе кнопки). Ин.карта — ссылка
+     Робокассы сразу из кабинета; не собралась (пустой initData на Desktop,
+     rk выключен) → честно падаем в прежний путь, не в тишину. */
+  function chooseChannel(dl){
+    var old = document.getElementById('chOverlay'); if (old) old.remove();
+    var sku = (dl||'').indexOf('clientpack_') === 0 ? dl.slice('clientpack_'.length) : '';
+    if (!sku){ go(dl); return; }
+    var ov = document.createElement('div');
+    ov.id='chOverlay';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;display:flex;align-items:flex-end;justify-content:center';
+    var sh = document.createElement('div');
+    sh.style.cssText='background:#fff;border-radius:16px 16px 0 0;padding:16px 16px 22px;width:100%;max-width:480px;font:15px/1.4 -apple-system,Segoe UI,Roboto,sans-serif;color:#1a2b22';
+    sh.innerHTML='<div style="font-weight:700;margin-bottom:4px">Способ оплаты</div>'
+      +'<div style="font-size:12.5px;opacity:.65;margin-bottom:12px">СБП — банки РФ. Иностранная карта — Visa/Mastercard любых стран (цена канала выше).</div>';
+    function mk(label, fn, accent){
+      var btn=document.createElement('button');
+      btn.textContent=label;
+      btn.style.cssText='display:block;width:100%;margin-top:8px;padding:13px;border-radius:11px;border:1px solid #cfe0d5;background:'
+        +(accent?'#16a34a':'#f3f7f4')+';color:'+(accent?'#fff':'#1a2b22')+';font-size:15px;font-weight:600;cursor:pointer';
+      btn.onclick=function(){ ov.remove(); if(fn) fn(); };
+      sh.appendChild(btn);
+    }
+    mk('СБП (банки РФ)', function(){ go(dl); }, true);
+    mk('🌍 Иностранная карта (Visa/MC)', function(){ payForeignPack(sku, dl); }, false);
+    mk('Отмена', null, false);
+    ov.appendChild(sh);
+    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+    document.body.appendChild(ov);
+  }
+
+  async function payForeignPack(sku, dl){
+    try{
+      var initData = (tg && tg.initData) || '';
+      var _au757 = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
+      if (initData || _au757){
+        var _q757 = initData ? 'initData='+encodeURIComponent(initData)
+                              : 'auth='+encodeURIComponent(_au757);
+        var r = await fetch(API+'/api/invoice?'+_q757
+          +'&tariff='+encodeURIComponent(sku)+'&channel=rk', {cache:'no-store'});
+        var d = await r.json().catch(function(){ return {}; });
+        if (r.ok && d && d.url){ tg.openLink(d.url); return; }
+      }
+    }catch(e){ console.error('[client] rk invoice failed', e); }
+    go(dl);   // запасной путь: чат, там кнопка ин.карты тоже есть
+  }
+
+  function showPrice(){ document.getElementById('cabinetView').style.display='none'; document.getElementById('priceView').style.display='block'; window.scrollTo(0,0); }
+  function showCabinet(){ document.getElementById('priceView').style.display='none'; document.getElementById('cabinetView').style.display='block'; window.scrollTo(0,0); }
+
+  function esc(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // v676: одна сборка карточки на штуку и на пакет — состав, цена и диплинк
+  // приходят с сервера, фронт ничего не досочиняет.
+  function card(item, best){
+    const feats = (item.feats||[]).map(t=>'<li>'+esc(t)+'</li>').join('');
+    return '<div class="price-card'+(item.single?' single':'')+(best?' best':'')+'">'
+      + '<div class="price-head"><span class="price-title">'+esc(item.name)+'</span>'
+      + '<span><span class="price-num">'+esc(item.price)+' ₽</span> '
+      + '<span class="price-per">разово</span></span></div>'
+      + (feats ? '<ul class="feat">'+feats+'</ul>' : '')
+      + '<button class="buy'+(item.single?' ghost':'')+'" data-dl="'+esc(item.deeplink)+'">'
+      + 'Взять за '+esc(item.price)+' ₽</button></div>';
+  }
+
+  function renderPrice(d){
+    const body = document.getElementById('priceBody');
+    const single = Array.isArray(d && d.single) ? d.single : [];
+    const packs = Array.isArray(d && d.packs) ? d.packs : [];
+    if(!single.length && !packs.length){
+      body.innerHTML = '<div class="note">Цены не загрузились. Открой бота '
+        + 'и нажми «Мой кабинет и пакеты» — покажу прайс в чате.</div>';
+      return;
+    }
+    let html = '';
+    if(single.length){
+      // Штука ПЕРВОЙ: человеку, которому нужна одна тату, оптовая упаковка
+      // не нужна. Тот же порядок, что в чат-пейволе.
+      html += '<div class="sec-label">🔹 Нужна одна штука</div>';
+      html += single.map(it=>card(it,false)).join('');
+      if(packs.length) html += '<div class="sec-label more">📦 Если нужно больше</div>';
+    }
+    // «Популярный» вешаем на средний пакет — он и есть середина лестницы.
+    html += packs.map((it,i)=>card(it, packs.length>1 && i===1)).join('');
+    body.innerHTML = html;
+    body.querySelectorAll('button[data-dl]').forEach(b=>{
+      b.addEventListener('click', ()=>chooseChannel(b.getAttribute('data-dl')));
+    });
+  }
+
+  // v735: ПРАЙС ГРУЗИТСЯ ВСЕГДА. Раньше у load() было три ранних выхода
+  // (нет initData / ответ не ok / сеть), и каждый гасил ВЕСЬ магазин разом:
+  // цены, остаток и «Мой пакет». Цены не персональные, им авторизация не
+  // нужна — тянем их отдельным публичным запросом, а личные числа поверх.
+  // Ретрай с отступом: деплой воркера — это десятки секунд молчащего API.
+  // Одна неудачная попытка не должна оставлять человека с пустым магазином.
+  async function getJSON(url, tries){
+    const waits = [400, 1200, 3000];
+    for(let i=0; i<(tries||3); i++){
+      try{ const r = await fetch(url); if(r.ok) return await r.json(); }catch(e){}
+      if(i < waits.length) await new Promise(s=>setTimeout(s, waits[i]));
+    }
+    return null;
+  }
+  // v738: строки функций открываются ОТСЮДА, из публичной витрины. Какие
+  // функции есть — это факт о продукте, а не личные данные. Раньше они
+  // жили только в авторизованной ветке, и при её сбое кабинет показывал
+  // две функции из четырёх, будто оживления и разбора не существует.
+  function showFeatureRows(d){
+    if(!d) return;
+    if(d.animate_available || d.packs_with_anim)
+      document.getElementById('row-an').style.display='';
+    if(d.analyzer_on){
+      document.getElementById('row-az').style.display='';
+      const az=document.getElementById('q-az');
+      if(az && az.textContent.trim()==='—' && d.analyzer_cap)
+        az.textContent = 'до '+d.analyzer_cap+' в день';
+    }
+  }
+  async function loadPrices(){
+    const d = await getJSON(API+'/api/client_showcase');
+    renderPrice(d); showFeatureRows(d);
+  }
+  function noPersonal(){
+    // Не знаем остаток — так и говорим. Раньше писали «0 шт», и человек
+    // с пятью оплаченными эскизами видел ноль. Врать нулём хуже, чем молчать.
+    document.getElementById('pmeta').textContent = 'остаток не загрузился';
+    ['q-sk','q-tr','q-an'].forEach(id=>{ const e=document.getElementById(id);
+      if(e && e.textContent.trim()==='—') e.textContent='?'; });
+  }
+  async function load(){
+    await loadPrices();                      // магазин виден при любом раскладе
+    // Диагностика вместо загадки: если бридж Телеграма не загрузился
+    // (02.08 с машины владельца telegram.org рвал TLS), человек и мы видим
+    // ПРИЧИНУ, а не молчаливые прочерки. Магазин при этом уже работает.
+    if(!window.Telegram){
+      document.getElementById('pmeta').textContent =
+        'Личные данные недоступны: не загрузился Telegram. Цены ниже актуальны.';
+      noPersonal(); return;
+    }
+    /* v757: запасная авторизация — токен из подписанной ботом ссылки. */
+    const initData = tg?.initData || '';
+    const _au = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
+    if(!initData && !_au){ noPersonal(); return; }
+    try{
+      const _q = initData ? 'initData='+encodeURIComponent(initData)
+                          : 'auth='+encodeURIComponent(_au);
+      const r = await fetch(API+'/api/client_cabinet?'+_q);
+      if(!r.ok){ noPersonal(); return; }
+      const d = await r.json();
+      const sk = d.sketches_left ?? 0, tr = d.tryons_left ?? 0;
+      const an = d.animations_left ?? 0;
+      document.getElementById('q-sk').textContent = sk+' шт';
+      document.getElementById('q-tr').textContent = tr+' шт';
+      // v667: оживления показываем, когда состав пакетов их содержит либо
+      // когда они реально куплены. Пустую строку не рисуем.
+      // v686: показываем оживления, когда функция человеку ДОСТУПНА, а не
+      // только когда лежит в составе пакета — иначе купленное штучно было
+      // невидимым и человек не мог отследить остаток.
+      if(d.animate_available || d.packs_with_anim || an>0){
+        document.getElementById('row-an').style.display='';
+        document.getElementById('q-an').textContent = an+' шт';
+      }
+      // Разбор бесплатный, но с суточным капом: показываем остаток на сегодня.
+      if(d.analyzer_on){
+        document.getElementById('row-az').style.display='';
+        const az = d.analyzer_left;
+        document.getElementById('q-az').textContent =
+          (az === -1 || az === undefined) ? 'без лимита'
+                                          : (az+' из '+(d.analyzer_cap ?? az));
+      }
+      renderPrice(d);
+      document.getElementById('pmeta').textContent = (sk+tr>0) ? (sk+' эскизов · '+tr+' примерок') : 'разово, оплата по СБП';
+      const fn = document.getElementById('freeNote');
+      if(d.free_sketch_used) fn.textContent='💚 Подарочный эскиз использован — эскизы и примерки в пакете ниже.';
+      else fn.textContent='⚡ Первый эскиз — в подарок за подписку на @tatututai.';
+    // ВАЖНО: здесь нельзя звать renderPrice(null) — оно СОТРЁТ уже
+    // загруженный публичный прайс и вернёт тот самый чёрный экран.
+    }catch(e){ console.warn('client cabinet personal load failed', e); noPersonal(); }
+  }
+  load();
+</script>
+</body>
+</html>

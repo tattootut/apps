@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Кабинет бизнеса</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* ===========================================================================
+   ТОКЕНЫ. Джарвис меняет ТОЛЬКО значения здесь — вся остальная разметка
+   подстраивается сама. Две темы обязательны: владелец выбирает переключателем.
+   =========================================================================== */
+:root{
+  --r:16px; --r-sm:12px; --gap:10px; --pad:14px;
+  --f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif;
+  --t:180ms cubic-bezier(.2,.7,.3,1);
+}
+[data-theme="dark"]{
+  --bg:#0b1208; --pane:#141c10; --pane2:#0f170c; --line:#243019;
+  --ink:#eef3e6; --dim:#a3ab97; --dim2:#7d8770;
+  --accent:#c4f000; --accent-ink:#0b1208;
+  --good:#7ee081; --warn:#ffc247; --bad:#ff6b6b;
+  --grid:#1e2a16;
+}
+[data-theme="light"]{
+  --bg:#f6f7f2; --pane:#ffffff; --pane2:#eef1e8; --line:#e0e5d6;
+  --ink:#131a0e; --dim:#5c6353; --dim2:#7d8573;
+  --accent:#6f9c00; --accent-ink:#ffffff;
+  --good:#2e9e4f; --warn:#c98a00; --bad:#d64545;
+  --grid:#e6ead d;
+  --grid:#e6eadd;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink); font:15px/1.45 var(--f);
+  -webkit-font-smoothing:antialiased; padding-bottom:104px;
+}
+.wrap{max-width:520px;margin:0 auto;padding:0 12px}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* --- шапка --- */
+.top{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:12px;background:color-mix(in srgb,var(--bg) 86%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+/* ЛОГО: 40x40, квадрат со скруглением. Джарвис подменяет .logo img src. */
+.logo{width:38px;height:38px;border-radius:11px;overflow:hidden;flex:none;
+  background:var(--accent);display:grid;place-items:center;
+  color:var(--accent-ink);font-weight:800;font-size:15px;letter-spacing:-.03em}
+.logo img{width:100%;height:100%;object-fit:cover;display:block}
+.top h1{font-size:15px;font-weight:650;margin:0;letter-spacing:-.01em}
+.top .sub{font-size:11px;color:var(--dim);margin-top:1px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pill{font-size:11px;padding:5px 9px;border-radius:99px;border:1px solid var(--line);
+  color:var(--dim);background:var(--pane)}
+.pill.live{color:var(--good)}
+.pill.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--good);margin-right:5px;vertical-align:1px;animation:bp 2s infinite}
+@keyframes bp{0%,100%{opacity:1}50%{opacity:.35}}
+.tbtn{width:32px;height:32px;border-radius:10px;border:1px solid var(--line);
+  background:var(--pane);color:var(--dim);font-size:14px;cursor:pointer}
+
+/* --- блоки --- */
+.sec{margin:18px 0 8px;display:flex;align-items:baseline;gap:8px}
+.sec h2{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);margin:0}
+.sec .hint{font-size:11px;color:var(--dim2);margin-left:auto}
+.card{background:var(--pane);border:1px solid var(--line);border-radius:var(--r);
+  padding:var(--pad);margin-bottom:var(--gap)}
+.card.tap{cursor:pointer;transition:transform var(--t),border-color var(--t)}
+.card.tap:active{transform:scale(.985);border-color:var(--accent)}
+.klabel{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+  display:flex;align-items:center;gap:6px}
+.kbig{font-size:40px;font-weight:750;line-height:1.16;margin:4px 0 2px;padding-top:2px}
+.kbig small{font-size:18px;font-weight:650;color:var(--dim);margin-left:2px}
+.kctx{font-size:12.5px;color:var(--dim)}
+.row{display:flex;gap:var(--gap)}
+.row>*{flex:1;min-width:0}
+.mini{background:var(--pane2);border-radius:var(--r-sm);padding:11px 12px}
+.mini .v{font-size:19px;font-weight:700;margin-bottom:1px}
+.mini .l{font-size:10.5px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
+.up{color:var(--good)} .down{color:var(--bad)} .acc{color:var(--accent)}
+.chev{margin-left:auto;color:var(--dim2);font-size:12px}
+
+/* --- пульс --- */
+.verdict{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:5px}
+.verdict p{margin:0;font-size:14px;line-height:1.4}
+.verdict b{font-weight:650}
+
+/* --- квест --- */
+.quest{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 7%,var(--pane)),var(--pane))}
+.qtitle{font-size:17px;font-weight:680;margin:6px 0 4px;letter-spacing:-.01em}
+.qwhy{font-size:12.5px;color:var(--dim);margin-bottom:12px}
+.bar{height:8px;border-radius:99px;background:var(--pane2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--accent);
+  width:0;transition:width 900ms cubic-bezier(.2,.8,.2,1)}
+.qmeta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--dim);
+  margin-top:7px}
+.cost{margin-top:11px;padding:9px 11px;border-radius:var(--r-sm);
+  background:color-mix(in srgb,var(--bad) 12%,transparent);
+  font-size:12.5px;color:var(--ink)}
+.cost b{color:var(--bad)}
+
+/* --- уровень --- */
+.lvl{display:flex;align-items:center;gap:11px}
+.lvl .badge{width:44px;height:44px;border-radius:13px;flex:none;display:grid;
+  place-items:center;font-weight:800;font-size:17px;
+  background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.lvl .t{font-size:14px;font-weight:640}
+.lvl .s{font-size:11.5px;color:var(--dim)}
+
+/* --- светофор --- */
+.tl{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--dim);margin-top:9px}
+.tl span{display:flex;align-items:center;gap:5px}
+.tl i{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* --- воронка --- */
+.step{margin:18px 0}
+.step .h{display:flex;align-items:baseline;gap:8px}
+.step .n{font-size:13.5px;font-weight:620}
+.step .v{margin-left:auto;font-size:19px;font-weight:700}
+.step .d{font-size:11.5px;color:var(--dim);margin:1px 0 6px}
+.step .bar{height:9px}
+.leak{font-size:11.5px;color:var(--bad);margin-top:6px;margin-bottom:2px;font-weight:600}
+.conv{font-size:11.5px;color:var(--dim);margin-top:6px;margin-bottom:2px}
+
+/* --- таблица --- */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
+  text-align:left;font-weight:600;padding:0 0 7px}
+td{padding:8px 0;border-top:1px solid var(--line)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tag{font-size:10px;padding:3px 7px;border-radius:99px;font-weight:650}
+.tag.g{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.tag.b{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.tag.n{background:var(--pane2);color:var(--dim)}
+
+canvas{display:block;width:100%}
+
+/* --- нижний лист --- */
+.sheet{position:fixed;inset:0;z-index:60;display:none}
+.sheet.on{display:block}
+.sheet .bd{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;
+  transition:opacity var(--t)}
+.sheet.on .bd{opacity:1}
+.sheet .pn{position:absolute;left:0;right:0;bottom:0;max-height:88vh;overflow:auto;
+  background:var(--bg);border-radius:20px 20px 0 0;border-top:1px solid var(--line);
+  padding:8px 12px 34px;transform:translateY(100%);transition:transform var(--t)}
+.sheet.on .pn{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:99px;background:var(--line);margin:6px auto 12px}
+.sheet h3{margin:0 0 3px;font-size:19px;font-weight:700;letter-spacing:-.02em}
+.sheet .src{font-size:11px;color:var(--dim2);margin-bottom:14px}
+
+/* --- нижняя навигация --- */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;
+  background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);padding:7px 6px calc(7px + env(safe-area-inset-bottom))}
+.nav button{flex:1;background:none;border:0;color:var(--dim);font:inherit;font-size:10.5px;
+  padding:6px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav button .ic{font-size:17px;line-height:1}
+.nav button.on{color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo" id="logo">ТТ</div>
+  <div>
+    <h1>Кабинет бизнеса</h1>
+    <div class="sub" id="subtitle">Тату Тут · центр управления</div>
+  </div>
+  <div class="right">
+    <span class="pill live" id="freshness">live</span>
+    <button class="tbtn" id="themeBtn" aria-label="Тема">◐</button>
+  </div>
+</header>
+
+<div class="wrap" id="app"></div>
+
+<nav class="nav" id="nav"></nav>
+
+<div class="sheet" id="sheet">
+  <div class="bd" data-close></div>
+  <div class="pn">
+    <div class="grab"></div>
+    <h3 id="shTitle"></h3>
+    <div class="src" id="shSrc"></div>
+    <div id="shBody"></div>
+  </div>
+</div>
+
+<script>
+/* ===========================================================================
+   КОНТРАКТ ДАННЫХ. Джарвис заменяет этот объект живой выгрузкой — структура
+   менять НЕЛЬЗЯ, имена полей это интерфейс. Любое поле может прийти null:
+   тогда карточка показывает прочерк и honest-строку, а не ноль.
+   Все деньги — целые рубли. Все периоды — явные.
+   =========================================================================== */
+const DATA = /*__DATA_INJECT__*/null/*__END_DATA__*/;
+if(DATA===null){document.body.innerHTML='<div style="padding:40px;font-family:system-ui">Данные не загрузились. Открой кабинет заново из бота.</div>';throw new Error("no data");}
+
+
+/* ======================= утилиты ======================= */
+const $=s=>document.querySelector(s);
+const rub=n=>n==null?"—":n.toLocaleString("ru-RU").replace(/,/g," ")+" ₽";
+const num=n=>n==null?"—":n.toLocaleString("ru-RU").replace(/,/g," ");
+const pct=n=>n==null?"—":Math.round(n*100)+"%";
+const cv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const dash='<span style="color:var(--dim2)">—</span>';
+
+function sheet(title,src,html){
+  $("#shTitle").textContent=title; $("#shSrc").textContent=src;
+  $("#shBody").innerHTML=html; $("#sheet").classList.add("on");
+  if(window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred("light");
+  drawAll();
+}
+$("#sheet").addEventListener("click",e=>{ if(e.target.dataset.close!==undefined) $("#sheet").classList.remove("on"); });
+
+/* ======================= графики (canvas, без библиотек) ======================= */
+function fit(c){
+  const d=window.devicePixelRatio||1, w=c.clientWidth, h=+c.dataset.h||60;
+  c.width=w*d; c.height=h*d; c.style.height=h+"px";
+  const x=c.getContext("2d"); x.setTransform(d,0,0,d,0,0); return {x,w,h};
+}
+function spark(c){
+  const {x,w,h}=fit(c), v=JSON.parse(c.dataset.v), mx=Math.max(...v,1), n=v.length;
+  const px=i=>i*(w/(n-1)), py=k=>h-4-(k/mx)*(h-10);
+  x.clearRect(0,0,w,h);
+  const g=x.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,"color-mix(in srgb,"+cv("--accent")+" 30%,transparent)");
+  g.addColorStop(1,"transparent");
+  x.beginPath(); x.moveTo(0,h); v.forEach((k,i)=>x.lineTo(px(i),py(k))); x.lineTo(w,h);
+  x.closePath(); x.fillStyle=g; x.fill();
+  x.beginPath(); v.forEach((k,i)=>i?x.lineTo(px(i),py(k)):x.moveTo(px(i),py(k)));
+  x.strokeStyle=cv("--accent"); x.lineWidth=2; x.lineJoin="round"; x.stroke();
+  const last=v.length-1;
+  x.beginPath(); x.arc(px(last),py(v[last]),3.5,0,7); x.fillStyle=cv("--accent"); x.fill();
+  x.font="9px "+cv("--f"); x.fillStyle=cv("--dim2");
+  x.fillText(mx.toLocaleString("ru-RU")+" ₽",0,9);
+  x.fillText("день 1",0,h-1); const lbl="день "+n; x.fillText(lbl,w-x.measureText(lbl).width,h-1);
+}
+function bars(c){
+  const {x,w,h}=fit(c), v=JSON.parse(c.dataset.v), mx=Math.max(...v,1);
+  const camps=JSON.parse(c.dataset.camps||"[]"), base=+c.dataset.base||0;
+  const bw=w/v.length, gap=Math.min(2,bw*.25);
+  x.clearRect(0,0,w,h);
+  if(base){ const y=h-4-(base/mx)*(h-14);
+    x.setLineDash([3,3]); x.beginPath(); x.moveTo(0,y); x.lineTo(w,y);
+    x.strokeStyle=cv("--dim2"); x.lineWidth=1; x.stroke(); x.setLineDash([]); }
+  x.font="9px "+cv("--f"); x.fillStyle=cv("--dim2"); x.fillText(mx+" лидов",0,9);
+  v.forEach((k,i)=>{
+    const bh=(k/mx)*(h-14), isC=camps.some(cm=>Math.abs(cm.day-i)<=1);
+    x.fillStyle=isC?cv("--accent"):cv("--grid");
+    x.beginPath();
+    const rx=i*bw+gap/2, rw=bw-gap, ry=h-4-bh, r=Math.min(3,rw/2);
+    x.moveTo(rx+r,ry); x.arcTo(rx+rw,ry,rx+rw,ry+bh,r); x.arcTo(rx+rw,ry+bh,rx,ry+bh,0);
+    x.lineTo(rx,ry+bh); x.arcTo(rx,ry+bh,rx,ry,0); x.arcTo(rx,ry,rx+rw,ry,r);
+    x.closePath(); x.fill();
+  });
+}
+function heat(c){
+  const {x,w,h}=fit(c), d=JSON.parse(c.dataset.v);
+  const rows=d.length, cols=d[0].w.length, lw=42;
+  const cw=(w-lw)/cols, ch=(h-14)/rows;
+  x.clearRect(0,0,w,h);
+  x.font="9px "+cv("--f"); x.fillStyle=cv("--dim2");
+  for(let j=0;j<cols;j++) x.fillText("W"+j,lw+j*cw+cw/2-7,9);
+  d.forEach((row,i)=>{
+    x.fillStyle=cv("--dim"); x.font="10px "+cv("--f");
+    x.fillText(row.label,0,14+i*ch+ch/2+3);
+    row.w.forEach((k,j)=>{
+      const X=lw+j*cw+1, Y=14+i*ch+1, W=cw-2, H=ch-2;
+      if(k==null){ x.fillStyle=cv("--pane2"); x.fillRect(X,Y,W,H); return; }
+      x.fillStyle="color-mix(in srgb,"+cv("--accent")+" "+Math.round(k*100)+"%,"+cv("--pane2")+")";
+      x.fillRect(X,Y,W,H);
+      if(k>=.25){ x.fillStyle=cv("--accent-ink"); x.font="9px "+cv("--f");
+        x.fillText(Math.round(k*100),X+W/2-6,Y+H/2+3); }
+    });
+  });
+}
+function gauge(c){
+  const {x,w,h}=fit(c), v=+c.dataset.v, seg=[[0,1.5,cv("--bad")],[1.5,3,cv("--warn")],[3,5,cv("--good")]];
+  x.clearRect(0,0,w,h);
+  const y=h/2, pad=8, W=w-pad*2, to=k=>pad+Math.min(k,5)/5*W;
+  seg.forEach(([a,b,col])=>{ x.strokeStyle=col; x.lineWidth=7; x.lineCap="round";
+    x.beginPath(); x.moveTo(to(a)+3,y); x.lineTo(to(b)-3,y); x.stroke(); });
+  const X=to(v);
+  x.beginPath(); x.arc(X,y,7,0,7); x.fillStyle=cv("--ink"); x.fill();
+  x.beginPath(); x.arc(X,y,3.5,0,7); x.fillStyle=cv("--bg"); x.fill();
+  x.font="9px "+cv("--f"); x.fillStyle=cv("--dim2");
+  x.fillText("1.5",to(1.5)-7,y+18); x.fillText("3.0",to(3)-7,y+18);
+}
+function drawAll(){
+  document.querySelectorAll("canvas[data-k=spark]").forEach(spark);
+  document.querySelectorAll("canvas[data-k=bars]").forEach(bars);
+  document.querySelectorAll("canvas[data-k=heat]").forEach(heat);
+  document.querySelectorAll("canvas[data-k=gauge]").forEach(gauge);
+}
+addEventListener("resize",drawAll);
+
+/* ======================= экраны ======================= */
+const D=DATA;
+const vcol=v=>v==="good"?"--good":v==="warn"?"--warn":"--bad";
+/* правка владельца №8: заметка блока с типом срочности */
+const NTAG={"срочная":"b","средняя":"n","долгая":"n"};
+function noteHTML(k){const n=(D.notes||{})[k]; if(!n||!n.text) return "";
+  return `<div class="kctx" style="margin-top:9px">📌 ${n.text} <span class="tag ${NTAG[n.type]||"n"}">${n.type||""}</span></div>`;}
+
+function screenHome(){
+  const p=D.pulse,m=D.money,e=D.engine,q=D.quest,l=D.level;
+  return `
+  <div class="sec"><h2>Пульс</h2><span class="hint">обновлено ${D.meta.updated_at}</span></div>
+  <div class="card">
+    <div class="verdict">
+      <span class="dot" style="background:var(${vcol(p.verdict)})"></span>
+      <p>${p.line}</p>
+    </div>
+    <div class="klabel">касса за 7 дней</div>
+    <div class="kbig num">${num(p.week_rub)}<small>₽</small></div>
+    <div class="kctx">${p.week_payments} оплат · сегодня ${rub(p.today_rub)} · прогноз месяца ${rub(p.month_forecast_rub)}</div>
+  </div>
+
+  <div class="card quest tap" onclick="openQuest()">
+    <div class="klabel">🎯 главный рычаг недели</div>
+    <div class="qtitle">${q.title}</div>
+    <div class="qwhy">${q.why}</div>
+    <div class="bar"><i data-w="${q.progress}"></i></div>
+    <div class="qmeta"><span>${q.done} из ${q.target}</span><span>до ${q.deadline}</span></div>
+    <div class="cost">Каждый день без действия стоит <b>${rub(q.inaction_cost_rub_per_day)}</b> недополученной выручки</div>
+  </div>
+
+  <div class="card" style="padding:11px 14px">
+    <div class="lvl">
+      <div>
+        <div class="t" style="font-size:12.5px;font-weight:600">${l.current} → ${l.next}</div>
+        <div class="s">MRR — месячная повторяющаяся выручка (прогноз месяца) · серия ${l.streak_days} дн. с оплатой</div>
+      </div>
+      <div class="chev num" style="font-size:14px;font-weight:700;color:var(--dim)">${pct(l.progress)}</div>
+    </div>
+    <div class="bar" style="margin-top:9px;height:5px"><i data-w="${l.progress}" style="background:var(--dim2)"></i></div>
+  </div>
+
+  <div class="sec"><h2>Деньги</h2><span class="hint">${m.period_days} дней</span></div>
+  <div class="card tap" onclick="openMoney()">
+    <div class="klabel">чистая прибыль после налога <span class="chev">подробно ›</span></div>
+    <div class="kbig num acc">${num(m.net_profit_rub)}<small>₽</small></div>
+    <div class="kctx">выручка ${rub(m.revenue_rub)} · маржа ${pct(m.margin_pct)}${m.prev_note?` · <b>${m.prev_note}</b>`:""}</div>
+    <canvas data-k="spark" data-h="56" data-v="${JSON.stringify(m.daily)}" style="margin-top:12px"></canvas>
+    <div class="row" style="margin-top:12px">
+      <div class="mini"><div class="v num down">−${num(m.ai_cost_rub)} ₽</div><div class="l">AI-расходы</div></div>
+      <div class="mini"><div class="v num down">−${num(m.tax_reserved_rub)} ₽</div><div class="l">налог 6% отложен</div></div>
+    </div>
+    ${noteHTML("money")}
+  </div>
+
+  <div class="sec"><h2>Двигатель</h2><span class="hint">окупаемость привлечения</span></div>
+  <div class="card tap" onclick="openEngine()">
+    <div class="klabel">LTV / CAC <span class="chev">подробно ›</span></div>
+    <div class="kbig num" style="color:var(${vcol(e.verdict)})">${e.ltv_cac==null?"—":e.ltv_cac.toFixed(2)}</div>
+    <div class="kctx">${rub(e.ltv_rub)} с мастера при цене привлечения ${rub(e.cac_rub)}</div>
+    <canvas data-k="gauge" data-h="46" data-v="${e.ltv_cac}" style="margin-top:8px"></canvas>
+    <div class="tl">
+      <span><i style="background:var(--bad)"></i>до 1.5 — убыток</span>
+      <span><i style="background:var(--warn)"></i>1.5–3 — терпимо</span>
+      <span><i style="background:var(--good)"></i>от 3 — можно лить</span>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="mini"><div class="v num">${e.payback_days} дн</div><div class="l">окупаемость</div></div>
+      <div class="mini"><div class="v num">${rub(e.contribution_rub)}</div><div class="l">с мастера чистыми</div></div>
+    </div>
+    ${noteHTML("engine")}
+  </div>
+
+  <div class="sec"><h2>Воронка</h2><span class="hint">${D.funnel.cohort_label}</span></div>
+  <div class="card tap" onclick="openFunnel()">${funnelHTML(true)}</div>
+
+  <div class="sec"><h2>Каналы</h2><span class="hint">по всплескам, без UTM</span></div>
+  <div class="card tap" onclick="openChannels()">
+    <div class="klabel">лиды в день, база ${D.channels.baseline_per_day}/сут <span class="chev">подробно ›</span></div>
+    <canvas data-k="bars" data-h="72" data-base="${D.channels.baseline_per_day}"
+      data-v="${JSON.stringify(D.channels.timeline)}"
+      data-camps='${JSON.stringify(D.channels.campaigns)}'
+      data-buys='${JSON.stringify(D.channels.buys_timeline||[])}' style="margin-top:10px"></canvas>
+    <div class="kctx" style="margin-top:9px">Салатовые столбцы — дни рекламы, точки — покупки в этот день. ${D.channels.mde_note}</div>
+    ${noteHTML("channels")}
+  </div>`;
+}
+
+function funnelHTML(short){
+  const f=D.funnel, steps=short?f.steps.slice(0,5):f.steps, first=f.steps[0].v;
+  let out=short?`<div class="klabel">где теряются люди <span class="chev">подробно ›</span></div>`:"";
+  let worst=0,wi=1;
+  for(let i=1;i<f.steps.length;i++){
+    const a=f.steps[i-1].v,b=f.steps[i].v;
+    if(a&&b!=null){const loss=1-b/a; if(loss>worst){worst=loss;wi=i;}}
+  }
+  steps.forEach((s,i)=>{
+    const prev=i?f.steps[i-1].v:null;
+    const conv=(i&&prev&&s.v!=null)?s.v/prev:null;
+    out+=`<div class="step">
+      <div class="h"><span class="n">${s.name}</span><span class="v num">${s.v==null?dash:num(s.v)}</span></div>
+      <div class="d">${s.desc}</div>
+      <div class="bar"><i data-w="${s.v==null?0:s.v/first}"></i></div>
+      ${conv!=null?`<div class="${i===wi?"leak":"conv"}">${i===wi?"↓ "+pct(conv)+" — тут теряешь больше всего":"↓ "+pct(conv)}</div>`:
+        s.v==null?`<div class="conv">данных ещё нет — тарифы 30-дневные</div>`:""}
+      ${(i===(f.rec_step??wi)&&f.rec)?`<div class="d" style="color:var(--warn);margin-top:4px">💡 ${f.rec}${f.rec_type?` <span class="tag n">${f.rec_type}</span>`:""}</div>`:""}
+    </div>`;
+  });
+  return out;
+}
+
+function screenMoney(){
+  const m=D.money;
+  return `<div class="sec"><h2>Движение денег</h2><span class="hint">${m.period_days} дней</span></div>
+  <div class="card">
+    <div class="klabel">пришло</div><div class="kbig num">${num(m.revenue_rub)}<small>₽</small></div>
+    ${m.prev_note?`<div class="kctx">${m.prev_note}</div>`:""}
+    <canvas data-k="spark" data-h="60" data-v="${JSON.stringify(m.daily)}" style="margin-top:10px"></canvas>
+  </div>
+  <div class="card">
+    <table><tr><th>статья</th><th class="n">сумма</th><th class="n">доля</th></tr>
+    ${[["AI-генерации",m.ai_cost_rub],["Комиссия кассы ~2.2%",m.fee_rub],["Реклама",m.marketing_rub],
+       ["Инфраструктура",m.infra_rub],["Налог 6% (с полной выручки)",m.tax_reserved_rub]].map(([k,v])=>
+      `<tr><td>${k}</td><td class="n num">−${num(v)} ₽</td><td class="n num">${(v!=null&&m.revenue_rub)?pct(v/m.revenue_rub):dash}</td></tr>`).join("")}
+    <tr><td><b>Осталось</b></td><td class="n num acc"><b>${num(m.net_profit_rub)} ₽</b></td>
+      <td class="n num acc"><b>${pct(m.margin_pct)}</b></td></tr></table>
+  </div>
+  <div class="card">
+    <div class="klabel">налоговая копилка</div>
+    <div class="kbig num">${num(m.tax_reserved_rub)}<small>₽</small></div>
+    <div class="kctx">6% с оборота. Эти деньги уже не ваши — не считайте их прибылью.</div>
+    <div class="bar" style="margin-top:11px"><i data-w="1"></i></div>
+  </div>`;
+}
+
+function screenChannels(){
+  const c=D.channels;
+  return `<div class="sec"><h2>Каналы</h2><span class="hint">атрибуция по всплескам</span></div>
+  <div class="card">
+    <canvas data-k="bars" data-h="90" data-base="${c.baseline_per_day}"
+      data-v="${JSON.stringify(c.timeline)}" data-camps='${JSON.stringify(c.campaigns)}'
+      data-buys='${JSON.stringify(c.buys_timeline||[])}'></canvas>
+    <div class="kctx" style="margin-top:10px">Пунктир — обычный день без рекламы (${c.baseline_per_day} лидов).
+      Всё, что выше в дни кампаний, засчитывается каналу. ${c.mde_note}</div>
+  </div>
+  <div class="card">
+    <table><tr><th>канал</th><th class="n">потратил</th><th class="n">лидов</th><th class="n">CAC</th><th></th></tr>
+    ${c.rows.map(r=>`<tr>
+      <td>${r.name}</td>
+      <td class="n num">${r.spend?num(r.spend)+" ₽":"0 ₽"}</td>
+      <td class="n num">${r.leads==null?dash:num(r.leads)}</td>
+      <td class="n num">${r.cac==null?dash:(r.cac?num(r.cac)+" ₽":"—")}</td>
+      <td class="n"><span class="tag ${r.verdict==="good"?"g":r.verdict==="bad"?"b":"n"}">${
+        r.verdict==="good"?"брать":r.verdict==="bad"?"дорого":"не видно"}</span></td>
+    </tr>`).join("")}</table>
+    <div class="kctx" style="margin-top:11px">«Не видно» — не значит «не работает». TikTok не даёт поставить ссылку,
+      Instagram конвертит слабо. Их вклад ловится только всплеском.</div>
+  </div>`;
+}
+
+function screenProduct(){
+  const p=D.product,r=D.retention,h=D.health;
+  return `<div class="sec"><h2>Продукт</h2><span class="hint">${p.note}</span></div>
+  <div class="card"><table>
+    <tr><th>функция</th><th class="n">запусков 30д</th><th class="n">👍</th><th class="n">👎</th><th class="n">оценивали</th></tr>
+    ${p.rows.map(x=>`<tr><td>${x.name}</td><td class="n num">${num(x.uses)}</td>
+      <td class="n num">${pct(x.good_share)}</td><td class="n num">${pct(x.bad_share)}</td>
+      <td class="n num">${pct(x.rated_share)}</td></tr>`).join("")}
+  </table>${noteHTML("product")}</div>
+  <div class="sec"><h2>Удержание</h2><span class="hint">${r.label}</span></div>
+  <div class="card">
+    <canvas data-k="heat" data-h="${14+r.cohorts.length*26}" data-v='${JSON.stringify(r.cohorts)}'></canvas>
+    <div class="kctx" style="margin-top:10px">Строка — когорта недели, колонка — сколько из неё вернулось.
+      Серые клетки — время ещё не прошло, это не ноль.</div>
+    ${noteHTML("retention")}
+  </div>
+  <div class="sec"><h2>Здоровье</h2></div>
+  <div class="card"><div class="row">
+    <div class="mini"><div class="v num">${h.errors_24h}</div><div class="l">ошибок 24ч</div></div>
+    <div class="mini"><div class="v num">${h.complaints_24h}</div><div class="l">жалоб 24ч</div></div>
+    <div class="mini"><div class="v num down">${h.restarts_30d}</div><div class="l">рестартов 30д</div></div>
+  </div>
+  <div class="kctx" style="margin-top:10px">${h.error_note}. Медиана генерации ${h.p95_gen_sec} сек.</div></div>`;
+}
+
+/* ======================= листы ======================= */
+function openQuest(){ const q=D.quest;
+  sheet("Главный рычаг","одна задача за раз — остальные не показываются намеренно",`
+  <div class="card"><div class="qtitle">${q.title}</div><div class="qwhy">${q.why}</div>
+  <div class="bar"><i data-w="${q.progress}"></i></div>
+  <div class="qmeta"><span>${q.done} из ${q.target}</span><span>до ${q.deadline}</span></div></div>
+  <div class="card"><div class="klabel">следующий шаг</div>
+  <p style="margin:8px 0 0;font-size:15px">${q.step}</p></div>
+  <div class="card"><div class="klabel">почему это, а не что-то другое</div>
+  <p style="margin:8px 0 0;font-size:13.5px;color:var(--dim)">Эти люди уже прошли активацию — они дороже
+  холодного трафика, но стоят 0 ₽. Пока не выбран этот резерв, покупать новых блогеров дороже.</p></div>`);
+}
+function openMoney(){ sheet("Деньги","источник: платёжка + журнал расходов",screenMoney()); }
+function openEngine(){ const e=D.engine;
+  sheet("Двигатель привлечения","когорты плательщиков, зрелость указана",`
+  <div class="card"><div class="klabel">что это значит простыми словами</div>
+  <p style="margin:8px 0 0;font-size:14px">Один мастер приносит <b>${rub(e.ltv_rub)}</b> за всю жизнь.
+  Привести его стоит <b>${rub(e.cac_rub)}</b>. Значит на каждый вложенный рубль возвращается
+  <b>${e.ltv_cac==null?"—":e.ltv_cac.toFixed(2)} ₽</b>, и вложение отбивается через <b>${e.payback_days} дней</b>.</p></div>
+  <div class="card"><div class="row">
+    <div class="mini"><div class="v num">${num(e.paying_masters_30d)}</div><div class="l">платящих за 30д</div></div>
+    <div class="mini"><div class="v num">${rub(e.arpu_rub)}</div><div class="l">средний чек</div></div>
+  </div>
+  <div class="kctx" style="margin-top:11px">${e.maturity_note}</div></div>
+  <div class="card"><div class="klabel">правило решения</div>
+  <p style="margin:8px 0 0;font-size:13.5px;color:var(--dim)">Ниже 1.5 — реклама сжигает деньги, останавливать.
+  От 1.5 до 3 — можно держать, но не масштабировать. От 3 при окупаемости меньше 60 дней — лить смело.</p></div>`);
+}
+function openFunnel(){ sheet("Воронка",D.funnel.cohort_label,`<div class="card">${funnelHTML(false)}</div>
+  <div class="card"><div class="klabel">почему проценты бывают больше 100</div>
+  <p style="margin:8px 0 0;font-size:13.5px;color:var(--dim)">Если считать за период, а не по когорте, в шаг
+  «купил» попадают люди, зашедшие раньше. Здесь этого нет: прослеживается одна группа
+  из ${num(D.funnel.n)} человек. Пустой шаг — время ещё не прошло, а не провал.</p></div>`); }
+function openChannels(){ sheet("Каналы","атрибуция по всплескам, UTM недоступны",screenChannels()); }
+
+/* ======================= навигация и запуск ======================= */
+const TABS=[["home","Пульс","◉"],["money","Деньги","₽"],["chan","Каналы","↗"],["prod","Продукт","▦"]];
+let tab="home";
+function render(){
+  $("#app").innerHTML = tab==="home"?screenHome():tab==="money"?screenMoney():
+                        tab==="chan"?screenChannels():screenProduct();
+  $("#nav").innerHTML = TABS.map(([k,l,i])=>
+    `<button class="${k===tab?"on":""}" onclick="go('${k}')"><span class="ic">${i}</span>${l}</button>`).join("");
+  requestAnimationFrame(()=>{
+    document.querySelectorAll(".bar i").forEach(b=>b.style.width=(+b.dataset.w*100)+"%");
+    drawAll();
+  });
+}
+function go(k){ tab=k; render(); window.scrollTo({top:0,behavior:"instant"});
+  if(window.Telegram?.WebApp?.HapticFeedback) Telegram.WebApp.HapticFeedback.selectionChanged(); }
+
+$("#themeBtn").onclick=()=>{
+  const cur=document.documentElement.dataset.theme;
+  document.documentElement.dataset.theme = cur==="dark"?"light":"dark";
+  try{ localStorage.setItem("tt_theme",document.documentElement.dataset.theme); }catch(e){}
+  drawAll();
+};
+try{ const t=localStorage.getItem("tt_theme"); if(t) document.documentElement.dataset.theme=t; }catch(e){}
+
+if(window.Telegram?.WebApp){ Telegram.WebApp.ready(); Telegram.WebApp.expand(); }
+$("#subtitle").textContent=D.meta.brand+" · центр управления";
+$("#freshness").textContent=D.meta.source==="live"?"live":"данные "+D.meta.updated_at;
+render();
+</script>
+</body>
+</html>

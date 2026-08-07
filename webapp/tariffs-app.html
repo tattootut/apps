@@ -1,0 +1,2665 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ТАТУ ТУТ — Кабинет</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo/tatu-tut-mark-dark.svg">
+<link rel="apple-touch-icon" href="assets/logo/icon-180.png">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init('phc_wJY4rLajH9LUK2pNSQSZReqBLSYT5hMsbH27QL4j8Sai', {
+    api_host: 'https://us.i.posthog.com',
+    person_profiles: 'identified_only',
+    autocapture: true,
+    capture_pageview: true,
+    // Session Replay — видео-реплей сессий кабинета/paywall (launch observability).
+    // Поля/инпуты PostHog маскирует по умолчанию. Выключить — в дашборде PostHog.
+    disable_session_recording: false,
+    session_recording: {},
+  });
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg:         #0E1A14;
+    --color-surface:    #16291F;
+    --color-surface-2: #1d3328;
+    --color-accent:     #C4F000;
+    --color-accent-2:   #7DA800;
+    --color-text:       #F4F4F0;
+    --color-text-muted: #8A938E;
+    --color-border:     #243a30;
+    --color-strike:     #4a574e;
+
+    --font-display: 'Oswald', sans-serif;
+    --font-text:    'Inter', sans-serif;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-text);
+    min-height: 100vh;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    padding: 22px 18px calc(28px + env(safe-area-inset-bottom));
+    max-width: 560px;
+    margin: 0 auto;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* HEADER ───────────────────── */
+  .header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 22px;
+  }
+  .header-mark {
+    width: 32px; height: 32px;
+    flex: 0 0 32px;
+  }
+  .header-mark svg, .header-mark img { width: 100%; height: 100%; display: block; }
+  .header-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .header-sub {
+    color: var(--color-text-muted);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  /* CARD ─────────────────────── */
+  .card {
+    /* v209: вернули угловой градиент-свечение на тёмных карточках (как было
+       до редизайна). Subtle лайм из верхнего-правого угла — глубина + «жизнь». */
+    background:
+      radial-gradient(135% 90% at 100% 0%, rgba(196,240,0,0.055), transparent 58%),
+      var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 18px 18px;
+    margin-bottom: 14px;
+  }
+  .card-label {
+    font-family: var(--font-display);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    margin-bottom: 14px;
+  }
+  .hidden { display: none !important; }
+
+  /* CABINET HERO (компактный) ─── */
+  /* v86: добавлено лайм-свечение слева — Hero был «скучным»,
+     юзер: «нужно больше зелёного, акцентного цвета». */
+  .cabinet-hero {
+    background: linear-gradient(160deg,
+      var(--color-surface) 0%,
+      var(--color-surface-2) 100%);
+    border-left: 3px solid var(--color-accent);
+    box-shadow: 0 0 24px rgba(196,240,0,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .cabinet-hero::before {
+    content: "";
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(196,240,0,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cabinet-hero .card-label {
+    color: var(--color-accent);
+  }
+
+  /* ⏱ СЭКОНОМЛЕННОЕ ВРЕМЯ — флагманский блок (между тарифом и лимитами).
+     Слева текст+разбивка, справа кольцо-график (SVG) — заполняется по мере работы.
+     Расчёт: каждая операция × минуты экономии (брендбук). */
+  .saved-card { position: relative; overflow: hidden; }
+  .saved-card::before {
+    content: ''; position: absolute; top: -55%; right: -28%;
+    width: 240px; height: 240px; pointer-events: none;
+    background: radial-gradient(circle, rgba(196,240,0,0.15), transparent 70%);
+  }
+  .saved-flex { display: flex; align-items: center; gap: 16px; position: relative; }
+  .saved-left { flex: 1 1 auto; min-width: 0; }
+  .saved-hero {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 36px; line-height: 1; color: var(--color-accent);
+    letter-spacing: 0.5px;
+  }
+  .saved-lab { font-size: 12px; color: var(--color-text-muted); margin-top: 7px; line-height: 1.45; }
+  .saved-break { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .saved-break .b-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; font-size: 12px; color: var(--color-text-muted);
+  }
+  .saved-break .b-row .b-lab { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved-break .b-row .b-val { color: var(--color-text); font-weight: 600; white-space: nowrap; }
+  .saved-right { position: relative; flex: 0 0 118px; width: 118px; height: 118px; }
+  .saved-ring { width: 118px; height: 118px; transform: rotate(-90deg); display: block; }
+  .saved-ring .ring-track { fill: none; stroke: var(--color-surface-2); stroke-width: 9; }
+  .saved-ring .ring-fill {
+    fill: none; stroke: var(--color-accent); stroke-width: 9; stroke-linecap: round;
+    stroke-dasharray: 326.7; stroke-dashoffset: 326.7;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.2,0.8,0.2,1);
+    filter: drop-shadow(0 0 5px rgba(196,240,0,0.55));
+  }
+  .ring-center {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+  }
+  .ring-val { font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1; color: var(--color-text); }
+  .ring-unit { font-size: 10px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+  .saved-target {
+    font-size: 11px; color: var(--color-text-muted); margin-top: 13px;
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  /* v190: ⓘ кнопка-объяснение + раскрываемый tooltip + дата с какого момента */
+  .saved-info-btn {
+    margin-left: 6px; padding: 0; border: 0; background: transparent;
+    color: var(--color-text-muted); font-size: 13px; cursor: pointer;
+    opacity: 0.65; transition: opacity 0.18s;
+    line-height: 1; vertical-align: middle;
+  }
+  .saved-info-btn:hover, .saved-info-btn:active { opacity: 1; }
+  .saved-since {
+    margin-top: 12px; font-size: 11px; color: var(--color-text-muted);
+    letter-spacing: 0.3px;
+  }
+  .saved-tooltip {
+    margin-top: 12px; padding: 10px 12px;
+    background: rgba(255,255,255,0.04); border-radius: 8px;
+    font-size: 11.5px; line-height: 1.55; color: var(--color-text-muted);
+    border: 1px solid rgba(196,240,0,0.12);
+  }
+  .saved-tooltip em { color: var(--color-text); font-style: normal; font-weight: 500; }
+  .cabinet-hero .tariff-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 28px;
+    line-height: 1;
+    letter-spacing: 0.5px;
+  }
+  .cabinet-hero .tariff-meta {
+    color: var(--color-text-muted);
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  .cabinet-hero .tariff-meta strong {
+    color: var(--color-text); font-weight: 600;
+  }
+  /* v87: period-bar убран — дублировал saved-hours bar. Юзер: «3 разные
+     шкалы прогресса перегружают». Оставляем только saved-hours как
+     главную метрику в Hero. */
+  .progress-period {
+    display: none;
+  }
+
+  /* v87: inline CTA «Сменить тариф →» в Hero. Юзер: «Cменить тариф
+     должно быть сверху, не снизу». Компактная лайм-плашка рядом с
+     именем тарифа. */
+  /* v94: «Сменить тариф» full-width в Hero. Юзер: «должно быть крупнее,
+     под палец, чтобы было понятно что можно нажать». */
+  .hero-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 18px;
+    padding: 16px 18px;
+    width: 100%;
+    background: var(--color-accent);
+    border: none;
+    border-radius: 14px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--color-bg);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 16px rgba(196,240,0,0.15);
+  }
+  .hero-cta:hover, .hero-cta:active {
+    background: var(--color-accent-2);
+    transform: scale(0.99);
+  }
+  .hero-cta svg { width: 16px; height: 16px; stroke-width: 2.5; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     v207 РЕДИЗАЙН КАБИНЕТА — killer-кнопка ссылки во главе.
+     Порядок блоков задаём через flex order (источник не переставляем):
+     1 тариф-полоса · 2 killer-ссылка · 3 лимиты · 4 сэкономлено · 5 партнёрка
+     ═══════════════════════════════════════════════════════════════ */
+  #cabinetView { display: flex; flex-direction: column; }
+
+  /* 1. ТАРИФ — узкая полоса (не Hero): имя + осталось N дн + «Сменить» */
+  .tariff-strip {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; padding: 14px 16px;
+  }
+  .tariff-strip .ts-name {
+    font-family: var(--font-display); font-weight: 700;
+    text-transform: uppercase; font-size: 19px; line-height: 1; letter-spacing: 0.5px;
+  }
+  .tariff-strip .ts-meta { color: var(--color-text-muted); font-size: 12px; margin-top: 6px; }
+  .tariff-strip .ts-meta strong { color: var(--color-text); font-weight: 600; }
+  .ts-change {
+    flex: 0 0 auto; background: rgba(196,240,0,0.10);
+    border: 1px solid var(--color-accent); color: var(--color-accent);
+    border-radius: 11px; padding: 9px 14px;
+    font-family: var(--font-display); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.8px; cursor: pointer; white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .ts-change:active { background: rgba(196,240,0,0.20); }
+
+  /* 2. KILLER-КАРТОЧКА — главный блок кабинета */
+  .killer-card {
+    background: linear-gradient(165deg, var(--color-surface) 0%, var(--color-surface-2) 130%);
+    border: 1px solid var(--color-border);
+  }
+  .killer-eyebrow {
+    font-family: var(--font-display); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 1.4px; color: var(--color-accent);
+    margin-bottom: 13px;
+  }
+  /* KILLER-КНОПКА: full-width, концентрические лайм-обводы = «выданная фича» */
+  .killer-btn {
+    position: relative; display: flex; align-items: center; gap: 14px; width: 100%;
+    padding: 20px 18px; border: none; cursor: pointer; text-align: left;
+    border-radius: 18px; background: var(--color-accent); color: var(--color-bg);
+    box-shadow: 0 0 0 4px rgba(196,240,0,0.18),
+                0 0 0 10px rgba(196,240,0,0.09),
+                0 0 36px rgba(196,240,0,0.30);
+    transition: transform 0.12s ease, box-shadow 0.25s ease;
+    animation: killerPulse 3.4s ease-in-out infinite;
+  }
+  @keyframes killerPulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(196,240,0,0.16), 0 0 0 10px rgba(196,240,0,0.07), 0 0 30px rgba(196,240,0,0.24); }
+    50%      { box-shadow: 0 0 0 5px rgba(196,240,0,0.26), 0 0 0 13px rgba(196,240,0,0.12), 0 0 46px rgba(196,240,0,0.42); }
+  }
+  .killer-btn:active { transform: scale(0.985); }
+  .killer-btn.loading { opacity: 0.6; cursor: wait; animation: none; }
+  .killer-btn.loading .kb-title::after { content: ' …'; }
+  .killer-btn .kb-icon {
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(14,26,20,0.14); font-size: 24px;
+  }
+  .killer-btn .kb-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .killer-btn .kb-title {
+    font-family: var(--font-display); font-weight: 700; font-size: 21px;
+    line-height: 1.05; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .killer-btn .kb-sub { font-size: 12.5px; font-weight: 500; line-height: 1.35; opacity: 0.85; }
+  @media (prefers-reduced-motion: reduce) { .killer-btn { animation: none; } }
+
+  /* эмоция-строка под кнопкой (живые люди, не «8/30») */
+  .emotion-line {
+    margin-top: 16px; text-align: center; line-height: 1.3;
+    font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: 0.3px;
+    color: var(--color-text);
+  }
+  .emotion-line.hot { color: var(--color-accent); }
+  .emotion-line.muted {
+    color: var(--color-text-muted);
+    font-family: var(--font-text); font-weight: 500; font-size: 13px;
+  }
+  /* «🔥 хотят» — hero-цифра в сводке ссылок */
+  .clients-summary > div.hero .num { font-size: 32px; }
+
+  /* 3. ЛИМИТЫ — компактный свёрнутый блок (детали по тапу) */
+  /* v209: блок лимитов «горит зелёным» (просил владелец) — лайм-обводка + glow */
+  .limits-fold { padding: 0; border-color: rgba(196,240,0,0.28); box-shadow: 0 0 16px rgba(196,240,0,0.05); }
+  .limits-fold[open] { border-color: rgba(196,240,0,0.40); }
+  .limits-fold > summary {
+    list-style: none; cursor: pointer; padding: 16px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .limits-fold > summary::-webkit-details-marker { display: none; }
+  .limits-fold .lf-title {
+    font-family: var(--font-display); font-weight: 500; text-transform: uppercase;
+    letter-spacing: 1.2px; font-size: 11px; color: var(--color-text-muted);
+  }
+  .limits-fold .lf-chev { color: var(--color-text-muted); font-size: 12px; transition: transform 0.2s; }
+  .limits-fold[open] .lf-chev { transform: rotate(180deg); }
+  .limits-fold .metric-grid { padding: 0 18px 18px; }
+
+  /* 4. ⏱ СЭКОНОМЛЕНО — мини-карточка без SVG-кольца */
+  .saved-mini { display: flex; flex-direction: column; gap: 14px; }
+  .saved-head { display: flex; align-items: center; gap: 14px; }
+  .saved-mini .sm-icon { font-size: 30px; flex: 0 0 auto; opacity: 0.9; }
+  .saved-mini-num {
+    font-family: var(--font-display); font-weight: 700; font-size: 40px;
+    line-height: 1; color: var(--color-accent); letter-spacing: 0.5px;
+  }
+  .saved-mini-lab { font-size: 13px; color: var(--color-text-muted); line-height: 1.4; margin-top: 6px; }
+  .saved-breakdown { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; }
+  .saved-breakdown .sb-title { font-size: 12px; color: var(--color-text-muted); margin-bottom: 9px; }
+  .saved-breakdown .sb-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; padding: 4px 0; gap: 10px; }
+  .saved-breakdown .sb-row .sb-rate { color: var(--color-accent); font-weight: 600; white-space: nowrap; }
+  .saved-breakdown .sb-note { font-size: 11px; color: var(--color-text-muted); margin-top: 10px; line-height: 1.45; opacity: 0.85; }
+
+  /* v94: METRIC GRID с иерархией — Трансферы (главное) крупнее.
+     Юзер: «вроде нормально, но не нравится, глаз не цепляется».
+     Решение: первая метрика full-width hero, остальные 3 в ряд. */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .metric-grid .metric-hero {
+    grid-column: 1 / -1;
+    padding: 18px 18px 16px;
+  }
+  .metric-grid .metric-hero .lab { font-size: 13px; margin-bottom: 8px; }
+  .metric-grid .metric-hero .val { font-size: 32px; }
+  .metric-grid .metric-hero .val .total { font-size: 22px; }
+  .metric-grid .metric-hero .bar { margin-top: 14px; height: 6px; }
+  .metric-box {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 14px 14px 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-box .lab {
+    font-family: var(--font-text);
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+  .metric-box .val {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+  }
+  .metric-box .val .total {
+    color: var(--color-text-muted);
+    font-weight: 500;
+    font-size: 18px;
+  }
+  .metric-box .bar {
+    margin-top: 10px;
+    height: 4px;
+    background: var(--color-surface-2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .metric-box .bar > span {
+    display: block; height: 100%;
+    background: var(--color-accent);
+    width: 0%;
+    transition: width 0.6s ease;
+  }
+  .metric-box.full .bar > span { background: #d8484a; }
+  .metric-box.unavailable .val { color: var(--color-text-muted); font-size: 14px; }
+  .metric-box.unavailable .bar > span { background: transparent; }
+  /* v86: при 0 used — лёгкий лайм-намёк («стартовая позиция, всё впереди»).
+     Юзер: «0 везде — скучно, нет акцента». */
+  .metric-box.zero { border-color: rgba(196,240,0,0.18); }
+  .metric-box.zero .val { color: var(--color-text); }
+  .metric-box.zero .val .total { color: var(--color-accent); opacity: 0.6; }
+  .metric-box.zero .bar > span {
+    width: 4% !important;
+    background: var(--color-accent);
+    opacity: 0.35;
+  }
+  /* Безлимит (Премиум): «Безлимит» + «использовано N» стопкой + полная
+     премиальная лайм-полоска с «бесконечным» fade вправо — НЕ красный full-state. */
+  .metric-box.unlimited { border-color: rgba(196,240,0,0.22); }
+  .metric-box.unlimited .val { line-height: 1.12; }
+  .metric-box.unlimited .val .unlim-tag {
+    display: block; color: var(--color-accent); font-weight: 700; font-size: 21px;
+  }
+  .metric-box.unlimited .val .unlim-used {
+    display: block; font-size: 12px; font-weight: 500; letter-spacing: 0.3px;
+    color: var(--color-text-muted); margin-top: 3px;
+  }
+  .metric-box.unlimited .bar > span {
+    background: linear-gradient(90deg, var(--color-accent) 0%, rgba(196,240,0,0.22) 100%);
+  }
+  /* hero (первый бокс) — крупнее «Безлимит» */
+  .metric-grid .metric-hero.unlimited .val .unlim-tag { font-size: 30px; }
+  .metric-grid .metric-hero.unlimited .val .unlim-used { font-size: 14px; margin-top: 5px; }
+
+  /* CLIENTS-SUMMARY — 3-колоночные счётчики (используется секцией
+     «🔗 Ссылки примерки»; старый блок «База клиентов» удалён в v152). */
+  .clients-summary {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin-bottom: 14px;
+  }
+  .clients-summary > div {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 14px 8px;
+    text-align: center;
+  }
+  .clients-summary .num {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .clients-summary > div.accent .num { color: var(--color-accent); }
+  .clients-summary .lab {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  /* v214: LINK POOL BAR — goal-gradient прогресс-бар бюджета примерок.
+     Показывает «X из Y использовано» + warn/danger states + CTA-докуп.
+     Loss-aversion: 70% → намёк, 90% → красная горящая CTA на overage SKU. */
+  .link-pool-bar{padding:11px 13px;background:rgba(255,255,255,0.03);border:1px solid var(--color-border);border-radius:12px}
+  .link-pool-bar .lp-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:var(--color-text-muted);letter-spacing:.02em;text-transform:uppercase;font-family:var(--font-display);font-weight:600;margin-bottom:7px}
+  .link-pool-bar .lp-count{color:var(--color-text)}
+  .link-pool-bar .lp-track{height:6px;background:rgba(0,0,0,0.25);border-radius:99px;overflow:hidden}
+  .link-pool-bar .lp-fill{display:block;height:100%;background:var(--color-accent);width:0%;border-radius:99px;transition:width 0.6s ease}
+  .link-pool-bar.warn .lp-fill{background:#FFAA33}
+  .link-pool-bar.danger .lp-fill{background:#D8484A}
+  .link-pool-bar .lp-cta{margin-top:10px;font-size:12px;line-height:1.45;color:var(--color-text)}
+  .link-pool-bar .lp-cta a{color:var(--color-accent);font-weight:600;cursor:pointer;text-decoration:underline}
+
+  /* v214: EXPIRY BANNER — loss-aversion при ≤3 дн до конца тарифа.
+     Красная карточка вверху Cabinet, активирует мощный «продли сейчас». */
+  .expiry-banner { border-color: rgba(216,72,74,0.5) !important; box-shadow: 0 0 18px rgba(216,72,74,0.10); }
+  .expiry-banner .card-label { color: #FFAA88 !important; }
+
+  /* v214: AUTORENEW BOX — индикатор автопродления (информационный, преchecked).
+     Чекбокс не управляет реальной логикой — реальное отключение через
+     cancel-flow в pricing-window. Здесь — для прозрачности «как это работает». */
+  .autorenew-box { padding: 14px 16px; }
+  .autorenew-box label input[type="checkbox"] { accent-color: var(--color-accent); }
+
+  /* TRYON-LINKS (🔗 Ссылки примерки) — v145 ─────────────
+     Мастер генерит ссылку на эскиз → клиент мерит на себя → жмёт «Хочу».
+     Стиль наследует .card / .clients-summary. */
+  .tl-explain {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+  .tl-explain b { color: var(--color-text); font-weight: 600; }
+  .tl-demo {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-bottom: 14px;
+  }
+  .tl-demo b { color: var(--color-accent); font-weight: 700; }
+  .tl-new-btn {
+    width: 100%;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 15px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    box-shadow: 0 4px 16px rgba(196,240,0,0.15);
+  }
+  .tl-new-btn:hover, .tl-new-btn:active {
+    background: var(--color-accent-2);
+    transform: scale(0.99);
+  }
+  .tl-notice {
+    margin-top: 12px;
+    background: rgba(196,240,0,0.08);
+    border: 1px dashed var(--color-accent);
+    border-radius: var(--radius-md);
+    padding: 13px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-text);
+  }
+  .tl-list { margin-top: 16px; }
+  .tl-item {
+    display: flex;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-thumb {
+    flex: 0 0 60px;
+    width: 60px; height: 60px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+  }
+  .tl-thumb-fallback {
+    flex: 0 0 60px;
+    width: 60px; height: 60px;
+    border-radius: 12px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  .tl-body { flex: 1 1 auto; min-width: 0; }
+  .tl-row1 {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 5px;
+  }
+  .tl-badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .tl-badge.live { color: var(--color-accent); }
+  .tl-badge.dead { color: var(--color-text-muted); }
+  .tl-counts {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tl-counts b { color: var(--color-text); font-weight: 600; }
+  .tl-linkrow {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 7px;
+  }
+  .tl-url {
+    flex: 1 1 auto; min-width: 0;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    word-break: break-all;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .tl-url:active { color: var(--color-accent); }
+  .tl-actions { display: flex; gap: 8px; margin-top: 9px; }
+  /* v673: строка «ссылка работает и в Инстаграме» над списком ссылок. */
+  .tl-share-hint {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--color-text-muted);
+    margin: 0 0 10px;
+  }
+
+  /* BTN-ICON — мелкие кнопки (Копировать/🗑 в секции «Ссылки примерки»). */
+  .btn-icon {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-text);
+    padding: 8px 12px;
+    font-family: var(--font-text);
+    font-weight: 500;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .btn-icon:hover, .btn-icon:active {
+    border-color: var(--color-accent);
+  }
+
+  /* TARIFFS — Full-width cards ─ */
+  .tariffs-list { display: none; }
+  .tariffs-list.open { display: block; }
+
+  .tariff-card {
+    background: linear-gradient(180deg,
+      var(--color-surface-2) 0%,
+      var(--color-surface) 100%);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 22px 20px 20px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tariff-card.popular {
+    border-color: var(--color-accent);
+    box-shadow:
+      0 0 0 1px var(--color-accent) inset,
+      0 4px 24px rgba(196,240,0,0.08);
+  }
+  .tariff-card.current {
+    border-color: var(--color-text);
+  }
+
+  .tariff-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 99px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .tariff-badge.current {
+    background: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  .tariff-card .name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  /* v267 (Task B): карточка ВЕДЁТ РЕЗУЛЬТАТОМ — клиенты по ссылке → заявки.
+     Инструменты (.features) ниже как вторичный читаемый блок. */
+  .tariff-card .result-line {
+    font-size: 14px; line-height: 1.35; color: var(--color-text);
+    margin-bottom: 14px; letter-spacing: 0.1px;
+  }
+  .tariff-card .result-line b {
+    color: var(--color-accent); font-family: var(--font-display);
+    font-weight: 700; font-size: 16px; letter-spacing: 0.3px;
+  }
+  .tariff-card .result-line .res-sub {
+    display: block; color: var(--color-text-muted);
+    font-size: 11.5px; margin-top: 3px; line-height: 1.35;
+  }
+  .tariff-card .price-row {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .tariff-card .old-price {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 18px;
+    text-decoration: line-through;
+    color: var(--color-strike);
+    letter-spacing: 0.3px;
+  }
+  .tariff-card .price {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 34px;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+  .tariff-card .price-unit {
+    color: var(--color-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 4px;
+  }
+  .tariff-card .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .tariff-card .features > div {
+    display: flex; flex-direction: column;
+  }
+  .tariff-card .features .f-num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.3px;
+  }
+  .tariff-card .features .f-lab {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+  .tariff-card .features .f-num.muted {
+    color: var(--color-text-muted);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .tariff-card .btn-buy {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid var(--color-text);
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .tariff-card .btn-buy:hover, .tariff-card .btn-buy:active {
+    background: var(--color-text); color: var(--color-bg);
+  }
+  .tariff-card.popular .btn-buy {
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border-color: var(--color-accent);
+  }
+  .tariff-card.popular .btn-buy:hover {
+    background: var(--color-accent-2);
+    border-color: var(--color-accent-2);
+  }
+  .tariff-card .btn-buy:disabled {
+    background: transparent;
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+    cursor: default;
+  }
+  .tariff-card .trial-note {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  /* SECTION TOGGLE (Сменить тариф) */
+  .section-toggle {
+    width: 100%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-size: 13px;
+    padding: 16px 18px;
+    cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .section-toggle .chev { font-size: 18px; transition: transform 0.2s ease; }
+  .section-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+  .section-toggle:hover { border-color: var(--color-accent); }
+
+  /* SIGNUP HERO ─────────────── */
+  .signup-hero {
+    padding: 24px 20px 22px 20px;
+    border: 1px solid var(--color-accent);
+    box-shadow: 0 0 0 6px rgba(196,240,0,0.04);
+  }
+  .signup-hero .eyebrow {
+    font-family: var(--font-display);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 11px;
+    color: var(--color-accent);
+    margin-bottom: 10px;
+  }
+  .signup-hero h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 12px;
+  }
+  .signup-hero p.lead {
+    color: var(--color-text-muted);
+    font-size: 14px;
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+  .signup-hero .features-mini {
+    display: grid; gap: 8px; margin-bottom: 18px;
+  }
+  .signup-hero .features-mini > div {
+    font-size: 13px;
+    line-height: 1.5;
+    padding-left: 18px;
+    position: relative;
+  }
+  .signup-hero .features-mini > div::before {
+    content: ""; position: absolute; left: 0; top: 9px;
+    width: 6px; height: 6px;
+    background: var(--color-accent); border-radius: 50%;
+  }
+  .signup-hero .features-mini > div b {
+    color: var(--color-text); font-weight: 600;
+  }
+  .btn-trial {
+    width: 100%;
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    cursor: pointer;
+  }
+  .btn-trial:hover, .btn-trial:active { background: var(--color-accent-2); }
+  .signup-hero .small {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  /* FOOTER NAV ───────────────── */
+  .footer-nav {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .footer-nav button {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    padding: 12px 8px;
+    font-size: 12px;
+    font-family: var(--font-text);
+    cursor: pointer;
+  }
+  .footer-nav button:hover {
+    color: var(--color-text);
+    border-color: var(--color-accent);
+  }
+  .slogan {
+    text-align: center;
+    margin-top: 30px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 1.8px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+  .slogan b { color: var(--color-accent); font-weight: 700; }
+
+  /* v104: 152-ФЗ legal disclaimer — мелким приглушённым внизу */
+  .legal-notice {
+    margin-top: 22px;
+    padding: 12px 14px;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--color-text-dim, #5b6864);
+    text-align: center;
+    border-top: 1px dashed var(--color-border, #1f3329);
+    letter-spacing: 0.01em;
+  }
+
+  /* LOADING ──────────────── */
+  .skeleton {
+    background: linear-gradient(90deg,
+      var(--color-surface) 25%,
+      var(--color-surface-2) 50%,
+      var(--color-surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease infinite;
+    color: transparent;
+    border-radius: 4px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .empty-state {
+    padding: 14px 4px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .empty-state b {
+    color: var(--color-text); font-weight: 600;
+    display: block; margin-bottom: 6px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .error-banner {
+    background: rgba(216,72,74,0.1);
+    border: 1px solid #d8484a;
+    color: #f4f4f0;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-mark">
+    <img src="assets/logo/tatu-tut-mark-dark.svg" alt="ТТ"
+         onerror="this.outerHTML='<div style=&quot;width:32px;height:32px;background:var(--color-accent);border-radius:6px;&quot;></div>'">
+  </div>
+  <div>
+    <div class="header-title">ТАТУ ТУТ</div>
+    <div class="header-sub" id="headerSub">Кабинет мастера</div>
+  </div>
+</div>
+
+<div id="errorBanner" class="error-banner hidden"></div>
+
+<!-- ═══ SIGNUP VIEW (новый юзер / не зарегистрирован) ═══ -->
+<div id="signupView" class="hidden">
+
+  <div class="card signup-hero">
+    <div class="eyebrow">Старт</div>
+    <!-- v672: цена и состав пробного подставляются из тарифа (см. applyTrialHero).
+         Числа в разметке — только заглушка первого кадра. Раньше тут стояло
+         «+ 25 примерок тату на тело» при реальных 12 (срезано ещё в v403) и
+         три копии «299 ₽», которые пережили бы плановый флип 299→399. -->
+    <h1>Тариф Trial<br>7 дней за <span class="js-trial-price">399</span> ₽</h1>
+    <p class="lead">
+      Полный доступ к ИИ-инструментам тату-мастера на 7 дней
+      за <span class="js-trial-price">399</span> ₽ (оплата через СБП).
+      Дальше — по выбранному тарифу.
+    </p>
+    <div class="features-mini" id="trialFeatures"></div>
+    <button class="btn-trial" id="btnActivateTrial">
+      Активировать Стартовый набор
+    </button>
+    <div class="small">
+      Разовая проба за <span class="js-trial-price">399</span> ₽ через СБП —
+      <b>без привязки карты</b>.<br>
+      Через 7 дней доступ закроется, дальше можно купить любой платный тариф.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Все тарифы</div>
+    <div id="signupTariffsList"></div>
+  </div>
+
+</div>
+
+<!-- ═══ CABINET VIEW (зарегистрированный мастер) ═══ -->
+<div id="cabinetView" class="hidden">
+
+  <!-- v214: 🚨 EXPIRY BANNER — loss-aversion при ≤3 дн до конца тарифа.
+       Скрыт по умолчанию. applyCabinet() показывает + наполняет когда
+       d.days_left ≤ 3. order:0 — самый верх Cabinet. -->
+  <div class="card expiry-banner hidden" id="expiryBanner" style="order:0;margin-bottom:14px;border-color:rgba(216,72,74,0.5)">
+    <div class="card-label" style="color:#FFAA88">⚠️ Внимание</div>
+    <div class="eb-msg" id="eb_msg" style="font-size:14px;line-height:1.5;color:var(--color-text)"></div>
+    <button class="hero-cta" id="eb_cta" style="margin-top:14px;background:#D8484A;color:#fff">Продлить сейчас</button>
+  </div>
+
+  <!-- 0. ПАРТНЁРСКИЙ БОНУС — заметно ВВЕРХУ, только если начислены пакеты Lite
+       (referrals.lite_packages_earned > 0). order:0 → выше всего. Заполняется
+       в applyCabinet (v267 Task A: пакеты Lite вместо «+N дней»). -->
+  <div class="card hidden" id="referralBonusTop"
+       style="order:4;margin-bottom:14px;display:flex;align-items:center;gap:13px;
+              border-color:rgba(196,240,0,0.40);
+              background:linear-gradient(135deg,rgba(196,240,0,0.12),var(--color-surface));
+              box-shadow:0 0 18px rgba(196,240,0,0.10)">
+    <span style="font-size:27px;line-height:1">🎁</span>
+    <div>
+      <div id="referralBonusTopNum"
+           style="font-family:var(--font-display);font-weight:700;font-size:18px;
+                  color:var(--color-accent);line-height:1.05">+0 пакетов Lite</div>
+      <div style="font-size:12px;color:var(--color-text-muted);margin-top:3px;line-height:1.4">
+        партнёрский бонус · пакеты Lite за приведённых мастеров
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. ТАРИФ — узкая полоса (v207 redesign): имя + осталось N дн + «Сменить».
+       v397: order:1 → order:2 (под статистикой канала заявок). -->
+  <div class="card tariff-strip" style="order:1">
+    <div class="ts-info">
+      <div class="ts-name" id="tariffName">
+        <span class="skeleton" style="display:inline-block;width:110px;height:22px">&nbsp;</span>
+      </div>
+      <div class="ts-meta" id="tariffMeta">
+        <span class="skeleton" style="display:inline-block;width:130px;height:12px">&nbsp;</span>
+      </div>
+    </div>
+    <button class="ts-change" id="heroCta" type="button">Сменить</button>
+  </div>
+
+  <!-- 4. ⏱ СЭКОНОМЛЕНО — мини-карточка без SVG-кольца (v207). order:4 -->
+  <div class="card saved-mini" id="savedCard" style="order:2">
+    <div class="saved-head">
+      <span class="sm-icon">⏱</span>
+      <div>
+        <div class="saved-mini-num" id="savedNum">0 ч</div>
+        <div class="saved-mini-lab" id="savedLab">рабочего времени бот вернул тебе</div>
+      </div>
+    </div>
+    <div class="saved-breakdown" id="savedBreakdown"></div>
+  </div>
+
+  <!-- 3. ЛИМИТЫ — компактно, детали по тапу (v207). order:3 -->
+  <!-- v385: open по умолчанию — лимиты были спрятаны за тапом, мастера
+       жаловались «лимитов не видно» (Ната 11.06). Свернуть можно тапом. -->
+  <details class="card limits-fold" style="order:3" open>
+    <summary>
+      <span class="lf-title">📦 Лимиты тарифа</span>
+      <span class="lf-chev">▾</span>
+    </summary>
+    <div class="metric-grid" id="metricGrid"></div>
+    <!-- v385: апсейл-CTA — появляется когда любая квота заполнена ≥80% -->
+    <div id="limitsUpsell" class="hidden" style="padding:0 18px 18px">
+      <button type="button" id="limitsUpsellBtn"
+              style="width:100%;padding:13px 16px;border-radius:14px;border:1px solid rgba(196,240,0,.45);
+                     background:linear-gradient(180deg,rgba(196,240,0,.14),rgba(196,240,0,.06));
+                     color:var(--color-accent);font-weight:700;font-size:14px;cursor:pointer">
+        🚀 Лимиты заканчиваются — расширить
+      </button>
+    </div>
+    <!-- Докуплено сверх тарифа (overage) — строка «+N видео (докуплено)».
+         ЖДЁТ ПОЛЕ от код-сессии: d.overage = {videos:N, tryons:N, ...} (или
+         разница quota_total vs базовый тариф). Пока вёрстка-заглушка, скрыта. -->
+    <div id="overageNote" class="hidden"
+         style="padding:2px 18px 16px;font-size:12.5px;font-weight:600;
+                color:var(--color-accent);line-height:1.5"></div>
+  </details>
+
+  <!-- v152: СТАРЫЙ блок «Твоя база клиентов» (QR-промо B2C) УДАЛЁН.
+       Заменён секцией «🔗 Ссылки примерки» ниже — она работает и
+       привлекает клиентов мастера без отдельного QR-флоу. Промокод
+       для партнёрки теперь хранится в JS-переменной PROMO_CODE. -->
+
+  <!-- v87: section-toggle «Сменить тариф» УБРАН снизу. CTA теперь
+       inline в Hero (heroCta button). Пустой div сохранён для
+       обратной совместимости renderCabinetTariffs (не используется
+       при routing, но JS на него ссылается). -->
+  <div class="tariffs-list" id="cabinetTariffsList" style="display:none"></div>
+
+  <!-- 2. 🔥 KILLER-КНОПКА ССЫЛКИ — главный блок кабинета (v207).
+       Карточка поднята на 2-ю позицию (order:2). Кнопка = killer-фича
+       «выданная за прайс»: full-width, концентрические лайм-обводы.
+       Мастер генерит ссылку → клиент мерит на себя → жмёт «хочу» →
+       мастеру падает заявка. Бэкенд — /api/tryon_link/*. -->
+  <!-- v397: блок поднят на 1-ю позицию (order:1) — главный retention-крючок:
+       мастер открывает кабинет и СРАЗУ видит сколько людей примерили его тату
+       и хотят записаться. Кнопка создания ссылки убрана отсюда (вынесена на
+       reply-панель бота «🔗 Ссылка для клиента») — здесь теперь чистая
+       статистика + подсказка куда жать за новой ссылкой. -->
+  <div class="card killer-card" id="cardTryonLinks" style="order:5;margin-bottom:14px">
+    <div class="killer-eyebrow">🔗 Твой канал заявок</div>
+
+    <!-- эмоция-строка: живые люди, не «8/30» (заполняется в renderTryonLinks) -->
+    <div class="emotion-line muted" id="emotionLine">&nbsp;</div>
+
+    <!-- v214: 🎯 GOAL-GRADIENT BUDGET BAR — бюджет примерок этого месяца.
+         Loss-aversion: 70% → warn (намёк), 90% → danger (CTA на overage SKU
+         «+50 примерок за 690₽»). Заполняется в renderTryonLinks() из
+         d.demo_pool / d.demo_remaining. -->
+    <div class="link-pool-bar" id="linkPoolBar" style="margin:14px 0 4px">
+      <div class="lp-row">
+        <span class="lp-label">Бюджет примерок этого месяца</span>
+        <span class="lp-count"><span id="linkPoolUsed">0</span> / <span id="linkPoolTotal">250</span></span>
+      </div>
+      <div class="lp-track"><span class="lp-fill" id="linkPoolFill" style="width:0%"></span></div>
+      <div class="lp-cta hidden" id="linkPoolCta"></div>
+    </div>
+
+    <!-- сводка по ссылкам: «🔥 хотят» — главная цифра -->
+    <div class="clients-summary" id="clientsSummary" style="margin-top:16px;margin-bottom:0">
+      <div class="accent hero"><div class="num" id="tlWants">0</div><div class="lab">🔥 Хотят такую</div></div>
+      <div><div class="num" id="tlTried">0</div><div class="lab">Примерили</div></div>
+      <div><div class="num" id="tlActive">0</div><div class="lab">Ссылок активно</div></div>
+    </div>
+
+    <!-- онбординг: показывается когда ссылок ещё нет (все нули) -->
+    <div id="onboardingHint" style="display:none;margin-top:14px;background:rgba(196,240,0,.06);border:1px solid rgba(196,240,0,.2);border-radius:14px;padding:16px 14px">
+      <div style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--color-accent);margin-bottom:10px">🚀 Запусти канал заявок за 2 шага</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.4">
+          <span style="background:var(--color-accent);color:#0b1208;border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-weight:700;font-size:11px;flex:0 0 auto;margin-top:1px">1</span>
+          <span>Закрой кабинет → жми <b style="color:var(--color-accent)">«🔗 Ссылка для клиента»</b> на панели снизу → пришли эскиз → получишь ссылку</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.4">
+          <span style="background:var(--color-accent);color:#0b1208;border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-weight:700;font-size:11px;flex:0 0 auto;margin-top:1px">2</span>
+          <span>Кинь ссылку в <b>Stories</b> или <b>директ</b> — клиент примерит тату на себе и напишет «хочу»</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11.5px;color:var(--color-text-muted)">Первые «🔥 хотят» обычно появляются в тот же день</div>
+    </div>
+
+    <div class="tl-demo" id="tlDemo" style="margin-top:14px"></div>
+    <div class="tl-notice hidden" id="tlNotice"></div>
+    <div class="tl-list" id="tlList"></div>
+
+    <!-- v397: подсказка вместо убранной кнопки — новая ссылка создаётся на
+         reply-панели бота. -->
+    <div style="margin-top:14px;padding:12px 14px;background:rgba(196,240,0,.06);
+                border:1px solid rgba(196,240,0,.2);border-radius:12px;
+                font-size:12.5px;line-height:1.5;color:var(--color-text)">
+      ➕ <b>Новая ссылка-примерка</b> — закрой кабинет и жми кнопку
+      <b style="color:var(--color-accent)">«🔗 Ссылка для клиента»</b> на панели снизу.
+      Пришлёшь эскиз — бот выдаст готовую ссылку для сторис.
+    </div>
+  </div>
+
+  <!-- v89: партнёрская программа — backend хранит referred_masters[],
+       раньше это было невидимо в Cabinet. Минимальный блок с цифрой
+       и CTA. Юзер: «нужны все логики чтобы работали». -->
+  <div class="card" id="cardReferrals" style="order:4;margin-bottom:14px">
+    <div class="card-label">Партнёрка</div>
+    <div style="font-size:13px;color:var(--color-text-muted);line-height:1.55;margin-bottom:12px">
+      Приведи другого тату-мастера по своей ссылке —
+      <b style="color:var(--color-accent)">пакет Lite в подарок</b>
+      (трансферы, примерки, видео сверх тарифа) за каждого, кто оплатит тариф.
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+      <div style="font-family:var(--font-display);font-size:32px;font-weight:700;line-height:1;color:var(--color-accent)" id="refCount">0</div>
+      <div style="font-size:12px;color:var(--color-text-muted);line-height:1.4">
+        мастеров привёл<br>
+        <span id="refBonus" style="color:var(--color-text);font-weight:500">0 дней получено</span>
+      </div>
+    </div>
+    <button class="btn" id="btnReferralLink" style="width:100%;background:rgba(196,240,0,0.10);border:1.5px solid var(--color-accent);color:var(--color-accent);padding:14px;border-radius:14px;font-family:var(--font-text);font-weight:700;font-size:13px;letter-spacing:0.3px;cursor:pointer;box-shadow:0 0 16px rgba(196,240,0,0.10)">
+      Поделиться партнёрской ссылкой
+    </button>
+  </div>
+
+  <!-- v214: 🔁 AUTORENEW BOX — информационный индикатор автопродления.
+       v216 LAUNCH-BLOCKER #2: чекбокс показывается ТОЛЬКО когда backend
+       вернул autorenew_active=true (см. applyCabinet). Иначе рендерится
+       alt-карточка #autorenewTrialNote — без чекбокса и ложного «активно».
+       Backend: bot.py _build_cabinet_payload отдаёт autorenew_active.
+       Order:6 — самый низ, перед footer-nav. -->
+  <div class="card autorenew-box hidden" id="autorenewBox" style="order:6;margin-top:6px">
+    <label style="display:flex;align-items:center;gap:11px;cursor:pointer">
+      <input type="checkbox" id="autorenewCheck" checked style="width:18px;height:18px;accent-color:var(--color-accent);cursor:pointer">
+      <span style="flex:1">
+        <span style="font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--color-text);display:block">Автопродление активно</span>
+        <!-- Бриф J: что именно продлевается — тариф · цена · дата след. списания.
+             Заполняется в applyCabinet из tariff_name / tariffs[].price /
+             tariff_expires_at_iso. Владелец/мастер видит «какой тариф привязан». -->
+        <span id="autorenewDetail" style="font-size:12px;color:var(--color-accent);display:block;margin-top:3px;font-weight:600"></span>
+        <span style="font-size:11.5px;color:var(--color-text-muted);display:block;margin-top:3px">Без перерывов — клиенты по ссылке всегда видят твою тату. Отмена — 2 клика отсюда.</span>
+      </span>
+    </label>
+  </div>
+
+  <!-- v216 LAUNCH-BLOCKER #2: alt-карточка для триала / без сохранённой карты.
+       Показывается когда autorenew_active=false (включая всех trial-юзеров,
+       у которых recurring не подключён по дизайну). Без чекбокса — никаких
+       ложных обещаний «автопродление активно». -->
+  <div class="card autorenew-box hidden" id="autorenewTrialNote" style="order:6;margin-top:6px">
+    <div style="display:flex;align-items:flex-start;gap:11px">
+      <span style="font-size:18px;line-height:1;margin-top:1px">🎁</span>
+      <span style="flex:1">
+        <span id="autorenewTrialNoteTitle" style="font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--color-text);display:block">Активный тариф</span>
+        <span id="autorenewTrialNoteBody" style="font-size:11.5px;color:var(--color-text-muted);display:block;margin-top:3px">Продли через прайс перед окончанием, чтобы не потерять доступ.</span>
+      </span>
+    </div>
+    <!-- v249: CTA привязки карты — показывается только платным без карты
+         (applyCabinet). Тап → deep-link ?start=bind_card → backend
+         _start_card_bind (проверочный платёж 1 ₽ → токен → автопродление). -->
+    <button id="bindCardBtn" class="hidden" style="margin-top:12px;width:100%;padding:11px 12px;border:none;border-radius:10px;background:var(--color-accent);color:#0a0a0a;font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:0.2px;cursor:pointer">💳 Привязать карту для автопродления</button>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer-nav">
+  <button id="navHelp">Поддержка</button>
+  <button id="navFAQ">FAQ</button>
+  <button id="navReferral">Рефералка</button>
+</div>
+
+<div class="legal-notice">
+  Используя бот, ты подтверждаешь что у клиента получено согласие
+  на обработку фото (152-ФЗ). Загруженные фото шифруются и не
+  используются для обучения ИИ.
+</div>
+
+<div class="slogan">Тату<b>?</b> Тут<b>.</b></div>
+
+<script>
+  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    try { tg.setHeaderColor('#0E1A14'); tg.setBackgroundColor('#0E1A14'); } catch(e) {}
+  }
+
+  const API_BASE = 'https://worker-production-c1cb.up.railway.app';
+  const $ = (id) => document.getElementById(id);
+
+  // v78: FALLBACK тарифы — показываются ТОЛЬКО если /api/cabinet не ответил.
+  // Боевой источник чисел — d.tariffs (payload _public_tariffs_payload из
+  // MASTER_TARIFFS). СВЕРЕНО с bot.py MASTER_TARIFFS 03.06: solo/pro/studio
+  // stencils+extracts были устаревшими (solo 25/2, pro 100/10, studio 250/40) —
+  // поправил под реальные (solo 15/15, pro 60/60, studio 120/120).
+  // v267 (Task B): + animations + demo_pool (клиенты по ссылке) — синхрон с
+  // MASTER_TARIFFS / DEMO_POOL_BY_TARIFF (анимации 0/0/4/10/20; пул 25/50/250/500/∞).
+  // v272 (решение владельца): из ТРИАЛА убраны видео и оживления (дорогие, ушли в
+  // платные) — trial videos:0 + animations:0. demo_pool 25 (клиенты по ссылке) сохранён.
+  //
+  // v672 (заказ владельца 26.07 «не вводить человека в заблуждение»):
+  //   • УБРАН premium 14990 — v666 снял его с витрины по прямой команде «режь»,
+  //     а фолбэк продолжал его рисовать с рабочей кнопкой оплаты. Любой сбой
+  //     /api/cabinet воскрешал снятый тариф. Правило: чего нет в витрине бота
+  //     (_NON_CATALOG_TARIFFS), того нет и здесь.
+  //   • sketches/photo_retouch добавлены — сервер их отдаёт, и карточка теперь
+  //     показывает эскизы (главная ось Про и Макс: 120 и 250).
+  //   • Имена приведены к каноническим (_TARIFF_PLAIN_NAMES): «Студия» здесь
+  //     означала premium — то же слово, что народное имя Макс.
+  //   • Цена триала: 399 — снимок. Живая едет из env TRIAL_PRICE_RUB через
+  //     payload; при плановом флипе 299→399 фолбэк отстанет ровно на время
+  //     недоступности сервера.
+  // Расхождение с MASTER_TARIFFS ловит tests/test_v672_tariff_video_boost.py.
+  const FALLBACK_TARIFFS = [
+    { key:'trial',   name:'Trial',  price:399,  old_price:0,    days:7,  sketches:5,   stencils:5,   tryons:12,  extracts:3,   photo_retouch:5,  videos:0, clients_quota:25, animations:0,  demo_pool:25,   popular:false },
+    { key:'solo',    name:'Старт',  price:1490, old_price:1990, days:30, sketches:20,  stencils:15,  tryons:15,  extracts:15,  photo_retouch:10, videos:1, clients_quota:5,  animations:1,  demo_pool:100,  popular:false },
+    { key:'pro',     name:'Про',    price:2990, old_price:4990, days:30, sketches:120, stencils:60,  tryons:40,  extracts:60,  photo_retouch:30, videos:4, clients_quota:10, animations:12,  demo_pool:600,  popular:true  },
+    { key:'studio',  name:'Макс',   price:5990, old_price:9990, days:30, sketches:250, stencils:120, tryons:100, extracts:120, photo_retouch:80, videos:9, clients_quota:15, animations:22, demo_pool:2000, popular:false },
+  ];
+
+  // v672: последний ЖИВОЙ payload тарифов (из /api/cabinet). Всё, что
+  // называет цену или объём вне карточек — retention-попапы, алерты — берёт
+  // числа отсюда, а не из строки в разметке. Снимок используется, только пока
+  // сервер не ответил.
+  let LIVE_TARIFFS = FALLBACK_TARIFFS;
+  function rememberTariffs(list) {
+    if (Array.isArray(list) && list.length) LIVE_TARIFFS = list;
+    return list;
+  }
+  function tariffPrice(key, dflt) {
+    const t = (LIVE_TARIFFS || []).find(x => x && x.key === key);
+    return (t && t.price) ? Number(t.price) : dflt;
+  }
+
+  // v109: API endpoint бота для создания invoice link (Railway)
+  const BOT_API_BASE = 'https://worker-production-c1cb.up.railway.app';
+  const BOT_LINK = 'https://t.me/ta2_blockbot';
+
+  // v109: основной путь оплаты — fetch /api/invoice → tg.openInvoice(url).
+  // Это работает из ЛЮБОГО launch type (menu_button, keyboard_button,
+  // inline_button), в отличие от sendData. Возвращает true если invoice
+  // был успешно открыт (вне зависимости от результата оплаты), false если
+  // не удалось получить URL или открыть окно — тогда вызывающий код
+  // должен попробовать fallback (openTelegramLink → window.location.href).
+  async function openPaidInvoice(tariffKey) {
+    if (!tg) return false;
+    const initData = tg.initData || '';
+    if (!initData) {
+      console.warn('[tariffs] no initData — cannot call /api/invoice');
+      return false;
+    }
+    const apiUrl = BOT_API_BASE + '/api/invoice?initData='
+      + encodeURIComponent(initData) + '&tariff=' + encodeURIComponent(tariffKey);
+    let resp;
+    try {
+      resp = await fetch(apiUrl, { method: 'GET' });
+    } catch (e) {
+      console.error('[tariffs] fetch /api/invoice failed:', e);
+      return false;
+    }
+    // v155: трактуем тело даже при не-200 — backend шлёт {error:"trial_used"}
+    // со статусом 400 если пробный уже использован. Показываем баннер вместо
+    // тихого fallback на deep-link.
+    let data = null;
+    try { data = await resp.json(); } catch (e) {}
+    if (data && data.error === 'trial_used') {
+      showError('Пробный период уже использован — выбери тариф.');
+      return true;  // НЕ уходим в deep-link fallback (он покажет то же в чате)
+    }
+    if (!resp.ok) {
+      console.error('[tariffs] /api/invoice HTTP ' + resp.status);
+      return false;
+    }
+    if (!data || !data.url) {
+      console.error('[tariffs] no invoice URL in response:', data);
+      return false;
+    }
+    console.log('[tariffs] openInvoice URL:', data.url);
+    return new Promise(resolve => {
+      try {
+        tg.openInvoice(data.url, status => {
+          console.log('[tariffs] invoice status:', status);
+          if (status === 'paid') {
+            try {
+              tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success');
+            } catch (e) {}
+            tg.showAlert && tg.showAlert(
+              '✅ Оплата прошла! Тариф активирован.',
+              () => { try { tg.close(); } catch (e) {} }
+            );
+          } else if (status === 'cancelled') {
+            // юзер закрыл окно — ничего не делаем
+          } else if (status === 'failed') {
+            tg.showAlert && tg.showAlert(
+              '❌ Оплата не прошла. Попробуй ещё раз или напиши Николаю.'
+            );
+          } else if (status === 'pending') {
+            tg.showAlert && tg.showAlert(
+              '⏳ Оплата в обработке. Тариф активируется автоматически после подтверждения.'
+            );
+          }
+        });
+        resolve(true);
+      } catch (e) {
+        console.error('[tariffs] openInvoice() threw:', e);
+        resolve(false);
+      }
+    });
+  }
+
+  // Fallback на deep-link (открывает чат с ботом /start buy_<tariff>).
+  // Используется если openInvoice не получился (нет initData, ошибка fetch
+  // или сам openInvoice бросил исключение).
+  function openDeepLinkFallback(startParam) {
+    const url = BOT_LINK + '?start=' + startParam;
+    console.log('[tariffs] fallback openTelegramLink → ' + url);
+    if (tg && tg.openTelegramLink) {
+      try {
+        tg.openTelegramLink(url);
+        return;
+      } catch (e) {
+        console.error('[tariffs] openTelegramLink threw:', e);
+      }
+    }
+    try {
+      window.location.href = url;
+    } catch (e) {
+      console.error('[tariffs] window.location.href failed:', e);
+      tg && tg.showAlert && tg.showAlert(
+        'Не получилось открыть оплату. Закрой это окно и напиши боту команду /tariffs — оплата откроется в чате.'
+      );
+    }
+  }
+
+  // v254: РОБАСТНАЯ привязка карты — fetch /api/bind-card → tg.openLink (страница
+  // ЮKassa). Заменяет хрупкий deep-link ?start=bind_card, который из Mini App к
+  // своему же боту НЕ перезапускал /start (просто закрывал кабинет → «не работает»).
+  async function startCardBind() {
+    const initData = (tg && tg.initData) ? tg.initData : '';
+    if (!initData) { tg && tg.showAlert && tg.showAlert('Открой кабинет внутри Telegram.'); return; }
+    try {
+      const resp = await fetch(BOT_API_BASE + '/api/bind-card?initData=' + encodeURIComponent(initData));
+      const data = await resp.json().catch(() => ({}));
+      if (data && data.already_bound) { tg && tg.showAlert && tg.showAlert('Карта уже привязана ✅'); return; }
+      if (resp.ok && data && data.url) {
+        if (tg && tg.openLink) { tg.openLink(data.url); return; }
+        window.location.href = data.url; return;
+      }
+      tg && tg.showAlert && tg.showAlert((data && data.message) || 'Не получилось открыть привязку карты.');
+    } catch (e) {
+      console.error('[bind-card] failed', e);
+      tg && tg.showAlert && tg.showAlert('Сеть недоступна, попробуй ещё раз.');
+    }
+  }
+
+  function send(action, extra = {}) {
+    const payload = { action, ...extra };
+    if (window.posthog) posthog.capture(action, extra);
+    console.log('[tariffs] send action=' + action + ' extra=' + JSON.stringify(extra));
+
+    if (action === 'buy_master' && extra.tariff) {
+      // v109: основной путь — openInvoice. Fallback: deep-link.
+      try {
+        tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('medium');
+      } catch (e) {}
+      openPaidInvoice(extra.tariff).then(ok => {
+        if (!ok) {
+          console.warn('[tariffs] openPaidInvoice failed, falling back to deep-link');
+          openDeepLinkFallback('buy_' + extra.tariff);
+        }
+      }).catch(e => {
+        console.error('[tariffs] openPaidInvoice rejected:', e);
+        openDeepLinkFallback('buy_' + extra.tariff);
+      });
+      return;
+    }
+    if (action === 'activate_trial') {
+      // Trial бесплатный — invoice не нужен, всегда идём через deep-link.
+      openDeepLinkFallback('trial');
+      return;
+    }
+    // Прочие действия (help, faq, promo_copy, referral) — пробуем sendData.
+    // Если Mini App открыта через KeyboardButton — сработает. Через
+    // menu_button — нет (но и не критично, это нав-действия).
+    if (tg) {
+      try {
+        tg.sendData(JSON.stringify(payload));
+      } catch (e) {
+        console.error('[tariffs] sendData failed: ' + e);
+      }
+    }
+  }
+
+  function showView(name) {
+    $('signupView').classList.toggle('hidden', name !== 'signup');
+    $('cabinetView').classList.toggle('hidden', name !== 'cabinet');
+    $('headerSub').textContent = (name === 'signup')
+      ? 'Подключи тариф' : 'Кабинет мастера';
+  }
+
+  function showError(msg, retryable) {
+    /* v749: плашка ошибки — не приговор, а кнопка. Раньше при любом сбое
+       человек молча падал в прайс («перекидывает на прайс», владелец 05.08)
+       или сидел на скелете без объяснений (Глинская). Теперь ошибка видима
+       и ТАПАБЕЛЬНА: нажал — пробуем снова. */
+    var el = $('errorBanner');
+    el.textContent = msg + (retryable === false ? '' : ' — нажми, чтобы повторить');
+    el.classList.remove('hidden');
+    el.style.cursor = 'pointer';
+    el.onclick = (retryable === false) ? null : function () {
+      el.classList.add('hidden');
+      loadCabinet();
+    };
+  }
+  function hideError() { $('errorBanner').classList.add('hidden'); }
+
+  // ─── TARIFF CARD (full-width c зачёркнутой ценой) ───
+  function renderTariffCard(t, isCurrent) {
+    const isFree = t.price === 0;
+    const fmtPrice = (p) => p.toLocaleString('ru-RU');
+    const fmt = (n) => n >= 9999 ? '∞' : n.toString();
+
+    const priceBlock = isFree
+      ? `<div class="price-row"><span class="price">0<span class="price-unit"> ₽ / 7 дней</span></span></div>`
+      : `<div class="price-row">
+           ${t.old_price > t.price ? `<span class="old-price">${fmtPrice(t.old_price)} ₽</span>` : ''}
+           <span class="price">${fmtPrice(t.price)}<span class="price-unit"> ₽ / ${t.days} дней</span></span>
+         </div>`;
+
+    // v267 (Task B): результат-строка сверху (клиенты по ссылке → заявки).
+    const pool = t.demo_pool || 0;
+    const resultLine = `
+      <div class="result-line">
+        🔗 ${pool >= 9999 ? '<b>клиенты без лимита</b> по ссылке'
+                          : 'до <b>' + fmt(pool) + ' клиентов</b> по ссылке в месяц'}
+        <span class="res-sub">их «хочу такую» → заявки тебе на запись</span>
+      </div>`;
+
+    // v267: оживления добавлены в грид (если есть); инструменты = вторичный блок.
+    const animCell = (t.animations > 0)
+      ? `<div><span class="f-num">${fmt(t.animations)}</span><span class="f-lab">Оживления тату</span></div>`
+      : '';
+    // v672: «Создание эскизов» и «Улучшение фото» сервер отдавал всегда, но
+    // карточка их не рисовала. Эскизы — САМАЯ большая ось платных тарифов
+    // (120 у Про, 250 у Макс): человек выбирал пакет, не видя главного, что в
+    // нём есть. Ячейки условные — тариф без оси (ПМ) не покажет пустую.
+    const sketchCell = (t.sketches > 0)
+      ? `<div><span class="f-num">${fmt(t.sketches)}</span><span class="f-lab">Создание эскизов</span></div>`
+      : '';
+    const retouchCell = (t.photo_retouch > 0)
+      ? `<div><span class="f-num">${fmt(t.photo_retouch)}</span><span class="f-lab">Улучшение фото</span></div>`
+      : '';
+    const features = `
+      ${sketchCell}
+      <div><span class="f-num">${fmt(t.stencils)}</span><span class="f-lab">Трансферы</span></div>
+      <div><span class="f-num">${fmt(t.tryons)}</span><span class="f-lab">Примерки</span></div>
+      <div><span class="f-num">${fmt(t.extracts)}</span><span class="f-lab">Эскизы из тату</span></div>
+      ${retouchCell}
+      <div><span class="f-num ${t.videos === 0 ? 'muted' : ''}">${t.videos === 0 ? '—' : fmt(t.videos)}</span><span class="f-lab">Видео-примерки</span></div>
+      ${animCell}
+      <div style="grid-column: 1 / -1"><span class="f-num">${t.clients_quota || 0}</span><span class="f-lab">Клиентов по промо</span></div>
+    `;
+
+    const cls = ['tariff-card'];
+    if (t.popular) cls.push('popular');
+    if (isCurrent) cls.push('current');
+
+    let badgeHtml = '';
+    if (isCurrent) {
+      badgeHtml = '<div class="tariff-badge current">Активен</div>';
+    } else if (t.popular) {
+      badgeHtml = '<div class="tariff-badge">Хит</div>';
+    }
+
+    let btnHtml;
+    let trialNote = '';
+    if (isCurrent) {
+      btnHtml = '<button class="btn-buy" disabled>Используется</button>';
+    } else if (isFree) {
+      btnHtml = '<button class="btn-buy" data-tariff="trial" data-action="trial">Активировать Стартовый набор</button>';
+      // v217: цена триала из payload (sync с MASTER_TARIFFS["trial"]["price"]).
+      // Жёсткий «1 ₽» был bait-and-switch (ЗоЗПП ст.16) — теперь динамика.
+      trialNote = '<div class="trial-note">Разовая проба за <b>' + fmtPrice(t.price) + ' ₽</b> через СБП — <b>без привязки карты</b>.<br>Через 7 дней доступ закроется, дальше — любой платный тариф.</div>';
+    } else {
+      btnHtml = `<button class="btn-buy" data-tariff="${t.key}" data-action="buy">Оформить за ${fmtPrice(t.price)} ₽</button>`;
+    }
+
+    return `
+      <div class="${cls.join(' ')}">
+        ${badgeHtml}
+        <div class="name">${t.name}</div>
+        ${resultLine}
+        ${priceBlock}
+        <div class="features">${features}</div>
+        ${btnHtml}
+        ${trialNote}
+      </div>
+    `;
+  }
+
+  function bindTariffButtons(container) {
+    container.querySelectorAll('button[data-tariff]').forEach(b => {
+      b.onclick = () => {
+        const tariff = b.getAttribute('data-tariff');
+        const action = b.getAttribute('data-action');
+        send(action === 'trial' ? 'activate_trial' : 'buy_master', { tariff });
+      };
+    });
+  }
+
+  // v672: шапка signup-экрана (цена + состав пробного) — из ТОГО ЖЕ payload,
+  // что карточки ниже. Иначе шапка и карточка «Trial» на одном экране могут
+  // показывать разные числа: именно так и жило «25 примерок» против 12.
+  function applyTrialHero(tariffs) {
+    const t = (tariffs || []).find(x => x && x.key === 'trial');
+    if (!t) return;
+    // fmt/fmtPrice живут внутри renderTariffCard — здесь свои, тот же вид.
+    const fmtPrice = (p) => Number(p || 0).toLocaleString('ru-RU');
+    const fmt = (n) => Number(n || 0) >= 9999 ? '∞' : String(Number(n || 0));
+    document.querySelectorAll('.js-trial-price')
+      .forEach(el => { el.textContent = fmtPrice(t.price); });
+    const box = $('trialFeatures');
+    if (!box) return;
+    const rows = [];
+    if (t.clients_quota > 0)
+      rows.push('🔗 <b>до ' + fmt(t.clients_quota) + ' клиентов</b> примерят твою тату по ссылке → заявки тебе');
+    if (t.sketches > 0)  rows.push('<b>' + fmt(t.sketches) + '</b> эскизов с нуля — голосом или текстом');
+    if (t.stencils > 0)  rows.push('<b>' + fmt(t.stencils) + ' трансферов</b> — стенсилы за 30 секунд из эскизов');
+    if (t.extracts > 0 || t.photo_retouch > 0)
+      rows.push('<b>' + fmt(t.extracts) + '</b> эскиза из фото + <b>' + fmt(t.photo_retouch) + '</b> улучшений фото');
+    if (t.tryons > 0)    rows.push('+ ' + fmt(t.tryons) + ' примерок тату на тело');
+    if (t.animations > 0) rows.push('🪄 ' + fmt(t.animations) + ' оживление тату в видео');
+    if (t.videos > 0)    rows.push('🎬 ' + fmt(t.videos) + ' видео-примерка');
+    box.innerHTML = rows.map(r => '<div>' + r + '</div>').join('');
+  }
+
+  function renderSignupTariffs(tariffs) {
+    if (!Array.isArray(tariffs) || !tariffs.length) tariffs = FALLBACK_TARIFFS;
+    rememberTariffs(tariffs);
+    applyTrialHero(tariffs);
+    const html = tariffs.map(t => renderTariffCard(t, false)).join('');
+    $('signupTariffsList').innerHTML = html;
+    bindTariffButtons($('signupTariffsList'));
+  }
+
+  function renderCabinetTariffs(tariffs, currentKey) {
+    if (!Array.isArray(tariffs) || !tariffs.length) return;
+    rememberTariffs(tariffs);
+    const html = tariffs.map(t => renderTariffCard(t, t.key === currentKey)).join('');
+    $('cabinetTariffsList').innerHTML = html;
+    bindTariffButtons($('cabinetTariffsList'));
+  }
+
+  // ─── METRIC BOX (квадрат 2×2) ───
+  function renderMetricBox(q) {
+    const box = document.createElement('div');
+    box.className = 'metric-box';
+    const lab = document.createElement('div');
+    lab.className = 'lab';
+    lab.textContent = q.label;
+    const val = document.createElement('div');
+    val.className = 'val';
+    let pct = 0;
+    // v257: знаменатель = used + ЖИВОЙ остаток q.left (бэкенд отдаёт left с v242:
+    // master.quotas[op]_left). Это (а) включает ДОКУПКУ-overage → «2/2» после
+    // +5 видео становится «2/7»; (б) сбрасывается при продлении, поэтому после
+    // 1-го продления цифры НЕ разъезжаются. Fallback на q.limit, если left не
+    // пришёл. Коэрсим к числам — защита от строк/undefined (NaN-ширина).
+    const used = Number(q.used) || 0;
+    const left = Number(q.left);
+    const baseLimit = Number(q.limit);
+    const hasLeft = isFinite(left);
+    const total = hasLeft ? (used + left) : baseLimit;  // честный «из скольки»
+    if ((!isFinite(baseLimit) || baseLimit <= 0) && !(hasLeft && left > 0)) {
+      // операция недоступна на тарифе (и не докуплена оверажем)
+      box.classList.add('unavailable');
+      val.innerHTML = '<span style="color:var(--color-text-muted)">Pro и выше</span>';
+    } else if (baseLimit >= 9999) {
+      // Безлимит (Премиум/owner): «Безлимит» + «использовано N» + полная полоска.
+      box.classList.add('unlimited');
+      val.innerHTML = `<span class="unlim-tag">Безлимит</span><span class="unlim-used">использовано ${used}</span>`;
+      pct = 100;
+    } else {
+      val.innerHTML = `${used}<span class="total"> / ${total}</span>`;
+      pct = total > 0 ? Math.min(100, Math.round(used * 100 / total)) : 0;
+      if (hasLeft ? left <= 0 : used >= total) box.classList.add('full');
+      // v86: 0 used → лайм-намёк «стартовая позиция». Не серое, а «всё впереди».
+      if (used === 0) box.classList.add('zero');
+    }
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    const fill = document.createElement('span');
+    if (!isFinite(pct) || pct < 0) pct = 0;  // защита от NaN-ширины (битый/пустой limit)
+    setTimeout(() => fill.style.width = pct + '%', 80);
+    bar.appendChild(fill);
+
+    box.appendChild(lab);
+    box.appendChild(val);
+    box.appendChild(bar);
+    return box;
+  }
+
+  // ⏱ Сэкономленное время — сумма по ВСЕМ операциям × минуты экономии каждой.
+  // v303 (владелец 06.06): округлённые минуты ручного времени мастера за действие.
+  // Эскиз из фото ~40 (перерисовать/переколлажировать), трансфер ~25, примерка ~20,
+  // улучшить фото ~30, видео ~60. Показываем расшифровку (принцип) в виджете.
+  const SAVED_MIN_PER_OP = { sketches: 32, stencils: 25, tryons: 20, extracts: 32, photo_retouch: 30, videos: 43 };
+  const SAVED_OP_LABEL = { sketches: 'Создать эскиз', stencils: 'Трансфер', tryons: 'Примерка', extracts: 'Эскиз из фото', photo_retouch: 'Улучшить фото', videos: 'Видео' };
+  const SAVED_RING_CIRC = 326.7; // длина окружности 2π·52
+
+  function fmtSaved(mins) {
+    if (mins < 60) return mins + ' мин';
+    const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+    return m > 0 ? (h + ' ч ' + m + ' мин') : (h + ' ч');
+  }
+  function plGen(n) { // склонение слова «генерация»
+    const a = n % 10, b = n % 100;
+    if (a === 1 && b !== 11) return 'генерация';
+    if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return 'генерации';
+    return 'генераций';
+  }
+
+  // v190: подсказка ⓘ — fmt «с июня 2026» по ISO дате.
+  function fmtSinceDate(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      const months = ['января','февраля','марта','апреля','мая','июня',
+                      'июля','августа','сентября','октября','ноября','декабря'];
+      const day = d.getUTCDate();
+      const mon = months[d.getUTCMonth()];
+      const year = d.getUTCFullYear();
+      const now = new Date();
+      // Если в этом году — без года; иначе с годом
+      if (year === now.getUTCFullYear()) return `с ${day} ${mon}`;
+      return `с ${day} ${mon} ${year}`;
+    } catch (e) { return ''; }
+  }
+
+  // Бриф J: «15 июня» / «15 июня 2026» — дата следующего списания (без «с »).
+  function fmtChargeDate(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      const months = ['января','февраля','марта','апреля','мая','июня',
+                      'июля','августа','сентября','октября','ноября','декабря'];
+      const day = d.getUTCDate();
+      const mon = months[d.getUTCMonth()];
+      const year = d.getUTCFullYear();
+      const now = new Date();
+      if (year === now.getUTCFullYear()) return `${day} ${mon}`;
+      return `${day} ${mon} ${year}`;
+    } catch (e) { return ''; }
+  }
+
+  // Бриф J: цена текущего тарифа из payload tariffs[] по tariff_key.
+  function priceForTariff(d) {
+    try {
+      const key = d.tariff_key;
+      const list = d.tariffs || [];
+      for (const t of list) { if (t.key === key) return Number(t.price) || 0; }
+    } catch (e) {}
+    return 0;
+  }
+
+  // v190: tooltip про базовый расчёт — toggle по тапу на ⓘ. Один раз вешаем listener.
+  let _savedTooltipInit = false;
+  function initSavedTooltip() {
+    if (_savedTooltipInit) return;
+    _savedTooltipInit = true;
+    const btn = $('savedInfoBtn'), tip = $('savedTooltip');
+    if (!btn || !tip) return;
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      tip.hidden = !tip.hidden;
+    });
+  }
+
+  function renderSavedTime(quotas, tariff_key, registered_at_iso) {
+    // v303: итог + расшифровка ПРИНЦИПА (минуты ручного времени мастера за действие)
+    // + живые цифры по реальному usage.
+    const $num = $('savedNum'), $lab = $('savedLab'), $bd = $('savedBreakdown');
+    if (!$num) return;
+    let total = 0;
+    const rows = [];
+    ['sketches', 'extracts', 'stencils', 'tryons', 'photo_retouch', 'videos'].forEach(function (op) {
+      const used = (quotas[op] && quotas[op].used) || 0;
+      const per = SAVED_MIN_PER_OP[op] || 0;
+      total += used * per;
+      let right = '~' + per + ' мин';
+      if (used > 0) right += ' × ' + used + ' = ' + (used * per) + ' мин';
+      rows.push('<div class="sb-row"><span>' + SAVED_OP_LABEL[op] + '</span><span class="sb-rate">' + right + '</span></div>');
+    });
+    if (total === 0) {
+      $num.textContent = '0 ч';
+      if ($lab) $lab.textContent = 'первая генерация запустит счётчик времени';
+    } else {
+      const saved_h = total / 60;
+      $num.textContent = (saved_h >= 1) ? (Math.round(saved_h) + ' ч') : (total + ' мин');
+      if ($lab) $lab.textContent = 'рабочего времени бот вернул тебе';
+    }
+    if ($bd) {
+      $bd.innerHTML = '<div class="sb-title">Из расчёта времени мастера за каждое действие:</div>' +
+        rows.join('') +
+        '<div class="sb-note">Бот делает за секунды то, на что вручную уходят десятки минут: ' +
+        'перерисовать эскиз, подготовить трансфер, примерить на клиенте, отретушировать фото.</div>';
+    }
+  }
+
+  function renderMetrics(quotas) {
+    const grid = $('metricGrid');
+    grid.innerHTML = '';
+    // v97: добавлен photo_retouch — 5-я метрика «Обработки фото»
+    // v383: добавлен sketches «Создание эскизов» — герой-фича, идёт первой
+    // (жалоба мастера 11.06: «Нет лимитов на создание эскиза» — бэкенд отдавал
+    // квоту с v342, фронт её не рендерил).
+    const order = ['sketches', 'stencils', 'tryons', 'extracts', 'photo_retouch', 'videos'];
+    let nearFull = false;
+    order.forEach((key, i) => {
+      const q = quotas[key];
+      if (!q) return;
+      const box = renderMetricBox(q);
+      // v94: первая метрика (Трансферы) — full-width hero
+      if (i === 0) box.classList.add('metric-hero');
+      grid.appendChild(box);
+      // v385: детект «квота почти исчерпана» (≥80%) для апсейл-CTA.
+      // Безлимит (9999) и недоступные (limit 0 без left) не считаем.
+      const used = Number(q.used) || 0;
+      const left = Number(q.left);
+      const total = isFinite(left) ? (used + left) : (Number(q.limit) || 0);
+      if (total > 0 && total < 9999 && used / total >= 0.8) nearFull = true;
+    });
+    // v385: апсейл-воронка — квоты кончаются → кнопка к прайсу.
+    const upsell = $('limitsUpsell');
+    if (upsell) {
+      upsell.classList.toggle('hidden', !nearFull);
+      const btn = $('limitsUpsellBtn');
+      if (btn && !btn._bound) {
+        btn._bound = true;
+        btn.addEventListener('click', function () {
+          if (window.posthog) posthog.capture('cabinet_limits_upsell_click', {});
+          goPricing();
+        });
+      }
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // v152: промокод мастера для партнёрской ссылки. Заполняется в applyCabinet
+  // из d.promo_code. Раньше читался из DOM-элемента #promoCode (удалён вместе
+  // со старым блоком «База клиентов»).
+  let PROMO_CODE = '';
+
+  // v673: наружную ссылку собирает СЕРВЕР (_share_link в bot.py) и отдаёт
+  // в d.promo_link. Мини-апп её только копирует. Раньше клеил домен сам —
+  // и при переезде на штормостойкий хаб отставал бы от бота молча.
+  let PROMO_LINK = '';
+  let SHARE_LINK_HINT = '';
+
+  // v215 (LAUNCH-BLOCKER #3): текущий тариф юзера. Заполняется в applyCabinet
+  // из d.tariff_key. Нужен retention-flow'у чтобы:
+  //   • trial — НЕ показывать ретеншн (нет автопродления, отменять нечего)
+  //   • solo (Lite) — скрывать кнопку «Перейти на Lite» в step2
+  let CURRENT_TARIFF_KEY = 'trial';
+
+  // v387: единая навигация в прайс — передаём текущий тариф, чтобы
+  // pricing-window пометил его «✓ Твой тариф» (юзер не понимал, какой у
+  // него сейчас, и видел CTA «купить» на собственном тарифе).
+  function goPricing() {
+    try {
+      window.location.assign('pricing-window.html?v=147&current='
+        + encodeURIComponent(CURRENT_TARIFF_KEY || ''));
+    } catch (e) {}
+  }
+
+  // v217 (LAUNCH-BLOCKER #4): включён ли реальный retention-ops pipeline
+  // (discount30/pause30/downgrade_lite). default false — пока YooKassa
+  // вручную не подключён, сервер вернёт 503 на эти ветки. Чтобы не врать
+  // юзеру про «✅ применено», фронт прячет 3 retention-кнопки и оставляет
+  // только «Всё равно отменить». Заполняется из d.retention_ops_active
+  // в applyCabinet.
+  let RETENTION_OPS_ACTIVE = false;
+
+  // v214: bind autorenew checkbox onChange — если юзер дернул чекбокс,
+  // ведём его на cancel-flow (тот же путь что и кнопка в pricing-window).
+  // Сам тогл visual-only — реальное отключение через showPopup 3-shot retention.
+  let _autorenewBound = false;
+  function bindAutorenewBox() {
+    if (_autorenewBound) return;
+    const cb = $('autorenewCheck');
+    if (!cb) return;
+    _autorenewBound = true;
+    cb.addEventListener('change', (e) => {
+      if (cb.checked) return;  // включить обратно — ничего не делаем (visual-only)
+      // Юзер хочет отключить → возвращаем checked + открываем 3-shot retention
+      cb.checked = true;
+      if (window.posthog) posthog.capture('cabinet_autorenew_unchecked', {});
+      startCancelRetention();
+    });
+  }
+
+  // v214: показывает баннер «осталось ≤3 дн». Loss-aversion в часах когда мало.
+  function applyExpiryBanner(daysLeft) {
+    const banner = $('expiryBanner');
+    if (!banner) return;
+    if (daysLeft == null || daysLeft > 3) {
+      banner.classList.add('hidden');
+      return;
+    }
+    banner.classList.remove('hidden');
+    const msg = $('eb_msg');
+    if (msg) {
+      const hours = Math.max(1, Math.round(daysLeft * 24));
+      msg.innerHTML = `Магнит-ссылка выключится через <b>${hours} часов</b>. ` +
+        `Клиенты увидят «мастер недоступен». Продли сейчас — сохрани приоритет в очереди.`;
+    }
+    const cta = $('eb_cta');
+    if (cta && !cta._bound) {
+      cta._bound = true;
+      cta.onclick = () => {
+        if (window.posthog) posthog.capture('expiry_banner_cta_clicked', { days_left: daysLeft });
+        send('change_tariff');
+        goPricing();
+      };
+    }
+  }
+
+  function applyCabinet(d) {
+    showView('cabinet');
+    startLiveRefresh();  // v388: автообновление лимитов раз в 25с пока кабинет открыт
+    $('tariffName').textContent = d.tariff_name || 'Trial';
+    // v207: полоса тарифа компактна — только «осталось N дн».
+    // Процент периода переехал в свёрнутый блок «Лимиты периода».
+    $('tariffMeta').innerHTML = `Осталось <strong>${d.days_left}</strong> дн`;
+    // v214: loss-aversion expiry banner при ≤3 дн
+    applyExpiryBanner(d.days_left);
+    // v216 LAUNCH-BLOCKER #2: autorenew чекбокс врал — был always-checked
+    // независимо от реального состояния. Теперь рендерим его только если
+    // backend подтвердил autorenew_active=true (4 условия в bot.py
+    // _build_cabinet_payload). Иначе показываем alt-карточку без обещаний.
+    const renewBox = $('autorenewBox');
+    const renewNote = $('autorenewTrialNote');
+    if (d.autorenew_active === true) {
+      if (renewBox) renewBox.classList.remove('hidden');
+      if (renewNote) renewNote.classList.add('hidden');
+      // Бриф J: показать ЧТО продлевается — тариф · цена · дата след. списания.
+      // Владелец/мастер путался «какой тариф привязался».
+      const detail = $('autorenewDetail');
+      if (detail) {
+        const tname = (d.tariff_name || '').trim();
+        const price = priceForTariff(d);
+        const when = fmtChargeDate(d.tariff_expires_at_iso);
+        const parts = [];
+        if (tname) parts.push(tname);
+        if (price > 0) parts.push(price.toLocaleString('ru-RU') + ' ₽');
+        let line = parts.join(' · ');
+        if (when) line += (line ? ' · ' : '') + 'списание ' + when;
+        detail.textContent = line;          // '' → пусто, блок не сломан
+      }
+      // v214: autorenew checkbox onChange → cancel-flow с retention
+      bindAutorenewBox();
+    } else {
+      if (renewBox) renewBox.classList.add('hidden');
+      if (renewNote) renewNote.classList.remove('hidden');
+      // v217.2: динамические title+body alt-плашки под тариф юзера. Раньше
+      // всегда «Активный триал — продли через прайс» — на Premium/Pro звучало
+      // нелепо («у меня Премиум, какой триал?»). Теперь honesty по статусу.
+      const note_title = $('autorenewTrialNoteTitle');
+      const note_body  = $('autorenewTrialNoteBody');
+      const tname = (d.tariff_name || '').trim();
+      const tkey = d.tariff_key || 'trial';
+      if (note_title) {
+        if (tkey === 'trial') note_title.textContent = 'Активный триал';
+        else if (tname) note_title.textContent = 'Активный тариф · ' + tname;
+        else note_title.textContent = 'Активный тариф';
+      }
+      if (note_body) {
+        if (tkey === 'trial') {
+          note_body.textContent = 'Триал не продлевается автоматически. Продли через прайс перед окончанием.';
+        } else {
+          note_body.textContent = 'Автопродление отключено. Привяжи карту — подписка продлится сама, не нужно следить за датой.';
+        }
+      }
+      // v249: платным без карты — кнопка «Привязать карту» (?start=bind_card).
+      // Триалу не показываем (у триала нет автопродления по дизайну).
+      const bindBtn = $('bindCardBtn');
+      if (bindBtn) {
+        if (tkey !== 'trial') {
+          bindBtn.classList.remove('hidden');
+          if (!bindBtn._bound) {
+            bindBtn._bound = true;
+            bindBtn.addEventListener('click', function() {
+              if (window.posthog) posthog.capture('cabinet_bind_card_click', {});
+              startCardBind();   // v254: робастный /api/bind-card → openLink
+            });
+          }
+        } else {
+          bindBtn.classList.add('hidden');
+        }
+      }
+    }
+    { const lp = $('limPct'); if (lp) lp.textContent = (d.period_progress_pct != null ? d.period_progress_pct : 0); }
+    // v152: #periodBar убран ещё в v87 (.progress-period→display:none), но
+    // эта строка осталась и кидала null.style в setTimeout-колбэке. Гард.
+    setTimeout(() => { const pb = $('periodBar'); if (pb) pb.style.width = (d.period_progress_pct || 0) + '%'; }, 80);
+    renderMetrics(d.quotas || {});
+    // v86: сэкономленное время — большая лайм-цифра в Hero
+    // v190: передаём registered_at_iso для подписи «с июня 2026»
+    renderSavedTime(d.quotas || {}, d.tariff_key || 'trial', d.registered_at_iso);
+    // v152: промокод больше не показывается отдельным блоком (QR-база удалена),
+    // но нужен для партнёрской ссылки — храним в JS-переменной.
+    PROMO_CODE = d.promo_code || '';
+    PROMO_LINK = d.promo_link || '';            // v673
+    SHARE_LINK_HINT = d.share_link_hint || '';  // v673
+    // v215 (LAUNCH-BLOCKER #3): сохранить текущий тариф для retention-flow.
+    // trial → cancel-retention показывает single-button popup (нет автопродления);
+    // solo (Lite) → в step2 скрывается кнопка downgrade_lite.
+    CURRENT_TARIFF_KEY = d.tariff_key || 'trial';
+    // v217 (LAUNCH-BLOCKER #4): retention-ops feature flag из сервера.
+    // false → прячем 3 retention-кнопки в startCancelRetention (оставляем
+    // только «Всё равно отменить»). True → старый 3-shot popup.
+    RETENTION_OPS_ACTIVE = !!d.retention_ops_active;
+    renderCabinetTariffs(d.tariffs || FALLBACK_TARIFFS, d.tariff_key);
+    // v89: партнёрка — отображаем число приведённых мастеров и бонус
+    // v267 (Task A): бонус = пакеты Lite (квота сверх тарифа), а не дни.
+    const refs = d.referrals || {count: 0, lite_packages_earned: 0};
+    $('refCount').textContent = refs.count || 0;
+    const _pkgPlural = n => (n % 10 === 1 && n % 100 !== 11) ? 'пакет'
+      : ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) ? 'пакета' : 'пакетов';
+    const _pkgEarned = (refs.lite_packages_earned || 0);
+    $('refBonus').textContent = _pkgEarned + ' ' + _pkgPlural(_pkgEarned) + ' Lite получено';
+    // Партнёрский бонус — заметная плашка ВВЕРХУ, если начислены пакеты (Task 4).
+    const _rbTop = $('referralBonusTop');
+    if (_rbTop) {
+      if (_pkgEarned > 0) {
+        const _n = $('referralBonusTopNum');
+        if (_n) _n.textContent = '+' + _pkgEarned + ' ' + _pkgPlural(_pkgEarned) + ' Lite';
+        _rbTop.classList.remove('hidden');
+      } else { _rbTop.classList.add('hidden'); }
+    }
+    // Докуплено сверх тарифа (overage, Task 5) — ЖДЁТ поле d.overage от код-сессии.
+    // Ожидаемый формат: d.overage = {videos:5, tryons:50, ...}. Пока скрыто.
+    const _ov = d.overage || {};
+    const _ovLabels = {videos:'видео', tryons:'примерок', stencils:'трансферов',
+                       extracts:'эскизов', photo_retouch:'обработок фото'};
+    const _ovParts = [];
+    Object.keys(_ovLabels).forEach(function(op){
+      const n = Number(_ov[op]) || 0;
+      if (n > 0) _ovParts.push('+' + n + ' ' + _ovLabels[op]);
+    });
+    const _ovEl = $('overageNote');
+    if (_ovEl) {
+      if (_ovParts.length) {
+        _ovEl.textContent = _ovParts.join(' · ') + ' — докуплено сверх тарифа';
+        _ovEl.classList.remove('hidden');
+      } else { _ovEl.classList.add('hidden'); }
+    }
+    // v145: ссылки-примерки — отдельный запрос (/api/tryon_link/list)
+    loadTryonLinks();
+    if (window.posthog && tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      posthog.identify(`tg_${tg.initDataUnsafe.user.id}`, { tariff: d.tariff_key });
+    }
+  }
+
+  function applySignup(tariffs) {
+    // v81 (24.05.2026): больше НЕ показываем signup view inline — редиректим
+    // на отдельную страницу pricing-window.html (премиум-лендинг от Claude Design).
+    // Mini App при загрузке: если юзер не зарегистрирован → pricing-window.html.
+    // Это даёт двухстраничную архитектуру: Cabinet и Tariffs (лендинг).
+    try {
+      window.location.replace('pricing-window.html?v=147');
+    } catch (e) {
+      // Если редирект упал — fallback на inline signup view (старая логика).
+      showView('signup');
+      renderSignupTariffs(tariffs);
+    }
+  }
+
+  // v385: ?demo=1 — превью кабинета без Telegram (дизайн-ревью, скриншоты).
+  // Юзеров не касается: Mini App всегда открывается без demo-параметра.
+  const DEMO_MODE = new URLSearchParams(location.search).get('demo') === '1';
+  const DEMO_CABINET = {
+    registered: true, tariff_key: 'pro', tariff_name: 'Про',
+    days_left: 21, period_progress_pct: 30, autorenew_active: false,
+    promo_code: 'DEMO', retention_ops_active: false,
+    quotas: {
+      sketches:      {used: 31, limit: 100, left: 69, label: 'Создание эскизов'},
+      stencils:      {used: 10, limit: 60,  left: 50, label: 'Трансферы'},
+      tryons:        {used: 12, limit: 40,  left: 28, label: 'Примерки'},
+      extracts:      {used: 8,  limit: 60,  left: 52, label: 'Эскизы'},
+      photo_retouch: {used: 27, limit: 30,  left: 3,  label: 'Обработки фото'},
+      videos:        {used: 1,  limit: 0,   left: 2,  label: 'Видео'},
+    },
+    referrals: {count: 2, lite_packages_earned: 1},
+    overage: {videos: 3},
+  };
+  const DEMO_TRYON_LINKS = {
+    summary: {active_links: 2, total_tried: 153, total_wants: 27},
+    demo_pool: 600, demo_remaining: 447, bot: 'ta2_blockbot',
+    links: [
+      {token: 'demo1', tried: 98, wants: 19, created_at: '2026-06-01'},
+      {token: 'demo2', tried: 55, wants: 8,  created_at: '2026-06-08'},
+    ],
+  };
+
+  // v388: живые лимиты — мастер генерит в боте с открытым кабинетом и видит
+  // как квоты тают. Раньше цифры обновлялись только при переоткрытии Mini App
+  // (жалоба 11.06: «лимиты не отнимались пока я генерировал»).
+  let _liveRefreshStarted = false;
+  function startLiveRefresh() {
+    if (_liveRefreshStarted || DEMO_MODE) return;
+    _liveRefreshStarted = true;
+    setInterval(function () {
+      if (document.visibilityState === 'visible') loadCabinet();
+    }, 25000);
+  }
+
+  /* Жалоба Глинской 05.08: при открытии на секунду выскакивала красная
+     «Открой через Telegram», потом кабинет грузился нормально.
+     Причина не в кабинете и не в тарифе: loadCabinet спрашивал tg.initData
+     в ПЕРВУЮ миллисекунду, Телеграм ещё не успел его отдать — и мы сразу
+     рисовали ошибку. Через мгновение данные приходили и всё вставало.
+     То есть мы пугали человека собственной поспешностью.
+     Теперь ЖДЁМ до 3 секунд короткими шагами и только потом сдаёмся. */
+  function waitInitData(timeoutMs) {
+    return new Promise(function (resolve) {
+      var t0 = Date.now();
+      (function tick() {
+        var d = (window.Telegram && window.Telegram.WebApp
+                 && window.Telegram.WebApp.initData) || (tg && tg.initData) || '';
+        if (d) return resolve(d);
+        if (Date.now() - t0 >= timeoutMs) return resolve('');
+        setTimeout(tick, 100);
+      })();
+    });
+  }
+
+  async function loadCabinet() {
+    if (DEMO_MODE) { hideError(); applyCabinet(DEMO_CABINET); return; }
+    let initData = tg && tg.initData ? tg.initData : '';
+    if (!initData) initData = await waitInitData(3000);
+    /* v757: нативный macOS-клиент в menu-запуске НЕ передаёт initData вовсе.
+       Бот подписывает ссылку токеном (?auth=uid.exp.hmac) — берём его. */
+    if (!initData) {
+      var _au = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
+      if (_au){ window.__AUTH = _au; }
+    }
+    if (!initData && !window.__AUTH) {
+      // v755: ДИАГНОСТИКА в самом баннере. Владелец 05.08 на Telegram Desktop
+      // (macOS) стабильно получает пустой initData даже после ожидания 3с —
+      // это другой случай, чем гонка на телефоне. Чтобы больше не гадать,
+      // баннер называет платформу и версию клиента: одна строка с экрана
+      // говорит, ЧЕЙ это случай.
+      var _plat = 'нет-tg';
+      try { _plat = (tg && tg.platform || '?') + ' ' + (tg && tg.version || ''); } catch(e){}
+      showError('Открой через Telegram, чтобы увидеть свой Кабинет. — нажми, '
+        + 'чтобы повторить · [' + _plat + ']');
+      applySignup(FALLBACK_TARIFFS);
+      return;
+    }
+    try {
+      const url = API_BASE + '/api/cabinet?' + (initData ? 'initData=' + encodeURIComponent(initData) : 'auth=' + encodeURIComponent(window.__AUTH || ''));
+      /* v749: fetch без таймаута на мобильной сети висит минутами — человек
+         смотрит на скелет кабинета и решает, что мы сломались. 12 секунд —
+         и честная ошибка с повтором. */
+      const _ctl = new AbortController();
+      const _tmr = setTimeout(function () { _ctl.abort(); }, 12000);
+      let resp;
+      try {
+        resp = await fetch(url, { method: 'GET', cache: 'no-store',
+                                  signal: _ctl.signal });
+      } finally { clearTimeout(_tmr); }
+      if (resp.status === 401) {
+        showError('Сессия истекла. Закрой и открой Кабинет снова.');
+        applySignup(FALLBACK_TARIFFS);
+        return;
+      }
+      if (!resp.ok) {
+        showError(`Сервер вернул ${resp.status}.`);
+        applySignup(FALLBACK_TARIFFS);
+        return;
+      }
+      const data = await resp.json();
+      hideError();
+      if (data.registered) {
+        try {
+          applyCabinet(data);
+        } catch (e) {
+          /* Упавший рендер раньше оставлял ПУСТОЙ кабинет без единого слова
+             (скрин Глинской 04.08: шапка, три кнопки, пустота). */
+          showError('Кабинет не отрисовался (' + (e && e.message || e) + ')');
+        }
+      }
+      else applySignup(data.tariffs || FALLBACK_TARIFFS);
+    } catch (e) {
+      showError('Нет связи с сервером. Покажу тарифы в read-only режиме.');
+      applySignup(FALLBACK_TARIFFS);
+    }
+  }
+
+  // v214: ─── 3-SHOT RETENTION CANCEL FLOW ───────────────────
+  // Когда юзер хочет отменить (через checkbox autorenew или через
+  // pricing-window cancel-sub button) — сначала показываем 3 ретеншн-оффера,
+  // и только потом «всё равно отменить». Каждый шаг — отдельный showPopup.
+  //
+  // Endpoints (стабы в bot.py /api/cancel-subscription?action=...):
+  //   discount30       — 30% скидка на след.месяц + cancel auto-renew
+  //   pause30          — пауза 30 дн, квота сохраняется, billing stop
+  //   downgrade_lite   — даунгрейд на Lite за 1990₽
+  //   (empty)          — actual cancel (как было)
+  function postCancelAction(action) {
+    if (!tg || !tg.initData) {
+      tg?.showAlert?.('Открой через Telegram.');
+      return Promise.resolve(null);
+    }
+    const qs = '?initData=' + encodeURIComponent(tg.initData)
+      + (action ? '&action=' + encodeURIComponent(action) : '');
+    return fetch(API_BASE + '/api/cancel-subscription' + qs, { method: 'POST' })
+      .then(r => r.json().catch(() => ({})))
+      .catch(e => { console.error('[cancel] failed', e); return null; });
+  }
+
+  function startCancelRetention() {
+    if (window.posthog) posthog.capture('cancel_retention_started', { tariff: CURRENT_TARIFF_KEY });
+    // v215 (LAUNCH-BLOCKER #3): trial — особый случай. У триала НЕТ автопродления,
+    // отменять нечего; retention-офферы (скидка 30% / пауза 30 дн / даунгрейд)
+    // тариф-blind и не имеют смысла. Показываем единственный popup-объяснение
+    // с CTA «Открыть прайс». НИКАКОГО postCancelAction для триала.
+    if (CURRENT_TARIFF_KEY === 'trial') {
+      if (window.posthog) posthog.capture('cancel_retention_trial_blocked', {});
+      const openPricing = () => {
+        goPricing();
+      };
+      if (!tg || !tg.showPopup) {
+        // fallback — alert + redirect
+        try { tg?.showAlert?.('🎁 У триала нет автопродления. Доступ закончится сам через несколько дней. Хочешь продлить раньше? Открой прайс.', openPricing); }
+        catch (e) { openPricing(); }
+        return;
+      }
+      try {
+        tg.showPopup({
+          title: 'Триал',
+          message: '🎁 У триала нет автопродления. Доступ закончится сам через несколько дней. Хочешь продлить раньше? Открой прайс.',
+          buttons: [
+            { id: 'open_pricing', type: 'default', text: 'Открыть прайс' },
+          ],
+        }, () => {
+          openPricing();
+        });
+      } catch (e) {
+        console.error('[cancel] trial popup threw', e);
+        openPricing();
+      }
+      return;
+    }
+    // Telegram.WebApp.showPopup ограничен по message length (~256 chars).
+    // Делаем компактно. Кнопок не больше 3 за один popup → 2 popup-а:
+    // шаг 1 — 3 ретеншн оффера + "ещё причины", шаг 2 — downgrade + cancel.
+    if (!tg || !tg.showPopup) {
+      // fallback на confirm — без retention, прямой cancel
+      const ok = window.confirm('Отменить автопродление? Карта будет отвязана.');
+      if (ok) postCancelAction('').then(d => tg?.showAlert?.(d?.message || 'Подписка отменена.'));
+      return;
+    }
+    // v217 (LAUNCH-BLOCKER #4): если retention-ops-pipeline ещё не подключён
+    // к YooKassa (RETENTION_OPS_ACTIVE=false) — скрываем 3 retention-кнопки
+    // (скидка/пауза/даунгрейд) и показываем только «Всё равно отменить».
+    // Иначе юзер видел бы «✅ применено», а сервер вернул бы 503 — фейк UX.
+    if (!RETENTION_OPS_ACTIVE) {
+      if (window.posthog) posthog.capture('cancel_retention_ops_inactive', { tariff: CURRENT_TARIFF_KEY });
+      try {
+        tg.showPopup({
+          title: 'Отменить подписку?',
+          message: 'Доступ сохранится до конца оплаченного периода. Карта будет отвязана, автосписаний не будет.',
+          buttons: [
+            { id: 'cancel', type: 'destructive', text: 'Всё равно отменить' },
+            { id: 'back',   type: 'cancel',      text: 'Назад' },
+          ],
+        }, (id) => {
+          if (window.posthog) posthog.capture('cancel_retention_inactive_choice', { choice: id });
+          if (id === 'cancel') {
+            postCancelAction('').then(d => {
+              tg.showAlert?.(d?.message || '✅ Подписка отменена. Доступ сохранится до конца оплаченного периода.');
+            });
+          }
+        });
+      } catch (e) {
+        console.error('[cancel] inactive popup threw', e);
+      }
+      return;
+    }
+    try {
+      tg.showPopup({
+        title: 'Прежде чем отменить',
+        message: 'Жалко терять — давай попробуем подобрать вариант:',
+        buttons: [
+          { id: 'discount30',   type: 'default', text: 'Скидка 30% на след.месяц' },
+          { id: 'pause30',      type: 'default', text: 'Поставить паузу 30 дн' },
+          { id: 'more',         type: 'default', text: 'Другие варианты' },
+        ],
+      }, (id) => {
+        if (window.posthog) posthog.capture('cancel_retention_step1', { choice: id });
+        if (id === 'discount30') {
+          postCancelAction('discount30').then(d => {
+            tg.showAlert?.(d?.message || '✅ Скидка 30% применена к следующему списанию. Автопродление сохранено.');
+          });
+          return;
+        }
+        if (id === 'pause30') {
+          postCancelAction('pause30').then(d => {
+            tg.showAlert?.(d?.message || '⏸ Пауза 30 дней активирована. Квота сохранена, списаний нет.');
+          });
+          return;
+        }
+        if (id === 'more') {
+          showCancelRetentionStep2();
+          return;
+        }
+        // popup закрыт — ничего не делаем
+      });
+    } catch (e) {
+      console.error('[cancel] showPopup threw', e);
+    }
+  }
+
+  function showCancelRetentionStep2() {
+    if (!tg || !tg.showPopup) return;
+    // v215 (LAUNCH-BLOCKER #3): на Solo (Lite) кнопка downgrade_lite не имеет
+    // смысла — юзер уже на Lite, ниже опускаться некуда. Скрываем её.
+    const isOnLite = CURRENT_TARIFF_KEY === 'solo';
+    // v672: цена даунгрейда — из живого payload. Была вбита строкой и уже
+    // разъезжалась (в комментарии рядом висело «за 1990₽» с прошлой цены).
+    const litePrice = tariffPrice('solo', 1490);
+    const step2Buttons = [];
+    const step2Message = isOnLite
+      ? 'Точно отменить? Доступ сохранится до конца оплаченного периода.'
+      : 'Слишком много функций? Можно перейти на Lite — дешевле, базовый набор.';
+    if (!isOnLite) {
+      step2Buttons.push({ id: 'downgrade_lite', type: 'default', text: 'Перейти на Lite (' + litePrice + '₽)' });
+    }
+    step2Buttons.push({ id: 'cancel', type: 'destructive', text: 'Всё равно отменить' });
+    step2Buttons.push({ id: 'back',   type: 'cancel',      text: 'Назад' });
+    try {
+      tg.showPopup({
+        title: 'Другие варианты',
+        message: step2Message,
+        buttons: step2Buttons,
+      }, (id) => {
+        if (window.posthog) posthog.capture('cancel_retention_step2', { choice: id });
+        if (id === 'downgrade_lite') {
+          postCancelAction('downgrade_lite').then(d => {
+            tg.showAlert?.(d?.message || ('✅ Тариф изменён на Lite. Со следующего периода списание ' + litePrice + '₽.'));
+          });
+          return;
+        }
+        if (id === 'cancel') {
+          postCancelAction('').then(d => {
+            tg.showAlert?.(d?.message || '✅ Подписка отменена. Доступ сохранится до конца оплаченного периода.');
+          });
+          return;
+        }
+        // back — ничего
+      });
+    } catch (e) {
+      console.error('[cancel] showPopup step2 threw', e);
+    }
+  }
+
+  // BIND ────────────────────────────
+  $('btnActivateTrial').onclick = () => send('buy_master', { tariff: 'trial' });
+  // v152: copyPromoLink / showPromoPanel / btnQR / btnCopyPromo / #promoCode
+  // удалены вместе со старым блоком «База клиентов» (QR-промо B2C).
+  // Промо-ссылка для партнёрки строится из PROMO_CODE в shareReferralLink().
+  $('navHelp').onclick = () => {
+    // v252: открываем бот-поддержку с /start help (он AI-отвечает). openTelegramLink
+    // → жёсткий fallback на location.href → alert. Раньше один openTelegramLink
+    // мог молча не сработать в части клиентов («Помощь не работает»).
+    const url = 'https://t.me/tatututbot?start=help';
+    try { if (tg && tg.openTelegramLink) { tg.openTelegramLink(url); return; } } catch (e) {}
+    try { window.location.href = url; return; } catch (e) {}
+    tg && tg.showAlert && tg.showAlert('Поддержка: напиши @tatututbot');
+  };
+  $('navFAQ').onclick = () => {
+    const faq = 'Оплата: «Сменить тариф» → выбери → СБП.\n'
+      + 'Промокод: отправь боту /promo КОД.\n'
+      + 'Отвязать карту: кнопка внизу окна тарифов.\n'
+      + 'Поддержка: @tatututbot';
+    if (tg?.showPopup) { try { tg.showPopup({ title: 'FAQ', message: faq, buttons: [{ type: 'ok' }] }); return; } catch (e) {} }
+    tg?.showAlert?.(faq);
+  };
+  // v94: партнёрка с локальным feedback. Юзер: «кнопка не работает» —
+  // Mini App закрывается при sendData, юзер не видит что что-то произошло.
+  // Решение: сначала копируем ссылку локально + меняем текст кнопки →
+  // потом sendData. Юзер видит «✓ Скопировано» ДО закрытия Mini App.
+  function shareReferralLink() {
+    const code = (PROMO_CODE || '').trim();
+    if (!code) {
+      // нет промокода → просто шлём, бот зарегистрирует и пришлёт
+      send('referral', {});
+      return;
+    }
+    // v673: берём готовую ссылку от сервера (d.promo_link). Фолбэк на старую
+    // сборку остаётся на случай древнего ответа API без поля.
+    const link = (PROMO_LINK || '').trim()
+      || `https://telegram.me/ta2_blockbot?start=${code}`;
+    try { navigator.clipboard.writeText(link); } catch (e) {}
+    // Toast-эффект на обе кнопки
+    const btnNav = $('navReferral');
+    const btnRef = $('btnReferralLink');
+    if (btnNav) {
+      const origNav = btnNav.textContent;
+      btnNav.textContent = '✓ Скопировано';
+      setTimeout(() => btnNav.textContent = origNav, 1500);
+    }
+    if (btnRef) {
+      const origRef = btnRef.textContent;
+      btnRef.textContent = '✓ Ссылка скопирована — вставь куда угодно';
+      btnRef.style.color = 'var(--color-accent)';
+      setTimeout(() => {
+        btnRef.textContent = origRef;
+        btnRef.style.color = '';
+      }, 1800);
+    }
+    // sendData отложен — даём пользователю увидеть feedback ДО закрытия Mini App
+    setTimeout(() => send('referral', { code }), 500);
+  }
+  $('navReferral').onclick = shareReferralLink;
+  const btnRefLink = $('btnReferralLink');
+  if (btnRefLink) btnRefLink.onclick = shareReferralLink;
+
+  // v87: handler «Сменить тариф» теперь на heroCta inline в Hero.
+  // Tappable, перебрасывает на pricing-window.html. Section-toggle
+  // снизу удалён.
+  const heroCta = $('heroCta');
+  if (heroCta) {
+    heroCta.onclick = () => {
+      if (window.posthog) posthog.capture('cabinet_change_tariff_clicked', {});
+      goPricing();
+    };
+  }
+
+  // ─── v145: ССЫЛКИ ПРИМЕРКИ (🔗) ───────────────────────────
+  // Мирорит fetch-паттерн /api/cabinet: тот же API_BASE + initData +
+  // cache:'no-store'. Все эндпоинты GET. initData берём из tg.initData.
+  function tlInitData() { return tg && tg.initData ? tg.initData : ''; }
+
+  async function tlFetch(pathQuery) {
+    const initData = tlInitData();
+    if (!initData) return null;
+    const url = API_BASE + pathQuery
+      + (pathQuery.indexOf('?') >= 0 ? '&' : '?')
+      + 'initData=' + encodeURIComponent(initData);
+    try {
+      const resp = await fetch(url, { method: 'GET', cache: 'no-store' });
+      if (!resp.ok) {
+        console.warn('[tryon_link] HTTP ' + resp.status + ' for ' + pathQuery);
+        return null;
+      }
+      return await resp.json();
+    } catch (e) {
+      console.error('[tryon_link] fetch failed:', e);
+      return null;
+    }
+  }
+
+  function tlFmtCounts(l) {
+    return 'примерили <b>' + (l.tryon_count || 0) + '</b> · ❤️' +
+      (l.like_count || 0) + ' · 🔥 хочу <b>' + (l.want_count || 0) + '</b>';
+  }
+
+  // v207: эмоция-строка под killer-кнопкой — живые люди вместо «8/30».
+  // Колон-форма («Хотят: N») чтобы не мучиться со склонениями.
+  function setEmotionLine(wants, tried) {
+    const el = $('emotionLine');
+    if (!el) return;
+    if (wants > 0) {
+      el.textContent = '🔥 Хотят записаться к тебе: ' + wants;
+      el.className = 'emotion-line hot';
+    } else if (tried > 0) {
+      el.textContent = '👀 Примерок твоего эскиза: ' + tried;
+      el.className = 'emotion-line';
+    } else {
+      el.textContent = 'Отправь ссылку в сторис — сюда упадут первые «хочу»';
+      el.className = 'emotion-line muted';
+    }
+  }
+
+  // v214: goal-gradient link-pool-bar. Loss-aversion + overage CTA.
+  // pct=used/total*100. ≥70% → 'warn' (мягкая CTA на Pro+). ≥90% → 'danger'
+  // (горящая CTA на overage SKU «+50 примерок за 690₽»). Юзер видит как
+  // утекает бюджет → апселл срабатывает в момент максимальной боли.
+  function renderLinkPoolBar(pool, remaining) {
+    const bar = $('linkPoolBar');
+    if (!bar) return;
+    const total = Math.max(0, pool || 0);
+    const used = Math.max(0, total - (remaining || 0));
+    const pct = total > 0 ? Math.min(100, Math.round(used * 100 / total)) : 0;
+
+    $('linkPoolUsed').textContent = used;
+    $('linkPoolTotal').textContent = total;
+    $('linkPoolFill').style.width = pct + '%';
+
+    bar.classList.remove('warn', 'danger');
+    const cta = $('linkPoolCta');
+    if (!cta) return;
+    cta.classList.add('hidden');
+    cta.innerHTML = '';
+
+    if (total === 0) return;  // безлимит — без баннера
+
+    if (pct >= 90) {
+      bar.classList.add('danger');
+      cta.classList.remove('hidden');
+      cta.innerHTML = '🔥 Бюджет почти исчерпан — ' +
+        '<a id="lpOverageLink">докупи +50 примерок за 690₽</a>';
+      const a = $('lpOverageLink');
+      if (a) a.onclick = () => {
+        if (window.posthog) posthog.capture('link_pool_overage_cta_clicked', { pct, used, total });
+        const url = 'https://t.me/tatututbot?start=overage_tryons_50';
+        if (tg && tg.openTelegramLink) {
+          try { tg.openTelegramLink(url); return; } catch (e) {}
+        }
+        try { window.location.href = url; } catch (e) {}
+      };
+    } else if (pct >= 70) {
+      bar.classList.add('warn');
+      cta.classList.remove('hidden');
+      cta.innerHTML = 'Бюджет тратится быстро — ' +
+        '<a id="lpProLink">посмотри Pro+</a>';
+      const a = $('lpProLink');
+      if (a) a.onclick = () => {
+        if (window.posthog) posthog.capture('link_pool_pro_cta_clicked', { pct, used, total });
+        goPricing();
+      };
+    }
+  }
+
+  function renderTryonLinks(d) {
+    if (!d) {
+      // нет данных (нет initData / сеть) — оставляем нули, прячем список
+      $('tlList').innerHTML = '';
+      setEmotionLine(0, 0);
+      renderLinkPoolBar(0, 0);
+      return;
+    }
+    const s = d.summary || {};
+    const allZero = !s.active_links && !s.total_tried && !s.total_wants;
+    $('clientsSummary').style.display = allZero ? 'none' : '';
+    $('onboardingHint').style.display = allZero ? 'block' : 'none';
+    $('tlActive').textContent = s.active_links || 0;
+    $('tlTried').textContent = s.total_tried || 0;
+    $('tlWants').textContent = s.total_wants || 0;
+    setEmotionLine(s.total_wants || 0, s.total_tried || 0);
+    const pool = d.demo_pool || 0;
+    const remaining = (d.demo_remaining != null) ? d.demo_remaining : 0;
+    // v385: дубль убран — та же цифра уже в баре «Бюджет примерок» выше
+    // (две формулировки одного числа рядом удешевляли блок).
+    $('tlDemo').innerHTML = '';
+    // v214: goal-gradient bar выше counts. Show overage CTA при ≥90%, warn при ≥70%.
+    renderLinkPoolBar(pool, remaining);
+
+    const bot = d.bot || 'ta2_blockbot';
+    const links = d.links || [];
+    const listEl = $('tlList');
+    if (!links.length) {
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <b>Ссылок пока нет</b>
+          Закрой кабинет и жми «🔗 Ссылка для клиента» на панели снизу — бот
+          попросит эскиз и выдаст готовую ссылку. Раздавай её в сторис и директе.
+        </div>`;
+      return;
+    }
+    // v673: одна строка про то, что ссылка живёт где угодно. Текст даёт
+    // сервер (share_link_hint) — пока хаб выключен, поле пустое и строки нет.
+    const tlHint = (d.share_link_hint || SHARE_LINK_HINT || '').trim();
+    const tlHintRow = tlHint
+      ? `<div class="tl-share-hint">${escapeHtml(tlHint)}</div>` : '';
+    listEl.innerHTML = tlHintRow + links.map(l => {
+      const tok = l.token || '';
+      const live = !!l.live;
+      const thumbUrl = API_BASE + '/api/tryon_link/thumb?initData='
+        + encodeURIComponent(tlInitData()) + '&token=' + encodeURIComponent(tok);
+      // v673: ссылку собрал сервер (share_url) — она один в один с той, что
+      // бот прислал в чат. Фолбэк на старую сборку для ответов без поля.
+      const url = (l.share_url || '') || ('https://telegram.me/' + bot + '?start=tt_' + tok);
+      const badge = live
+        ? '<span class="tl-badge live">🟢 Активна</span>'
+        : '<span class="tl-badge dead">⚪️ Истекла</span>';
+      const delBtn = `<button class="btn-icon tl-del" data-tl-stop="${escapeHtml(tok)}" title="Удалить ссылку">🗑</button>`;
+      return `
+        <div class="tl-item" data-tl-token="${escapeHtml(tok)}">
+          <img class="tl-thumb" src="${escapeHtml(thumbUrl)}" alt="эскиз"
+               onerror="this.outerHTML='<div class=&quot;tl-thumb-fallback&quot;>🖼</div>'">
+          <div class="tl-body">
+            <div class="tl-row1">
+              ${badge}
+              <span class="tl-counts">${tlFmtCounts(l)}</span>
+            </div>
+            <div class="tl-linkrow">
+              <span class="tl-url" data-tl-copy="${escapeHtml(url)}" title="Тапни чтобы скопировать">${escapeHtml(url)}</span>
+              <button class="btn-icon" data-tl-copy="${escapeHtml(url)}">Копировать</button>
+              ${delBtn}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Bind copy + stop (делегирование было бы лишним — биндим по data-атрибутам)
+    listEl.querySelectorAll('[data-tl-copy]').forEach(el => {
+      el.onclick = () => {
+        const link = el.getAttribute('data-tl-copy');
+        try { navigator.clipboard.writeText(link); } catch (e) {}
+        if (el.tagName === 'BUTTON') {
+          const orig = el.textContent;
+          el.textContent = '✓';
+          setTimeout(() => { el.textContent = orig; }, 1500);
+        }
+        try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e) {}
+      };
+    });
+    listEl.querySelectorAll('[data-tl-stop]').forEach(btn => {
+      btn.onclick = async () => {
+        const tok = btn.getAttribute('data-tl-stop');
+        btn.disabled = true;
+        btn.textContent = '…';
+        const res = await tlFetch('/api/tryon_link/stop?token=' + encodeURIComponent(tok));
+        if (res && res.ok) {
+          loadTryonLinks();  // перезагружаем список
+        } else {
+          btn.disabled = false;
+          btn.textContent = '🗑';
+          tg && tg.showAlert && tg.showAlert('Не получилось удалить — попробуй ещё раз.');
+        }
+      };
+    });
+  }
+
+  async function loadTryonLinks() {
+    if (DEMO_MODE) { renderTryonLinks(DEMO_TRYON_LINKS); return; }
+    const d = await tlFetch('/api/tryon_link/list');
+    renderTryonLinks(d);
+  }
+
+  // «➕ Новая ссылка-примерки» → /api/tryon_link/new → бот пишет в чат.
+  const btnNewTL = $('btnNewTryonLink');
+  if (btnNewTL) {
+    btnNewTL.onclick = async () => {
+      if (window.posthog) posthog.capture('tryon_link_new_clicked', {});
+      try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('medium'); } catch (e) {}
+      btnNewTL.disabled = true;
+      btnNewTL.classList.add('loading');  // v207: НЕ затираем rich-разметку killer-кнопки
+      const res = await tlFetch('/api/tryon_link/new');
+      btnNewTL.disabled = false;
+      btnNewTL.classList.remove('loading');
+      if (res && res.ok) {
+        const notice = $('tlNotice');
+        notice.innerHTML = '📎 Бот написал тебе в чат — пришли эскиз туда, ' +
+          'получишь готовую ссылку. Вернись в чат с ботом и отправь фото тату.';
+        notice.classList.remove('hidden');
+        try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+      } else {
+        tg && tg.showAlert && tg.showAlert(
+          'Не получилось создать ссылку. Открой чат с ботом командой /start и попробуй снова.'
+        );
+      }
+    };
+  }
+
+  // GO ─────────────────────────────
+  loadCabinet();
+  if (window.posthog) posthog.capture('cabinet_opened', {
+    platform: tg ? tg.platform : 'web',
+  });
+</script>
+
+</body>
+</html>

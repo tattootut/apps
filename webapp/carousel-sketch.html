@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1A14; --surface:#16291F; --line:#243a30;
+    --lime:#C4F000; --teal:#128293; --text:#F4F4F0; --muted:#9DB0A6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1080px;height:1080px;overflow:hidden}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--text);
+    background:
+      radial-gradient(70% 50% at 88% 8%, rgba(196,240,0,.14) 0%, rgba(196,240,0,0) 55%),
+      radial-gradient(90% 70% at 10% 100%, rgba(18,130,147,.16) 0%, rgba(18,130,147,0) 55%),
+      var(--bg);
+    -webkit-font-smoothing:antialiased}
+  .stage{position:absolute;inset:0;padding:72px 76px;display:flex;flex-direction:column}
+
+  /* верхняя панель */
+  .top{display:flex;align-items:center;gap:18px;margin-bottom:40px}
+  .badge{width:50px;height:50px;border-radius:14px;flex:0 0 auto}
+  .lname{font-family:Oswald,sans-serif;font-weight:600;font-size:27px;letter-spacing:.14em;text-transform:uppercase}
+  .count{margin-left:auto;font-family:Oswald,sans-serif;font-weight:600;font-size:24px;letter-spacing:.14em;color:var(--muted)}
+
+  .kicker{display:inline-block;font-family:Oswald,sans-serif;font-weight:600;font-size:26px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--lime);margin-bottom:20px}
+  .h1{font-family:Oswald,sans-serif;font-weight:700;font-size:72px;line-height:1.03;letter-spacing:.005em;
+    text-transform:uppercase}
+  .h1 .ac{color:var(--lime)}
+  .sub{font-size:31px;line-height:1.38;font-weight:500;color:var(--muted);margin-top:22px;max-width:880px}
+
+  /* панель изображения (эскиз = «лист на столе») */
+  .panel{border-radius:24px;overflow:hidden;border:1px solid var(--line);
+    box-shadow:0 26px 60px rgba(0,0,0,.5);background:#F6F4EE}
+  .panel img{display:block;width:100%;height:100%;object-fit:contain}
+
+  /* COVER */
+  .cover .art{margin-top:auto;margin-bottom:auto;align-self:center;width:520px;height:560px}
+  .listaj{position:absolute;right:76px;bottom:64px;font-family:Oswald,sans-serif;font-weight:600;
+    font-size:30px;letter-spacing:.1em;text-transform:uppercase;color:var(--lime)}
+
+  /* DEMO */
+  .demo .big{margin:8px auto 0;width:560px;height:600px}
+  .cap{margin-top:26px;font-size:30px;line-height:1.36;color:var(--text);max-width:900px}
+  .cap b{color:var(--lime);font-weight:700}
+
+  /* STEPS */
+  .steps{margin-top:34px;display:flex;gap:26px}
+  .step{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:34px 28px;
+    display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px}
+  .num{width:54px;height:54px;border-radius:50%;background:var(--lime);color:#0c1106;
+    font-family:Oswald,sans-serif;font-weight:700;font-size:30px;display:flex;align-items:center;justify-content:center}
+  .step .ic{font-size:56px;line-height:1}
+  .step .t{font-family:Oswald,sans-serif;font-weight:600;font-size:30px;text-transform:uppercase;letter-spacing:.02em}
+  .step .d{font-size:24px;line-height:1.32;color:var(--muted)}
+  .arrows{margin-top:30px;text-align:center;color:var(--muted);font-size:26px}
+
+  /* EXAMPLES */
+  .grid{margin-top:30px;display:flex;gap:24px}
+  .grid .panel{flex:1;height:560px}
+  .ph{flex:1;height:560px;border-radius:24px;border:2px dashed rgba(196,240,0,.5);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);
+    background:rgba(196,240,0,.04);text-align:center;padding:20px}
+  .ph .pic{font-size:60px}
+  .ph .pt{font-family:Oswald,sans-serif;font-weight:600;font-size:26px;text-transform:uppercase;color:var(--lime);letter-spacing:.04em}
+  .ph .ps{font-size:21px;line-height:1.3}
+
+  /* BULLETS */
+  .list{margin-top:38px;display:flex;flex-direction:column;gap:26px}
+  .li{display:flex;align-items:flex-start;gap:22px}
+  .li .bic{font-size:42px;line-height:1;flex:0 0 auto;width:56px;text-align:center}
+  .li .bt{font-size:33px;line-height:1.28;font-weight:500;padding-top:4px}
+  .li .bt b{color:var(--lime);font-weight:700}
+
+  /* CTA */
+  .cta{flex:1;display:flex;flex-direction:column;justify-content:center}
+  .botline{margin-top:18px;display:inline-flex;align-items:center;gap:16px;align-self:flex-start;
+    background:var(--lime);color:#0c1106;font-family:Oswald,sans-serif;font-weight:700;font-size:40px;
+    letter-spacing:.02em;padding:20px 34px;border-radius:18px;text-transform:uppercase}
+  .contest{margin-top:40px;background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--lime);
+    border-radius:20px;padding:32px 34px}
+  .contest .ct{font-family:Oswald,sans-serif;font-weight:700;font-size:32px;text-transform:uppercase;color:var(--lime);margin-bottom:14px}
+  .contest .cd{font-size:28px;line-height:1.4}
+  .contest .cd b{color:var(--text);font-weight:700}
+  .slogan{position:absolute;right:76px;bottom:60px;font-family:Oswald,sans-serif;font-weight:700;font-size:34px;
+    text-transform:uppercase;letter-spacing:.04em}
+  .slogan .ac{color:var(--lime)}
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute"><defs>
+    <symbol id="mk" viewBox="0 0 240 240">
+      <rect width="240" height="240" rx="48" fill="#F4F4F0"/>
+      <rect x="60" y="90" width="120" height="13" rx="6.5" fill="#16291F"/>
+      <path d="M120 103 L113 190 L120 206 L127 190 Z" fill="#16291F"/>
+      <circle cx="120" cy="90" r="14" fill="#7DA800"/>
+    </symbol>
+  </defs></svg>
+  <div class="stage" id="stage"></div>
+
+<script>
+  const SK = "../assets/social_proof/sketch_lady_justice.jpg";
+  const SLIDES = [
+    {type:"cover", kicker:"Создать эскиз",
+     h1:'Опиши идею — <span class="ac">эскиз готов</span>',
+     sub:"Голосом или текстом. ИИ рисует тату с нуля под твой стиль.", img:SK, listaj:"Листай →"},
+    {type:"demo", kicker:"Реальный результат",
+     h1:'Это нарисовал <span class="ac">ИИ</span>. За минуту.', img:SK,
+     cap:'Сказал словами: «дева правосудия, меч, весы, цветы, чёрно-серый» — <b>получил готовый эскиз</b>.'},
+    {type:"steps", kicker:"Как работает", h1:'Три шага — <span class="ac">и готово</span>',
+     steps:[
+       {ic:"🎙",t:"Опиши идею",d:"Голосом или текстом, своими словами"},
+       {ic:"✨",t:"ИИ рисует",d:"Эскиз с нуля под твой запрос"},
+       {ic:"🎯",t:"Правишь",d:"Кнопками: цвет, детали, ракурс — и примеряешь"},
+     ]},
+    {type:"examples", kicker:"Любой стиль", h1:'От минимализма <span class="ac">до реализма</span>',
+     imgs:[SK], cap:"Чёрно-серый, олдскул, файнлайн, орнамент — проси что угодно."},
+    {type:"bullets", kicker:"Почему удобно", h1:'Быстрее, чем <span class="ac">объяснить словами</span>',
+     items:[
+       {ic:"🎙",t:"<b>Голосом</b> — пока руки заняты"},
+       {ic:"⚡",t:"Эскиз <b>за минуту</b>, не за вечер"},
+       {ic:"🎨",t:"<b>Любой стиль</b> и сюжет"},
+       {ic:"🎯",t:"Правишь <b>точечно кнопками</b>"},
+       {ic:"🖼",t:"Сразу <b>примеряешь на тело</b> клиента"},
+     ]},
+    {type:"cta", h1:'Попробуй <span class="ac">бесплатно</span>',
+     sub:"@ta2_blockbot — все инструменты тату-мастера в одном боте.",
+     bot:"@ta2_blockbot",
+     contestT:"🎁 Конкурс",
+     contestD:'Создай эскиз в боте → выложи в пост или сторис → отметь <b>@big.kolshik</b>. Самый интересный получит <b>месяц Pro</b>.'},
+  ];
+
+  function top(n){
+    return `<div class="top"><svg class="badge"><use href="#mk"/></svg>
+      <span class="lname">Тату Тут</span>
+      <span class="count">${String(n+1).padStart(2,'0')} / 06</span></div>`;
+  }
+  function render(){
+    const i = Math.max(0, Math.min(SLIDES.length-1, parseInt(new URLSearchParams(location.search).get('i')||'0')));
+    const s = SLIDES[i]; const st = document.getElementById('stage'); st.className="stage "+s.type;
+    let h = top(i);
+    if(s.type==="cover"){
+      h += `<span class="kicker">${s.kicker}</span><div class="h1">${s.h1}</div><div class="sub">${s.sub}</div>
+        <div class="panel art"><img src="${s.img}"></div><div class="listaj">${s.listaj}</div>`;
+    } else if(s.type==="demo"){
+      h += `<span class="kicker">${s.kicker}</span><div class="h1">${s.h1}</div>
+        <div class="panel big"><img src="${s.img}"></div><div class="cap">${s.cap}</div>`;
+    } else if(s.type==="steps"){
+      h += `<span class="kicker">${s.kicker}</span><div class="h1">${s.h1}</div><div class="steps">`+
+        s.steps.map((x,k)=>`<div class="step"><div class="num">${k+1}</div><div class="ic">${x.ic}</div>
+          <div class="t">${x.t}</div><div class="d">${x.d}</div></div>`).join('')+`</div>
+        <div class="arrows">текст / голос  →  эскиз  →  правка кнопками</div>`;
+    } else if(s.type==="examples"){
+      let cells = s.imgs.map(src=>`<div class="panel"><img src="${src}"></div>`).join('');
+      cells += `<div class="ph"><div class="pic">🖼</div><div class="pt">Твой эскиз</div><div class="ps">сюда — твой лучший результат</div></div>`.repeat(2);
+      h += `<span class="kicker">${s.kicker}</span><div class="h1">${s.h1}</div><div class="grid">${cells}</div><div class="cap">${s.cap}</div>`;
+    } else if(s.type==="bullets"){
+      h += `<span class="kicker">${s.kicker}</span><div class="h1">${s.h1}</div><div class="list">`+
+        s.items.map(x=>`<div class="li"><div class="bic">${x.ic}</div><div class="bt">${x.t}</div></div>`).join('')+`</div>`;
+    } else if(s.type==="cta"){
+      h += `<div class="cta"><div class="h1">${s.h1}</div><div class="sub">${s.sub}</div>
+        <div class="botline">${s.bot}</div>
+        <div class="contest"><div class="ct">${s.contestT}</div><div class="cd">${s.contestD}</div></div></div>
+        <div class="slogan">Тату? <span class="ac">Тут.</span></div>`;
+    }
+    st.innerHTML = h;
+  }
+  render();
+</script>
+</body>
+</html>

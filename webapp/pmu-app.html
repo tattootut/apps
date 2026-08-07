@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ТАТУ ТУТ — кабинет мастера перманента</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  /* v584 КАБИНЕТ ПМ по КАНОНУ тату-кабинета (владелец 06.07):
+     кабинет = ИНФО + ПРАЙС (тариф-полоса → сэкономлено → лимиты → карта →
+     сменить тариф). НИКАКИХ кнопок-функций (они на нижней панели бота).
+     Светлая тема — зеркало тёмного канона. */
+  :root{
+    --bg:#EFEFEA; --surface:#FFFFFF; --surface-2:#F6F6F1;
+    --accent:#C4F000; --accent-2:#8FB000;
+    --ink:#0E1A14; --muted:#7A857C; --border:#E3E4DE; --strike:#B9BDB4;
+    --font-display:'Oswald',sans-serif; --font-text:'Inter',sans-serif;
+    --r-sm:8px; --r-md:14px; --r-lg:22px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-text);
+       padding:16px 14px 40px;max-width:520px;margin:0 auto;font-size:15px}
+  .header{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+  .header img{width:40px;height:40px;border-radius:10px}
+  .header-title{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.3px}
+  .header-sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+        padding:16px;margin-bottom:13px;box-shadow:0 2px 10px rgba(14,26,20,.04)}
+  .card-label{font-family:var(--font-display);font-weight:600;font-size:12px;
+        letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  /* Тариф-полоса */
+  .tariff-strip{display:flex;align-items:center;justify-content:space-between;gap:14px}
+  .ts-name{font-family:var(--font-display);font-weight:700;font-size:19px}
+  .ts-meta{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .ts-change{background:var(--accent);color:var(--ink);border:none;border-radius:11px;
+        padding:11px 18px;font-family:var(--font-display);font-weight:700;font-size:13px;
+        letter-spacing:.3px;cursor:pointer;flex:0 0 auto}
+  .ts-change:active{background:var(--accent-2);color:#fff}
+  /* Сэкономлено */
+  .saved-head{display:flex;align-items:center;gap:14px}
+  .sm-icon{font-size:26px}
+  .saved-num{font-family:var(--font-display);font-weight:700;font-size:30px;line-height:1}
+  .saved-num span{color:var(--accent-2)}
+  .saved-lab{font-size:12.5px;color:var(--muted);margin-top:3px;max-width:230px}
+  /* Лимиты */
+  .qrow{display:flex;justify-content:space-between;align-items:center;
+        padding:9px 0;font-size:14px}
+  .qrow b{font-variant-numeric:tabular-nums;font-family:var(--font-display);font-weight:600}
+  .bar{height:7px;background:var(--surface-2);border:1px solid var(--border);
+       border-radius:99px;margin:2px 0 10px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .bar:last-child{margin-bottom:0}
+  /* Карта */
+  .bind{width:100%;margin-top:4px;background:var(--surface-2);
+        border:1.5px solid var(--ink);color:var(--ink);border-radius:12px;
+        padding:13px;font-family:var(--font-display);font-weight:700;font-size:13px;
+        letter-spacing:.3px;cursor:pointer}
+  .bind:active{background:var(--ink);color:var(--accent)}
+  .autoinfo{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5}
+  /* Прайс */
+  #priceView{display:none}
+  .back{background:none;border:none;color:var(--muted);font-size:13px;
+        font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:6px}
+  .price-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-md);
+        padding:18px;margin-bottom:13px;position:relative}
+  .price-card.active{border-color:var(--accent)}
+  .price-card.active::after{content:"✓ Активен";position:absolute;top:-10px;right:16px;
+        background:var(--accent);color:var(--ink);font-size:11px;font-weight:800;
+        padding:3px 11px;border-radius:99px;font-family:var(--font-display)}
+  .price-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+  .price-title{font-family:var(--font-display);font-weight:700;font-size:17px}
+  .price-num{font-family:var(--font-display);font-weight:700;font-size:23px}
+  .price-old{font-size:14px;color:var(--muted);text-decoration:line-through;margin-right:4px}
+  .price-per{font-size:12px;color:var(--muted)}
+  .feat{list-style:none;margin:12px 0 14px}
+  .feat li{padding:6px 0;font-size:13.5px;border-bottom:1px dashed var(--border)}
+  .feat li:last-child{border-bottom:none}
+  .feat li::before{content:"✓  ";color:var(--accent-2);font-weight:800}
+  .buy{width:100%;background:var(--accent);color:var(--ink);border:none;border-radius:12px;
+       padding:14px;font-family:var(--font-display);font-weight:700;font-size:15px;
+       letter-spacing:.3px;cursor:pointer}
+  .buy:active{background:var(--accent-2);color:#fff}
+  .foot{color:var(--muted);font-size:11.5px;text-align:center;margin-top:14px}
+</style>
+</head>
+<body>
+  <div class="header">
+    <img src="img/logo.png" alt="ТАТУ ТУТ">
+    <div>
+      <div class="header-title">ТАТУ ТУТ</div>
+      <div class="header-sub">Кабинет мастера перманента</div>
+    </div>
+  </div>
+
+  <!-- ═══ КАБИНЕТ (инфо) ═══ -->
+  <div id="cabinetView">
+    <!-- Тариф-полоса -->
+    <div class="card tariff-strip">
+      <div>
+        <div class="ts-name" id="tname">—</div>
+        <div class="ts-meta" id="tmeta">загрузка…</div>
+      </div>
+      <button class="ts-change" onclick="showPrice()">Сменить тариф</button>
+    </div>
+
+    <!-- Сэкономлено -->
+    <div class="card">
+      <div class="saved-head">
+        <span class="sm-icon">⏱</span>
+        <div>
+          <div class="saved-num" id="saved">0 <span>мин</span></div>
+          <div class="saved-lab">рабочего времени бот вернул вам</div>
+        </div>
+      </div>
+      <div class="saved-lab" id="savedBreak" style="margin-top:10px"></div>
+    </div>
+
+    <!-- Лимиты -->
+    <div class="card">
+      <div class="card-label">📦 Лимиты тарифа</div>
+      <div class="qrow"><span>📸 Улучшения фото</span><b id="q-photo">—</b></div>
+      <div class="bar"><i id="bar-photo" style="width:0%"></i></div>
+      <div class="qrow"><span>🎨 AI Коллажи</span><b id="q-collage">—</b></div>
+      <div class="bar"><i id="bar-collage" style="width:0%"></i></div>
+    </div>
+
+    <!-- Карта / автопродление -->
+    <div class="card" id="cardBox">
+      <div class="card-label">💳 Оплата</div>
+      <button class="bind" id="bindBtn" onclick="startCardBind()">Привязать карту для автопродления</button>
+      <div class="autoinfo" id="autoInfo">Без перерывов в доступе. Отмена — в любой момент.</div>
+    </div>
+  </div>
+
+  <!-- ═══ ПРАЙС (сменить тариф) ═══ -->
+  <div id="priceView">
+    <button class="back" onclick="showCabinet()">← Назад в кабинет</button>
+    <div class="price-card" id="pc-lead">
+      <div class="price-head"><span class="price-title">Попробовать</span>
+        <span><span class="price-num">399 ₽</span> <span class="price-per">/ 30 дней</span></span></div>
+      <ul class="feat">
+        <li>5 улучшений фото после процедуры</li>
+        <li>5 AI Коллажей для соцсетей</li>
+        <li>Оплата картой РФ / СБП, без автосписаний</li>
+      </ul>
+      <button class="buy" onclick="go('buy_pmu_lead')">Открыть доступ</button>
+    </div>
+    <!-- v645: средняя ступень лестницы (владелец 22.07) -->
+    <div class="price-card" id="pc-mid">
+      <div class="price-head"><span class="price-title">В работе</span>
+        <span><span class="price-num">990 ₽</span> <span class="price-per">/ мес</span></span></div>
+      <ul class="feat">
+        <li>30 улучшений фото после процедуры</li>
+        <li>8 AI Коллажей для соцсетей</li>
+        <li>Оплата картой РФ / СБП, без автосписаний</li>
+      </ul>
+      <button class="buy" onclick="go('buy_pmu_mid')">Открыть доступ</button>
+    </div>
+    <div class="price-card" id="pc-main">
+      <div class="price-head"><span class="price-title">Тариф «Перманент»</span>
+        <span><span class="price-old">1990 ₽</span> <span class="price-num">1490 ₽</span> <span class="price-per">/ мес</span></span></div>
+      <ul class="feat">
+        <li>80 улучшений фото после процедуры</li>
+        <li>15 AI Коллажей для соцсетей</li>
+        <li>Оплата картой РФ / СБП</li>
+      </ul>
+      <button class="buy" onclick="go('buy_pmu_main')">Открыть тариф</button>
+    </div>
+  </div>
+
+  <div class="foot">ТАТУ ТУТ · режим мастера перманента · @ta2_blockbot</div>
+
+<script>
+  const tg = window.Telegram?.WebApp; tg?.ready(); tg?.expand();
+  try { tg?.setHeaderColor('#EFEFEA'); tg?.setBackgroundColor('#EFEFEA'); } catch(e){}
+  const API = 'https://worker-production-c1cb.up.railway.app';
+  const TITLES = { pmu_lead:'Попробовать', pmu_mid:'В работе', pmu_main:'Перманент', trial:'Стартовый', promo:'Промо' };
+  const UNL = 9000;
+
+  function go(a){ try{ tg?.openTelegramLink('https://t.me/ta2_blockbot?start='+a); }catch(e){} try{ tg?.close(); }catch(e){} }
+  function showPrice(){ document.getElementById('cabinetView').style.display='none'; document.getElementById('priceView').style.display='block'; window.scrollTo(0,0); }
+  function showCabinet(){ document.getElementById('priceView').style.display='none'; document.getElementById('cabinetView').style.display='block'; window.scrollTo(0,0); }
+
+  async function startCardBind(){
+    const initData = tg?.initData || '';
+    if(!initData){ tg?.showAlert?.('Откройте кабинет внутри Telegram.'); return; }
+    try{
+      const r = await fetch(API+'/api/bind-card?initData='+encodeURIComponent(initData));
+      const d = await r.json().catch(()=>({}));
+      if(d?.already_bound){ tg?.showAlert?.('Карта уже привязана ✅'); return; }
+      if(r.ok && d?.url){ tg?.openLink ? tg.openLink(d.url) : (location.href=d.url); return; }
+      tg?.showAlert?.(d?.message || 'Не получилось открыть привязку карты.');
+    }catch(e){ tg?.showAlert?.('Сеть недоступна, попробуйте ещё раз.'); }
+  }
+
+  function fmtSaved(min){ return min>=60 ? (Math.round(min/60*10)/10+' <span>ч</span>') : (min+' <span>мин</span>'); }
+
+  async function load(){
+    const initData = tg?.initData || '';
+    if(!initData) return;
+    try{
+      const r = await fetch(API+'/api/cabinet?initData='+encodeURIComponent(initData));
+      if(!r.ok) return;
+      const d = await r.json();
+      const q = d.quotas || {};
+      const ph = q.photo_retouch || {used:0,left:0,limit:0};
+      const sk = q.sketches || {used:0,left:0,limit:0};
+      const fmtQ = o => o.limit>=UNL ? 'безлимит' : (o.left+' из '+o.limit);
+      const fmtBar = o => o.limit>=UNL ? 100 : (o.limit ? Math.round(o.left/o.limit*100) : 0);
+      document.getElementById('q-photo').textContent = fmtQ(ph);
+      document.getElementById('q-collage').textContent = fmtQ(sk);
+      document.getElementById('bar-photo').style.width = fmtBar(ph)+'%';
+      document.getElementById('bar-collage').style.width = fmtBar(sk)+'%';
+      // Экономия: КАЖДАЯ генерация = 20 мин ручной работы (правило владельца).
+      // Считаем по реально сгенерированному (quotas.used), показываем разбивку.
+      const MIN_PER = 20;
+      const nPhoto = ph.used|0, nColl = sk.used|0;
+      document.getElementById('saved').innerHTML = fmtSaved((nPhoto + nColl) * MIN_PER);
+      document.getElementById('savedBreak').textContent =
+        (nPhoto + nColl > 0)
+          ? (nPhoto + ' обработок · ' + nColl + ' коллажей × 20 мин')
+          : 'Начните работать — здесь появится ваша экономия.';
+      const tk = d.tariff_key || '';
+      document.getElementById('tname').textContent = TITLES[tk] || d.tariff_name || tk || '—';
+      document.getElementById('tmeta').textContent = (d.days_left>=0 ? ('осталось '+d.days_left+' дн.') : 'нет активного тарифа');
+      if(tk==='pmu_lead') document.getElementById('pc-lead').classList.add('active');
+      if(tk==='pmu_mid') document.getElementById('pc-mid').classList.add('active');
+      if(tk==='pmu_main') document.getElementById('pc-main').classList.add('active');
+      // Карта: если привязана — прячем кнопку, показываем статус
+      if(d.has_card){
+        document.getElementById('bindBtn').style.display='none';
+        document.getElementById('autoInfo').textContent = d.autorenew_active ? '✅ Карта привязана · автопродление активно' : 'Карта привязана.';
+      }
+    }catch(e){ console.warn('cabinet load failed', e); }
+  }
+  load();
+</script>
+</body>
+</html>

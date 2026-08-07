@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ТАТУ ТУТ — Цены (драфт v2)</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E1A14;--bg-2:#0a140f;--surface:#16291F;--surface-2:#1d3328;
+  --accent:#C4F000;--accent-2:#7DA800;--accent-glow:rgba(196,240,0,.18);
+  --text:#F4F4F0;--text-muted:#8A938E;--text-dim:#5d6b62;
+  --border:#243a30;--border-2:#2e4a3c;--strike:#4a574e;
+  --radius:14px;--radius-lg:20px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{font-size:14px;line-height:1.5}
+.app{max-width:520px;margin:0 auto;padding:16px 14px 26px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--surface);display:grid;place-items:center;border:1px solid var(--border);color:var(--accent);font-family:Oswald;font-weight:700}
+.brand .name{font-family:Oswald;font-weight:700;letter-spacing:.06em;font-size:13px;text-transform:uppercase}
+.brand .sub{font-size:11px;color:var(--text-muted)}
+.pill-back{padding:8px 12px;border-radius:99px;background:var(--surface);border:1px solid var(--border-2);font-family:Oswald;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+
+/* hero */
+.hero{padding:6px 2px 12px}
+.eyebrow{font-family:Oswald;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
+.hero h1{margin:0;font-family:Oswald;font-weight:700;line-height:1.0;text-transform:uppercase;font-size:30px}
+.hero h1 b{color:var(--accent)}
+.hero p{margin:10px 0 0;color:var(--text-muted);font-size:13px;line-height:1.5}
+.axis{display:flex;align-items:center;gap:6px;margin:16px 0 4px;padding:11px 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-family:Oswald;font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);justify-content:center;flex-wrap:wrap}
+.axis b{color:var(--accent)}
+.axis .arr{color:var(--text-dim)}
+
+.label{font-family:Oswald;font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin:20px 2px 12px;display:flex;justify-content:space-between}
+.label .r{color:var(--accent)}
+
+/* cards */
+.stack{display:flex;flex-direction:column;gap:12px}
+.card{position:relative;padding:18px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.card.center{border-color:var(--accent);background:linear-gradient(180deg,#18301f 0%,#16291f 70%);box-shadow:0 0 0 1px rgba(196,240,0,.25),0 18px 44px rgba(196,240,0,.10);transform:scale(1.015)}
+.badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:#0b1208;font-family:Oswald;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 13px;border-radius:9px;white-space:nowrap;box-shadow:0 6px 16px var(--accent-glow)}
+.c-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.c-name{font-family:Oswald;font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.04em;line-height:1}
+.c-price{text-align:right;white-space:nowrap}
+.c-price .new{font-family:Oswald;font-weight:700;font-size:30px;line-height:1}
+.c-price .new .cur{font-size:15px;color:var(--text-muted);margin-left:1px}
+.c-price .u{display:block;font-size:11px;color:var(--text-muted);margin-top:2px}
+.c-price .pd{display:inline-block;margin-top:5px;font-family:Oswald;font-weight:600;font-size:10.5px;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;background:rgba(196,240,0,.08);border-radius:6px}
+/* ability flagship */
+.ability{display:flex;align-items:center;gap:9px;margin:13px 0 0;padding:11px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border-2)}
+.card.center .ability,.card.top .ability{background:rgba(196,240,0,.08);border-color:rgba(196,240,0,.38)}
+.ability .em{font-size:20px;line-height:1}
+.ability .tx{font-family:Oswald;font-weight:700;font-size:13.5px;letter-spacing:.02em;text-transform:uppercase;line-height:1.15}
+.ability .tx b{color:var(--accent)}
+.ability .tx span{display:block;font-family:Inter;font-weight:400;font-size:11px;text-transform:none;letter-spacing:0;color:var(--text-muted);margin-top:2px}
+.ability.locked{opacity:.62}
+.ability.locked .em{filter:grayscale(1)}
+/* roi */
+.roi{display:flex;align-items:center;gap:8px;margin:11px 0 0;padding:9px 11px;background:rgba(196,240,0,.07);border:1px solid rgba(196,240,0,.30);border-radius:10px;font-size:12px;color:var(--text-muted)}
+.roi b{color:var(--text);font-family:Oswald;font-weight:600}
+/* result + specs */
+.result{margin:12px 0 0;font-size:13px;color:var(--text)}
+.result b{color:var(--accent);font-family:Oswald;font-weight:700;font-size:15px}
+.result span{display:block;color:var(--text-muted);font-size:11.5px;margin-top:2px}
+.specs{margin:11px 0 0;padding-top:11px;border-top:1px dashed var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.spec{display:flex;align-items:baseline;gap:5px;font-size:11.5px;color:var(--text-muted)}
+.spec b{color:var(--text);font-family:Oswald;font-weight:700;font-size:12.5px}
+.spec.wow{color:var(--accent)}.spec.wow b{color:var(--accent)}
+.spec.off{color:var(--text-dim)}
+.cta{display:block;width:100%;margin:15px 0 0;padding:13px;border-radius:12px;font-family:Oswald;font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;text-align:center;border:1.5px solid var(--accent-2);color:var(--accent);background:transparent}
+.card.center .cta{background:var(--accent);color:#0b1208;border-color:var(--accent);box-shadow:0 0 18px var(--accent-glow)}
+
+/* b2b */
+.b2b{margin:14px 2px 0;padding:13px 14px;border:1px dashed var(--border-2);border-radius:12px;font-size:12px;color:var(--text-muted);line-height:1.45;text-align:center}
+.b2b b{color:var(--text);font-family:Oswald;font-weight:600}
+/* docup spoiler */
+details.docup{margin:16px 0 0;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
+details.docup summary{list-style:none;cursor:pointer;padding:13px 15px;font-family:Oswald;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);display:flex;justify-content:space-between}
+details.docup summary::-webkit-details-marker{display:none}
+details.docup summary .r{color:var(--accent)}
+.docup-body{padding:0 15px 15px;font-size:12px;color:var(--text-muted);line-height:1.6}
+.docup-body b{color:var(--text)}
+/* trial banner */
+.trial-note{margin:14px 2px 0;padding:12px 14px;background:repeating-linear-gradient(135deg,var(--surface) 0 12px,var(--surface-2) 12px 14px);border:1px solid var(--border);border-radius:12px;font-size:12px;color:var(--text-muted);line-height:1.45}
+.trial-note b{color:var(--accent);font-family:Oswald;font-weight:600}
+.trust{margin:18px 2px 0;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--text-muted);font-size:11px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">Т</div>
+      <div><div class="name">ТАТУ ТУТ</div><div class="sub">Цены</div></div>
+    </div>
+    <div class="pill-back">← В кабинет</div>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">⚡ Превращай сомнения клиента в запись</div>
+    <h1>Клиент мерит твою тату <b>на себе</b> — и пишет «хочу»</h1>
+    <p>А твои работы <b style="color:var(--accent)">оживают в видео</b> для Reels — клиенты сами пересылают друзьям.</p>
+    <div class="axis"><b>📸 Статика</b><span class="arr">→</span><b>🪄 Рисунок оживает</b><span class="arr">→</span><b>🎬 Клиент в видео</b></div>
+  </section>
+
+  <div class="label"><span>Выбери тариф</span><span class="r">любой можно сменить</span></div>
+  <div class="stack" id="stack"></div>
+
+  <div class="b2b">🏢 <b>Сеть или большая студия?</b> Безлимит + white-label + приоритет — тариф «Салон» по запросу: напиши @tatututbot</div>
+
+  <details class="docup">
+    <summary><span>+ Докупить поверх тарифа</span><span class="r">оплата по СБП</span></summary>
+    <div class="docup-body">
+      🪄 <b>Оживления:</b> +3 — 690₽ · +10 — 1990₽<br>
+      🎬 <b>Видео-примерки:</b> +3 — 1290₽ · +10 — 3490₽<br>
+      ✨ <b>Эскизы:</b> +50 — 990₽ · <b>Примерки:</b> +50 — 690₽<br>
+      💾 <b>Годовая оплата −25%</b> на любом тарифе
+    </div>
+  </details>
+
+  <div class="trial-note">🎁 <b>Первый эскиз — бесплатно.</b> Попробуй без оплаты, посмотри результат. Понравится — выбери тариф и оживляй свои работы.</div>
+
+  <div class="trust">🔒 оплата картой РФ · ✓ отмена в любой момент · 🧾 чек после оплаты</div>
+</div>
+
+<script>
+const fmt = n => new Intl.NumberFormat('ru-RU').format(n).replace(/,/g,' ');
+const TARIFFS = [
+  { key:'solo', name:'Старт', price:1490, period:'мес', perDay:49,
+    ability:{em:'📸',tx:'Статика',sub:'эскиз + примерка на фото тела',cls:''},
+    roi:null,
+    result:'🔗 до <b>100 клиентов</b> примеряют по ссылке',
+    sub:'твой канал заявок на запись',
+    specs:[['30','эскизов'],['25','примерок'],['оживление','🔒 на Про','off'],['видео','— на Макс','off'],['100','клиентов']] },
+  { key:'pro', name:'Про', price:2990, period:'мес', perDay:100, center:true, badge:'⭐ Самый популярный',
+    ability:{em:'🪄',tx:'Тату <b>ОЖИВАЕТ</b>',sub:'рисунок двигается — вирусный хук для Reels',cls:''},
+    roi:'Окупается с <b>1 записи</b> — от 25 000 ₽',
+    result:'🔥 до <b>400 клиентов</b> примеряют по ссылке',
+    sub:'поток заявок на запись',
+    specs:[['120','эскизов'],['60','примерок'],['8','🪄 оживлений','wow'],['видео','— на Макс','off'],['400','клиентов']] },
+  { key:'studio', name:'Макс', price:5990, period:'мес', perDay:200, top:true,
+    ability:{em:'🎬',tx:'Клиент <b>ОЖИВАЕТ</b> в видео',sub:'видео-примерка в движении — эксклюзив',cls:''},
+    roi:'Окупается с <b>1 записи</b> — от 25 000 ₽',
+    result:'🔥 до <b>1000 клиентов</b> примеряют по ссылке',
+    sub:'для салонов и тех, кто гонит трафик из Reels',
+    specs:[['250','эскизов'],['150','примерок'],['15','🪄 оживлений','wow'],['6','🎬 видео-примерок','wow'],['1000','клиентов']] },
+];
+function card(t){
+  const specs = t.specs.map(s=>`<span class="spec ${s[2]||''}"><b>${s[0]}</b> ${s[1]}</span>`).join('');
+  return `<div class="card ${t.center?'center':''} ${t.top?'top':''}">
+    ${t.badge?`<div class="badge">${t.badge}</div>`:''}
+    <div class="c-head">
+      <div class="c-name">${t.name}</div>
+      <div class="c-price"><span class="new">${fmt(t.price)}<span class="cur"> ₽</span></span><span class="u">/ ${t.period}</span><br><span class="pd">≈ ${t.perDay} ₽ / день</span></div>
+    </div>
+    <div class="ability ${t.ability.cls}"><span class="em">${t.ability.em}</span><span class="tx">${t.ability.tx}<span>${t.ability.sub}</span></span></div>
+    ${t.roi?`<div class="roi">💎 ${t.roi}</div>`:''}
+    <div class="result">${t.result}<span>${t.sub}</span></div>
+    <div class="specs">${specs}</div>
+    <button class="cta">Выбрать ${t.name}</button>
+  </div>`;
+}
+document.getElementById('stack').innerHTML = TARIFFS.map(card).join('');
+</script>
+</body>
+</html>

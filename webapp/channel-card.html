@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#3FA34D; --green-dk:#14342A; --lime:#C4F000;
+    --ink:#16241D; --muted:#5d7066;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1080px;height:1080px;overflow:hidden}
+  body{background:
+      radial-gradient(120% 80% at 100% 0%, rgba(196,240,0,.18) 0%, rgba(196,240,0,0) 48%),
+      linear-gradient(160deg,#F4F8EF 0%,#E9F0E1 100%);
+    font-family:Inter,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{position:absolute;inset:0;padding:84px 80px 76px;display:flex;flex-direction:column}
+
+  .top{display:flex;align-items:center;gap:24px;margin-bottom:56px}
+  .badge{width:92px;height:92px;border-radius:24px;flex:0 0 auto;box-shadow:0 10px 30px rgba(20,52,42,.18)}
+  .rubric{display:inline-flex;align-items:center;gap:14px;background:var(--lime);color:var(--green-dk);
+    font-family:Oswald,sans-serif;font-weight:700;font-size:30px;letter-spacing:.12em;text-transform:uppercase;
+    padding:16px 28px;border-radius:999px;box-shadow:0 8px 22px rgba(196,240,0,.45)}
+  .rubric .ic{font-size:30px;line-height:1}
+  .brandname{margin-left:auto;font-family:Oswald,sans-serif;font-weight:700;font-size:26px;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--green-dk)}
+
+  /* заголовок-новость */
+  .h1{font-family:Oswald,sans-serif;font-weight:700;font-size:84px;line-height:1.02;
+    letter-spacing:.005em;color:var(--green-dk);text-transform:uppercase}
+  .h1 .accent{color:var(--green)}
+  .rule{height:6px;width:96px;background:var(--lime);border-radius:3px;margin:34px 0 32px}
+
+  /* пояснение простыми словами */
+  .body{font-size:40px;line-height:1.4;font-weight:500;color:var(--ink);max-width:900px}
+  .body b{color:var(--green-dk);font-weight:700}
+
+  /* блок-идея для контента */
+  .angle{margin-top:auto;background:rgba(255,255,255,.62);border:2px solid rgba(63,163,77,.30);
+    border-left:10px solid var(--lime);border-radius:20px;padding:30px 34px;font-size:34px;line-height:1.34}
+  .angle b{font-family:Oswald,sans-serif;font-weight:700;color:var(--green);letter-spacing:.02em}
+
+  .foot{margin-top:30px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+  .src{font-size:25px;color:var(--muted)}
+  .handle{font-family:Oswald,sans-serif;font-weight:700;font-size:36px;color:var(--green);letter-spacing:.04em;white-space:nowrap}
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute"><defs>
+    <symbol id="mark" viewBox="0 0 240 240">
+      <rect width="240" height="240" rx="48" fill="#14342A"/>
+      <rect x="60" y="90" width="120" height="13" rx="6.5" fill="#FBFCF9"/>
+      <path d="M120 103 L113 190 L120 206 L127 190 Z" fill="#FBFCF9"/>
+      <circle cx="120" cy="90" r="14" fill="#C4F000"/>
+    </symbol>
+  </defs></svg>
+
+  <div class="wrap">
+    <div class="top">
+      <svg class="badge"><use href="#mark"/></svg>
+      <span class="rubric"><span class="ic">📰</span>Новости тату</span>
+      <span class="brandname">Тату&nbsp;Тут</span>
+    </div>
+
+    <div class="h1">В Европе запретили<br>популярные <span class="accent">краски</span><br>для тату</div>
+    <div class="rule"></div>
+    <div class="body">Под запрет (REACH) попали пигменты <b>Green&nbsp;7</b> и <b>Blue&nbsp;15:3</b> — зелёный и синий, которые были почти в каждой цветной краске. Бренды срочно переводят составы на новые безопасные формулы.</div>
+
+    <div class="angle"><b>🎬 Сними про это:</b> «Почему привычные цвета тату скоро изменятся» — зайдёт и клиентам, и коллегам.</div>
+
+    <div class="foot">
+      <span class="src">источник: killerinktattoo.co.uk</span>
+      <span class="handle">@tatututai</span>
+    </div>
+  </div>
+</body>
+</html>

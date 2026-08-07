@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1A14">
+<title>ТАТУ ТУТ — Цены</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0E1A14;
+  --bg-2:#0a140f;
+  --surface:#16291F;
+  --surface-2:#1d3328;
+  --accent:#C4F000;
+  --accent-2:#7DA800;
+  --accent-glow:rgba(196,240,0,.18);
+  --text:#F4F4F0;
+  --text-muted:#8A938E;
+  --text-dim:#5d6b62;
+  --border:#243a30;
+  --border-2:#2e4a3c;
+  --strike:#4a574e;
+  --radius:14px;
+  --radius-lg:20px;
+  --tap:transform .12s ease, background .15s ease, border-color .15s ease;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overscroll-behavior-y:none}
+body{min-height:100vh;font-size:14px;line-height:1.5}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+
+.app{max-width:520px;margin:0 auto;padding:18px 16px 28px;min-height:100vh;display:flex;flex-direction:column}
+
+/* ─── Top bar ──────────────────────────────────────────────────── */
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--surface);display:grid;place-items:center;border:1px solid var(--border)}
+.brand-mark svg{width:22px;height:22px}
+.brand-text{display:flex;flex-direction:column;line-height:1}
+.brand-text .name{font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.06em;font-size:13px;text-transform:uppercase}
+.brand-text .sub{font-size:11px;color:var(--text-muted);margin-top:3px;letter-spacing:.02em}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 9px;border-radius:99px;background:rgba(196,240,0,.08);border:1px solid rgba(196,240,0,.4);font-family:Oswald,sans-serif;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent-glow);animation:pulse 2s infinite}
+/* v84: pill-back — кнопка возврата в Кабинет. Тот же визуал что и .pill,
+   но цвет нейтральный (не лайм), чтобы не конфликтовать с CTA. */
+.pill-back{display:inline-flex;align-items:center;gap:7px;padding:8px 13px 8px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border-2);font-family:Oswald,sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600;cursor:pointer;transition:var(--tap)}
+.pill-back:hover,.pill-back:active{color:var(--text);border-color:var(--accent);background:var(--surface-2)}
+.pill-back svg{color:var(--accent)}
+/* v114: узкая неброская кнопка отмены подписки — на всю ширину, плоская,
+   приглушённая, не конкурирует с CTA тарифов. */
+.cancel-sub{display:block;width:100%;margin-top:20px;padding:11px 14px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text-dim);font-family:Inter,sans-serif;font-size:12px;letter-spacing:.03em;text-align:center;cursor:pointer;transition:var(--tap)}
+.cancel-sub:active{background:var(--surface);color:var(--text-muted)}
+/* v257: «Привязать карту» = ЯРКИЙ primary-CTA (владелец: «тусклая, незаметная»).
+   Отвязка остаётся приглушённой (.cancel-sub). Класс ставится в renderCardButton. */
+.cancel-sub.bind-card-cta{background:var(--accent);border:none;color:#0a0a0a;font-weight:700;font-size:14px;padding:15px 14px;letter-spacing:0;box-shadow:0 0 18px var(--accent-glow)}
+.cancel-sub.bind-card-cta:active{background:var(--accent-2);color:#0a0a0a}
+.unbind-note{margin-top:8px;text-align:center;font-size:10px;line-height:1.4;color:var(--text-dim);letter-spacing:.02em}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(196,240,0,.55)}70%{box-shadow:0 0 0 6px rgba(196,240,0,0)}100%{box-shadow:0 0 0 0 rgba(196,240,0,0)}}
+
+/* ─── Hero ─────────────────────────────────────────────────────── */
+.hero{padding:28px 4px 22px;text-align:left}
+/* v214: mini-hero — Premium-якорь сверху прайса. Лёгкий лайм-градиент,
+   маленький шрифт, не отвлекает от h1. Глаз падает на «24 990» → когда
+   доходит до «4 990 Pro», оно ощущается недорогим. */
+.mini-hero{margin:0 0 16px;padding:11px 14px;background:linear-gradient(90deg,rgba(196,240,0,0.10),rgba(196,240,0,0.04));border:1px solid rgba(196,240,0,0.30);border-radius:12px;font-size:12.5px;line-height:1.45;letter-spacing:.02em;color:var(--text-muted)}
+.mini-hero .mh-line{display:block;font-family:Oswald,sans-serif;font-weight:600;color:var(--text)}
+.mini-hero .mh-line b{color:var(--accent)}
+.mini-hero .mh-sub{display:block;margin-top:4px;font-size:11px}
+.hero .eyebrow{font-family:Oswald,sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.hero .eyebrow svg{width:14px;height:14px;color:var(--accent)}
+.hero h1{margin:0;font-family:Oswald,sans-serif;font-weight:700;line-height:.95;text-transform:uppercase;letter-spacing:.01em}
+.hero h1 .small{font-size:36px;font-weight:600;color:var(--text-muted);display:block}
+.hero h1 .big{font-size:88px;font-weight:700;color:var(--accent);display:block;margin-top:4px;letter-spacing:.005em;text-shadow:0 0 60px rgba(196,240,0,.15)}
+.hero h1 .end{font-size:36px;font-weight:600;color:var(--text);display:block;margin-top:6px}
+.hero .calc{margin-top:24px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;gap:14px}
+/* v84: блок «4 шага что делает бот» — визуальное объяснение функций
+   перед карточками тарифов. Без перегруза, минималистично. */
+.flow{margin-top:18px;padding:18px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.flow-title{font-family:Oswald,sans-serif;font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;text-align:center}
+.flow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;align-items:start}
+.flow-step{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;position:relative}
+.flow-step .icon{width:38px;height:38px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border-2);display:grid;place-items:center;color:var(--accent)}
+.flow-step .icon svg{width:18px;height:18px}
+.flow-step .n{position:absolute;top:-4px;right:calc(50% - 26px);width:16px;height:16px;border-radius:50%;background:var(--accent);color:#0b1208;font-family:Oswald,sans-serif;font-weight:700;font-size:10px;display:grid;place-items:center;line-height:1}
+.flow-step .t{font-family:Oswald,sans-serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text)}
+.flow-step .s{font-size:10px;color:var(--text-muted);letter-spacing:.02em;line-height:1.3}
+.flow-bonus{margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);display:flex;align-items:center;justify-content:center;gap:8px;font-size:11.5px;color:var(--text-muted);letter-spacing:.02em;line-height:1.4;text-align:center}
+.flow-bonus svg{width:14px;height:14px;color:var(--accent);flex:0 0 auto}
+/* v206: компактная плашка экономии времени (второстепенный акцент) */
+.time-note{margin-top:18px;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-muted);line-height:1.45}
+.time-note svg{width:16px;height:16px;color:var(--accent);flex:0 0 auto}
+.time-note b{color:var(--text)}
+.flow-bonus b{font-family:Oswald,sans-serif;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;font-size:10.5px;margin-right:2px}
+.hero .calc svg{width:22px;height:22px;color:var(--accent);flex:0 0 auto}
+.hero .calc .math{flex:1;display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--text-muted);line-height:1.45}
+.hero .calc .math b{color:var(--text);font-family:Oswald,sans-serif;font-weight:600;letter-spacing:.04em}
+.hero .calc .ratio{font-family:Oswald,sans-serif;font-weight:600;font-size:15px;color:var(--accent);white-space:nowrap;letter-spacing:.02em}
+
+/* ─── Section label ────────────────────────────────────────────── */
+.label{font-family:Oswald,sans-serif;font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin:24px 4px 12px;display:flex;justify-content:space-between;align-items:baseline}
+.label .r{color:var(--accent)}
+
+/* v208: ROI-строка (окупается с 1 клиента) + fair-use сноска */
+.roi{display:flex;align-items:center;gap:11px;margin:20px 4px 2px;padding:13px 15px;background:rgba(196,240,0,.07);border:1px solid rgba(196,240,0,.32);border-radius:var(--radius);font-size:13px;line-height:1.4;color:var(--text-muted)}
+.roi svg{width:18px;height:18px;color:var(--accent);flex:0 0 auto}
+.roi b{color:var(--text);font-family:Oswald,sans-serif;font-weight:600;letter-spacing:.01em}
+.fineprint{margin:9px 4px 0;font-size:10.5px;color:var(--text-dim);letter-spacing:.02em;text-align:right}
+
+/* ─── Price stack ──────────────────────────────────────────────── */
+.stack{display:flex;flex-direction:column;gap:10px}
+.row{position:relative;display:flex;align-items:center;gap:14px;padding:18px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:var(--tap);overflow:hidden}
+.row:active{transform:scale(.992);background:var(--surface-2)}
+.row.hit{border-color:rgba(196,240,0,.55);background:linear-gradient(180deg,#172d20 0%,#16291f 60%);box-shadow:0 0 0 1px rgba(196,240,0,.2),0 18px 40px rgba(196,240,0,.07);animation:hit-glow 3.6s ease-in-out infinite}
+@keyframes hit-glow{0%,100%{box-shadow:0 0 0 1px rgba(196,240,0,.2),0 18px 40px rgba(196,240,0,.07)}50%{box-shadow:0 0 0 1.5px rgba(196,240,0,.45),0 18px 52px rgba(196,240,0,.18)}}
+/* v387: активный тариф юзера (?current= из кабинета) */
+.row.mine{border-color:rgba(196,240,0,.75)}
+.row .minechip{display:inline-block;margin:8px 6px 0 0;padding:5px 11px;border-radius:99px;border:1.5px solid var(--accent);color:var(--accent);background:transparent;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.row.hit::after{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;background:var(--accent);border-radius:3px 0 0 3px}
+/* v361: «Популярный» (Pro 2990) — лёгкий зелёный фрейм, слабее звезды (Pro+) */
+.row.pop{border-color:rgba(196,240,0,.34);background:linear-gradient(180deg,#152620 0%,#13231b 60%)}
+.row.pop .l .badge{background:rgba(196,240,0,.12);color:var(--accent);border:1px solid rgba(196,240,0,.42)}
+.row.trial{background:repeating-linear-gradient(135deg,var(--surface) 0 14px,var(--surface-2) 14px 16px)}
+
+.row .l{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;z-index:1}
+.row .l .name{font-family:Oswald,sans-serif;font-weight:700;font-size:22px;line-height:1;text-transform:uppercase;letter-spacing:.04em}
+.row .l .meta{font-size:12px;color:var(--text-muted);letter-spacing:.02em;line-height:1.4}
+.row .l .meta b{color:var(--text);font-weight:500}
+/* v84: breakdown — компактный список что входит в тариф под мета-строкой */
+.row .l .breakdown{font-size:11px;color:var(--text-dim);letter-spacing:.02em;line-height:1.45;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)}
+.row.hit .l .breakdown{color:var(--text-muted);border-top-color:var(--border-2)}
+/* v267 (Task B): карточка ВЕДЁТ РЕЗУЛЬТАТОМ (клиенты по ссылке → заявки),
+   инструменты — читаемым вторичным грид-блоком «в пакете». Владелец: «карточки
+   продают счётчиками — это побочка; дизайн нечитаем». */
+.row .l .result{font-size:14px;line-height:1.35;color:var(--text);letter-spacing:.01em}
+.row .l .result b{color:var(--accent);font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:.02em}
+.row .l .result .res-sub{display:block;color:var(--text-muted);font-size:11.5px;line-height:1.35;margin-top:3px;letter-spacing:.01em}
+.row .l .specs{margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
+.row.hit .l .specs{border-top-color:var(--border-2)}
+.row .l .specs .specs-label{grid-column:1 / -1;font-family:Oswald,sans-serif;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1px}
+.row .l .specs .spec{display:flex;align-items:baseline;gap:5px;font-size:11.5px;color:var(--text-muted);line-height:1.3;letter-spacing:.01em}
+.row .l .specs .spec b{color:var(--text);font-family:Oswald,sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.01em}
+@media (max-width:360px){.row .l .specs{grid-template-columns:1fr}}
+.row .l .badge{display:inline-flex;align-items:center;gap:5px;margin-top:2px;padding:3px 8px;border-radius:99px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;width:fit-content}
+.row.hit .l .badge{background:var(--accent);color:#0b1208}
+.row .l .badge.save{background:rgba(196,240,0,.1);color:var(--accent);border:1px solid rgba(196,240,0,.4)}
+
+.row .r{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;z-index:1}
+.row .r .old{font-family:Oswald,sans-serif;font-weight:600;font-size:13px;color:var(--strike);text-decoration:line-through;text-decoration-thickness:1.5px;letter-spacing:.02em}
+.row .r .new{font-family:Oswald,sans-serif;font-weight:700;font-size:34px;line-height:1;color:var(--text);letter-spacing:-.01em}
+.row.hit .r .new{color:var(--text)}
+.row .r .new .cur{font-size:18px;color:var(--text-muted);margin-left:2px;font-weight:600}
+.row.free .r .new{color:var(--accent)}
+.row .r .u{font-size:11px;color:var(--text-muted);letter-spacing:.04em;text-transform:lowercase;margin-top:3px}
+.row .r .ph{font-family:Oswald,sans-serif;font-weight:600;font-size:11px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-top:6px;padding:3px 7px;background:rgba(196,240,0,.08);border-radius:6px}
+
+.row .arrow{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.04);display:grid;place-items:center;color:var(--text-muted);flex:0 0 auto;transition:var(--tap);z-index:1}
+.row.hit .arrow{background:var(--accent);color:#0b1208}
+.row:active .arrow{transform:translateX(2px)}
+.row .arrow svg{width:14px;height:14px}
+
+/* ─── Footer & trust ───────────────────────────────────────────── */
+.bottom{margin-top:24px;display:flex;flex-direction:column;gap:14px}
+.trust{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px 18px;color:var(--text-muted);font-size:11.5px;letter-spacing:.02em;padding:0 4px;line-height:1.5}
+.trust .item{display:inline-flex;align-items:center;gap:6px}
+.trust .item svg{width:13px;height:13px;color:var(--accent-2);flex:0 0 auto}
+.trust .dot{width:3px;height:3px;border-radius:50%;background:var(--text-dim)}
+
+.cta-link{display:flex;justify-content:center;align-items:center;gap:6px;padding:6px;color:var(--text-muted);font-size:12.5px;letter-spacing:.02em}
+.cta-link a{color:var(--text);border-bottom:1px dashed var(--text-dim);padding-bottom:1px;display:inline-flex;align-items:center;gap:4px}
+.cta-link a svg{width:11px;height:11px}
+
+.fade-in{animation:fi .35s ease both}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.stack > * { animation-delay: calc(var(--i,0) * 60ms + 200ms); }
+
+@media (min-width: 600px){
+  .hero h1 .big{font-size:108px}
+  .app{padding:28px 28px 40px}
+}
+@media (max-width: 360px){
+  .hero h1 .big{font-size:72px}
+  .row .r .new{font-size:30px}
+}
+
+/* ─── v493: докуп-блоки «Оживить тату» + «Видео-примерка» (Премиум-якорь/неон) ─── */
+.overage{margin:22px 0 4px;display:flex;flex-direction:column;gap:12px}
+.ov-label{font-family:Oswald,sans-serif;font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin:0 4px 0;display:flex;justify-content:space-between;align-items:baseline}
+.ov-label .ov-r{color:var(--accent)}
+.ov-block{position:relative;padding:16px 15px 15px;background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 140%);border:1px solid var(--border-2);border-radius:var(--radius-lg);overflow:hidden}
+.ov-block::before{content:"";position:absolute;left:0;top:0;width:3px;height:100%;background:linear-gradient(180deg,var(--accent),var(--accent-2));opacity:.85}
+.ov-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.ov-ico{flex:0 0 auto;width:42px;height:42px;border-radius:12px;background:rgba(196,240,0,.10);border:1px solid rgba(196,240,0,.35);display:grid;place-items:center;font-size:21px;line-height:1;box-shadow:0 0 18px var(--accent-glow) inset}
+.ov-titles{min-width:0}
+.ov-title{margin:0;font-family:Oswald,sans-serif;font-weight:700;font-size:19px;line-height:1;text-transform:uppercase;letter-spacing:.04em;color:var(--text)}
+.ov-hook{margin:6px 0 0;font-size:12px;line-height:1.4;color:var(--text-muted);letter-spacing:.01em}
+.ov-sub{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin:14px 2px 8px;font-family:Oswald,sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text)}
+.ov-sub span{font-family:Inter,sans-serif;font-weight:400;font-size:11px;letter-spacing:.01em;text-transform:none;color:var(--text-dim)}
+.ov-packs{display:grid;gap:8px}
+.ov-packs-2{grid-template-columns:1fr 1.08fr}
+.ov-packs-3{grid-template-columns:1fr 1.14fr 1fr;align-items:stretch}
+.ov-pack{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:14px 6px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);cursor:pointer;transition:var(--tap);text-align:center;min-height:84px}
+.ov-pack:active{transform:scale(.97);background:#22402f}
+.ov-pack .ov-q{font-family:Oswald,sans-serif;font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);line-height:1.1}
+.ov-pack .ov-old{font-size:12px;color:var(--text-dim);text-decoration:line-through;margin-right:6px}
+.ov-pack .ov-price{font-family:Oswald,sans-serif;font-weight:700;font-size:23px;line-height:1;letter-spacing:-.01em;color:var(--text);margin-top:2px}
+.ov-pack .ov-price i{font-style:normal;font-size:13px;color:var(--text-muted);margin-left:2px;font-weight:600}
+.ov-pack .ov-note{font-size:10px;color:var(--text-dim);letter-spacing:.02em;line-height:1.25;margin-top:3px}
+.ov-pack.ov-best{background:linear-gradient(180deg,#1b3322 0%,#162a1d 100%);border:1.5px solid var(--accent);box-shadow:0 0 0 1px rgba(196,240,0,.18),0 12px 30px rgba(196,240,0,.14);animation:ov-glow 3.6s ease-in-out infinite}
+@keyframes ov-glow{0%,100%{box-shadow:0 0 0 1px rgba(196,240,0,.18),0 12px 30px rgba(196,240,0,.12)}50%{box-shadow:0 0 0 1.5px rgba(196,240,0,.45),0 14px 38px rgba(196,240,0,.22)}}
+.ov-pack.ov-best .ov-q{color:var(--accent)}
+.ov-pack.ov-best .ov-price{color:#fff}
+.ov-pack.ov-best .ov-note{color:var(--text-muted)}
+.ov-pack.ov-best:active{transform:scale(.97);background:linear-gradient(180deg,#1f3a27 0%,#18301f 100%)}
+.ov-flag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--accent);color:#0a0e06;font-family:Oswald,sans-serif;font-weight:700;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 9px;border-radius:8px;white-space:nowrap;box-shadow:0 4px 12px var(--accent-glow)}
+@media (max-width:360px){
+  .ov-packs-2,.ov-packs-3{grid-template-columns:1fr 1fr}
+  .ov-packs-3 .ov-pack:nth-child(3){grid-column:1 / -1}
+}
+/* ─── v524 redesign: ось способностей + флагман + полный пакет (8 функций) ─── */
+.ability-axis{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:20px 4px 4px;padding:13px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-family:Oswald,sans-serif;font-weight:600;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);text-align:center}
+.ability-axis b{color:var(--accent)}
+.ability-axis .ax-arr{color:var(--text-dim);font-size:13px}
+.row .l .cap{font-family:Oswald,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-top:1px}
+.row.hit .l .cap,.row.toptier .l .cap{color:var(--accent)}
+.row .l .specs .spec.wow{color:var(--accent)}
+.row .l .specs .spec.wow b{color:var(--accent)}
+.row .l .specs .spec.lock{opacity:.42}
+.row .l .flagblock{margin-top:10px;padding:11px 12px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:12px;display:flex;align-items:flex-start;gap:9px}
+.row.hit .l .flagblock,.row.toptier .l .flagblock{background:rgba(196,240,0,.08);border-color:rgba(196,240,0,.40)}
+.row .l .flagblock .fb-ic{font-size:19px;line-height:1.1;flex:0 0 auto}
+.row .l .flagblock .fb-tx{font-size:11.5px;line-height:1.4;color:var(--text)}
+.row .l .flagblock .fb-tx b{color:var(--accent);font-family:Oswald,sans-serif;font-weight:600;letter-spacing:.02em}
+.row .l .flagblock .fb-excl{display:inline-block;margin-left:5px;font-family:Oswald,sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.1em;color:#0b1208;background:var(--accent);padding:1px 6px;border-radius:5px;vertical-align:1px;text-transform:uppercase}
+.row .l .warn{margin-top:8px;font-size:10px;line-height:1.4;color:var(--text-dim);letter-spacing:.01em}
+.b2b{margin:16px 4px 0;padding:14px 15px;background:var(--surface);border:1px dashed var(--border-2);border-radius:var(--radius);text-align:center;line-height:1.5}
+.b2b .b2b-t{font-family:Oswald,sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text)}
+.b2b .b2b-s{font-size:11.5px;color:var(--text-muted);margin-top:4px}
+.b2b a{color:var(--accent);border-bottom:1px dashed var(--accent-2)}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <!-- v83: точная копия webapp/assets/logo/tatu-tut-mark-dark.svg
+       (brandbook v2.0). Старая упрощённая версия 64×64 была некорректна. -->
+  <symbol id="i-brand" viewBox="0 0 240 240">
+    <rect width="240" height="240" rx="48" fill="#0E1A14"/>
+    <rect x="60" y="90" width="120" height="13" rx="6.5" fill="#F4F4F0"/>
+    <path d="M120 103 L113 190 L120 206 L127 190 Z" fill="#F4F4F0"/>
+    <circle cx="120" cy="90" r="14" fill="#C4F000"/>
+  </symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-cancel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v8h8"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.01"/></symbol>
+  <!-- v84: иконки для блока «4 шага что делает бот» -->
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-pen2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-12 12H5v-4z"/><path d="M14 6l4 4"/></symbol>
+  <symbol id="i-printer2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
+  <symbol id="i-image2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-4-4-9 9"/></symbol>
+  <symbol id="i-magic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M17.8 6.2L19 5M12.2 6.2L11 5M3 21l9-9"/></symbol>
+</defs>
+</svg>
+
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark"><svg><use href="#i-brand"/></svg></div>
+      <div class="brand-text">
+        <span class="name">ТАТУ&nbsp;ТУТ</span>
+        <span class="sub">Цены</span>
+      </div>
+    </div>
+    <!-- v84: добавлена кнопка возврата в Кабинет. Юзер: «зашёл в тарифы —
+         нет кнопки назад, выйти невозможно». -->
+    <button class="pill-back" data-action="back_to_cabinet" aria-label="В кабинет">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      <span>В кабинет</span>
+    </button>
+  </header>
+
+  <section class="hero fade-in">
+    <!-- v214: mini-hero лента — Premium-якорь сверху. Глаз падает на 24990 → 4990 ощущается дёшево. -->
+    <div class="mini-hero">
+      <!-- v672: цена пробного подставляется из тарифа (env TRIAL_PRICE_RUB).
+           Была вбита числом в трёх местах и пережила бы плановый флип
+           299→399: баннер обещал бы одно, касса брала другое. -->
+      <!-- v714 (владелец 01.08): без дат и обещаний — просто цена. -->
+      <span class="mh-line">🎁 Стартовый набор — <b><span class="js-trial-price">399</span> ₽</b> / 7 дней</span>
+      <span class="mh-sub">Попробуй все функции за <span class="js-trial-price">399</span> ₽, потом выбери тариф.</span>
+    </div>
+    <div class="eyebrow">
+      <svg><use href="#i-zap"/></svg>
+      Превращай сомнения клиента в запись
+    </div>
+    <h1>
+      <span class="small">Клиент мерит твою тату</span>
+      <span class="big">на себе</span>
+      <span class="end">— и пишет «хочу».</span>
+    </h1>
+    <div class="calc fade-in" style="animation-delay:120ms">
+      <svg><use href="#i-zap"/></svg>
+      <div class="math">
+        <span>Высылаешь <b>ссылку</b> клиенту в личку или крепишь в сторис</span>
+        <span>бот примеряет твой эскиз на фото тела — клиент сам пишет «хочу»</span>
+      </div>
+      <span class="ratio">🔗&nbsp;твой&nbsp;канал&nbsp;заявок</span>
+    </div>
+
+    <!-- v206 (новая концепция «ссылка приводит клиентов»): путь теперь
+         заканчивается КЛИЕНТОМ, а не «примерь». Старый «4 шага НАЙДИ→
+         ИЗВЛЕКИ→ТРАНСФЕР→ПРИМЕРЬ» убран — в нём не было лидогенерации
+         (главного актива). Новый путь: создай ссылку → клиент мерит →
+         заявка тебе → закрыл на запись. -->
+    <div class="flow fade-in" style="animation-delay:180ms">
+      <div class="flow-title">Как бот приводит тебе клиентов</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="icon"><svg><use href="#i-image2"/></svg></div>
+          <span class="n">1</span>
+          <div class="t">Создай ссылку</div>
+          <div class="s">на свой эскиз — за 10 сек</div>
+        </div>
+        <div class="flow-step">
+          <div class="icon"><svg><use href="#i-zap"/></svg></div>
+          <span class="n">2</span>
+          <div class="t">Раздай</div>
+          <div class="s">в личку, сторис, рекламу</div>
+        </div>
+        <div class="flow-step">
+          <div class="icon"><svg><use href="#i-search"/></svg></div>
+          <span class="n">3</span>
+          <div class="t">Клиент мерит</div>
+          <div class="s">на фото своего тела</div>
+        </div>
+        <div class="flow-step">
+          <div class="icon"><svg><use href="#i-printer2"/></svg></div>
+          <span class="n">4</span>
+          <div class="t">Заявка тебе</div>
+          <div class="s">«хочу такую» → запись</div>
+        </div>
+      </div>
+      <div class="flow-bonus">
+        <svg><use href="#i-magic"/></svg>
+        <span><b>+ В пакете:</b> примерка на фото, трансфер, эскиз из фото, фото как из студии</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- v526 (решение Николая 25.06): ROI-плашка «окупается с одной татуировки»
+       УБРАНА — не анкорить на цене тату (25 000/любая тату дороже). Альтернатива
+       «от нашего тарифа / per-day» — по отдельному решению. Пока строки нет. -->
+
+
+  <div class="label">
+    <span>Выбери тариф</span>
+    <span class="r">Любой можно сменить</span>
+  </div>
+
+  <div class="stack" id="stack"></div>
+
+  <!-- v525: B2B-строка убрана по решению Николая (контакт не нужен) -->
+
+
+  <!-- v494: ОДИН докуп-блок «Видео из тату» (владелец слил оживление+видео, ~230₽/шт).
+       Идёт ПОСЛЕ #stack как докуп поверх тарифа. Кнопки class="vid-pack" + data-sku →
+       ловит существующий обработчик ниже (openPaidInvoice). Своего JS нет. Видео = 25, не 30. -->
+  <div class="overage fade-in" style="--i:9;animation-delay:560ms">
+
+    <div class="ov-label"><span>Докупить поверх тарифа</span><span class="ov-r">оплата по СБП</span></div>
+
+    <!-- v494: ОДИН блок «Видео из тату» (владелец слил оживление+видео, цена ~230₽/шт).
+         Две линейки внутри: 🪄 Оживить рисунок + 🎬 Тату на теле. Кнопки class="vid-pack". -->
+    <section class="ov-block">
+      <div class="ov-head">
+        <div class="ov-ico">🎬</div>
+        <div class="ov-titles">
+          <h3 class="ov-title">Видео из&nbsp;тату</h3>
+          <p class="ov-hook">Оживи рисунок в движении или покажи тату на теле клиента — короткое видео для Reels и сторис. Клиенты сами пересылают друзьям 🔥</p>
+        </div>
+      </div>
+
+      <div class="ov-sub">🪄 Оживить рисунок <span>— оживает ТАТУ/рисунок (дым, дракон)</span></div>
+      <div class="ov-packs ov-packs-3">
+        <!-- v650: АКЦИЯ феста (утверждено 23.07). База после феста: 99/449/799
+             — при выключении PACK_PROMO_PRICING поправить карточки на базу
+             и убрать ov-old. -->
+        <button class="vid-pack ov-pack" data-sku="animations_1">
+          <span class="ov-q">+1 оживление</span>
+          <span><span class="ov-old">290&nbsp;₽</span><span class="ov-price">69<i>&nbsp;₽</i></span></span>
+          <span class="ov-note">попробовать</span>
+        </button>
+        <button class="vid-pack ov-pack ov-best" data-sku="animations_5">
+          <span class="ov-flag">выгодно</span>
+          <span class="ov-q">+5 оживлений</span>
+          <span><span class="ov-old">690&nbsp;₽</span><span class="ov-price">329<i>&nbsp;₽</i></span></span>
+          <span class="ov-note">≈ 66 ₽ за видео</span>
+        </button>
+        <button class="vid-pack ov-pack ov-best" data-sku="animations_10">
+          <span class="ov-flag">лучший</span>
+          <span class="ov-q">+10 оживлений</span>
+          <span><span class="ov-old">1990&nbsp;₽</span><span class="ov-price">599<i>&nbsp;₽</i></span></span>
+          <span class="ov-note">≈ 60 ₽ за видео</span>
+        </button>
+      </div>
+
+      <div style="text-align:center;margin:14px 2px 4px;font-size:10.5px;line-height:1.4;color:var(--text-dim);letter-spacing:.01em">⚠️ Оживление ≠ видео-примерка: в первом двигается РИСУНОК, во втором — КЛИЕНТ (тату статична)</div>
+      <div class="ov-sub">🎬 Видео-примерка <span>— оживает ЧЕЛОВЕК, тату статична</span></div>
+      <div class="ov-packs ov-packs-3">
+        <button class="vid-pack ov-pack" data-sku="videos_3">
+          <span class="ov-q">+3 видео</span>
+          <span><span class="ov-old">690&nbsp;₽</span><span class="ov-price">249<i>&nbsp;₽</i></span></span>
+          <span class="ov-note">≈ 83 ₽ за видео</span>
+        </button>
+        <button class="vid-pack ov-pack ov-best" data-sku="videos_10">
+          <span class="ov-flag">выгодно</span>
+          <span class="ov-q">+10 видео</span>
+          <span><span class="ov-old">1990&nbsp;₽</span><span class="ov-price">690<i>&nbsp;₽</i></span></span>
+          <span class="ov-note">≈ 69 ₽ за видео</span>
+        </button>
+        <button class="vid-pack ov-pack ov-best" data-sku="videos_30">
+          <span class="ov-flag">лучший</span>
+          <span class="ov-q">+25 видео</span>
+          <span><span class="ov-old">4990&nbsp;₽</span><span class="ov-price">1490<i>&nbsp;₽</i></span></span>
+          <span class="ov-note">≈ 60 ₽ за видео</span>
+        </button>
+      </div>
+    </section>
+
+  </div>
+  <script>
+    // v369: vid-pack → openPaidInvoice (SBP QR без закрытия Mini App).
+    // Старый путь через openTelegramLink закрывал Mini App — исправлено.
+    (function(){
+      document.querySelectorAll('.vid-pack').forEach(function(b){
+        b.addEventListener('click', function(){
+          var sku = b.getAttribute('data-sku');
+          function sbpFlow(){
+            b.disabled = true;
+            b.style.opacity = '0.6';
+            openPaidInvoice(sku).then(function(ok){
+              b.disabled = false;
+              b.style.opacity = '';
+              if (!ok) {
+                // fallback: глубокая ссылка в основной бот (не admin-бот)
+                var url = 'https://t.me/ta2_blockbot?start=overage_' + sku;
+                try { if (tg && tg.openTelegramLink) { tg.openTelegramLink(url); return; } } catch(e){}
+                try { window.open(url, '_blank'); } catch(e){}
+              }
+            }).catch(function(){
+              b.disabled = false;
+              b.style.opacity = '';
+            });
+          }
+          // v758: выбор канала и на паках (утренний список владельца 06.08 —
+          // счёт докупки летел сразу в СБП). Ин.карта при неудаче падает в
+          // СВОЙ СБП-поток, не в чужой buy_-фоллбек тарифов.
+          chooseChannelAndPay(sku, sbpFlow,
+            function(){ payForeign(sku, sbpFlow); });
+        });
+      });
+    })();
+  </script>
+
+  <!-- v206: экономия времени — оставлена компактным блоком (не главный
+       акцент, как просил владелец). Главное теперь — ссылка/клиенты (hero). -->
+  <div class="time-note fade-in" style="animation-delay:550ms">
+    <svg><use href="#i-zap"/></svg>
+    <span>А ещё бот <b>экономит ~40 часов в месяц</b> на рутине: трансферы, эскизы, обработка фото вместо ручного фотошопа.</span>
+  </div>
+
+  <div class="bottom fade-in" style="animation-delay:600ms">
+    <div class="trust">
+      <span class="item"><svg><use href="#i-lock"/></svg>оплата картой РФ</span>
+      <span class="dot"></span>
+      <span class="item"><svg><use href="#i-cancel"/></svg>отмена в любой момент</span>
+      <span class="dot"></span>
+      <span class="item"><svg><use href="#i-shield"/></svg>чек после оплаты</span>
+    </div>
+    <!-- v766: акцепт публичной оферты — без этой строки документ не
+         связывает покупателя (дыра найдена 07.08 на кейсе возврата). -->
+    <div style="text-align:center;margin-top:8px;font-size:11.5px;opacity:.55">
+      Оплачивая, вы принимаете условия
+      <a href="https://nkey190198-hash.github.io/lok-bot/legal/oferta.pdf"
+         target="_blank" style="color:inherit;text-decoration:underline">публичной оферты</a>
+    </div>
+    <!-- v83: блок «подробное сравнение» убран — Mini App теперь только
+         2 окна (Кабинет + Тарифы). Третья страница (tariffs-only.html)
+         оставлена как deprecated и не используется в routing. -->
+
+  </div>
+
+  <!-- v117: отвязка карты + отмена автопродления (для скриншота ЮKassa) -->
+  <button class="cancel-sub" id="cancelSub">Отвязать карту и отменить автопродление</button>
+  <div class="unbind-note">ТАТУ&nbsp;ТУТ · @ta2_blockbot — карта/токен удаляются на нашей стороне сразу при нажатии</div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+const inTelegram = !!(tg && tg.initData && tg.initData.length > 0);
+try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0E1A14'); tg.setBackgroundColor && tg.setBackgroundColor('#0E1A14'); } } catch(_){}
+
+// v110: API endpoint бота (Railway) для создания invoice link.
+const BOT_API_BASE = 'https://worker-production-c1cb.up.railway.app';
+
+    // v650: ЦЕНЫ ПАКОВ — С СЕРВЕРА (/api/packs, текущий режим акции/базы).
+    // Статические цены в HTML — только дефолт на случай недоступности API;
+    // сторож-тест держит их равными карте ТЕКУЩЕГО режима (рассинхрон =
+    // красный pre-commit → HTML правится в день флипа).
+    (function(){
+      fetch(BOT_API_BASE + '/api/packs').then(function(r){ return r.json(); })
+        .then(function(d){
+          if (!d || !d.packs) return;
+          document.querySelectorAll('.ov-pack[data-sku]').forEach(function(b){
+            var p = d.packs[b.getAttribute('data-sku')];
+            if (!p) return;
+            var priceEl = b.querySelector('.ov-price');
+            if (priceEl) priceEl.innerHTML = p.price + '<i>&nbsp;₽</i>';
+            var oldEl = b.querySelector('.ov-old');
+            if (p.old_price > 0) {
+              if (oldEl) oldEl.textContent = p.old_price + ' ₽';
+            } else if (oldEl) {
+              oldEl.remove();          // база: зачёркнутых нет
+            }
+          });
+        }).catch(function(e){ console.warn('[pricing] /api/packs', e); });
+    })();
+
+const BOT_LINK = 'https://t.me/ta2_blockbot';
+
+// v110: ОСНОВНОЙ путь оплаты — openInvoice. Раньше pricing-window.html
+// использовал tg.sendData() который НЕ работает из menu_button (Telegram
+// API spec: sendData только из KeyboardButton). Из-за этого кнопки тарифов
+// "глухо нажимались". Теперь:
+//   1) fetch /api/invoice → tg.openInvoice(url) — работает из любого launch
+//   2) openTelegramLink(t.me/bot?start=buy_X) — fallback
+//   3) window.location.href — последний fallback
+async function openPaidInvoice(tariffKey){
+  if (!tg) return false;
+  /* v757: нативный macOS-клиент не передаёт initData в menu-запуске —
+     бот подписывает ссылку токеном ?auth=, он и есть запасная авторизация.
+     Ни того ни другого нет → честный false (deep-link fallback в чат). */
+  const initData = tg.initData || '';
+  const _auth757 = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
+  if (!initData && !_auth757) { console.warn('[pricing] no initData/auth'); return false; }
+  const _q757 = initData
+    ? 'initData=' + encodeURIComponent(initData)
+    : 'auth=' + encodeURIComponent(_auth757);
+  const apiUrl = BOT_API_BASE + '/api/invoice?' + _q757
+    + '&tariff=' + encodeURIComponent(tariffKey);
+  let resp;
+  try { resp = await fetch(apiUrl, { method:'GET' }); }
+  catch(e){ console.error('[pricing] fetch /api/invoice failed', e); return false; }
+  // v635: тело читаем и при не-200 — backend шлёт {error:"tariff_expired"},
+  // когда докуп просят поверх истёкшего тарифа (кейс uid 1985126256: пак
+  // продали, а операции резал истёкший тариф). Внятный alert вместо тихого
+  // deep-link fallback (в чате было бы молчание).
+  let data;
+  try { data = await resp.json(); }
+  catch(e){ data = null; }
+  if (data && data.error === 'tariff_expired') {
+    try { tg.showAlert && tg.showAlert('⏰ Тариф истёк. Сначала продли тариф — потом докупай пакеты. Кнопки тарифов выше 👆'); } catch(e){}
+    return true;  // НЕ уходим в deep-link fallback
+  }
+  if (!resp.ok){ console.error('[pricing] /api/invoice HTTP ' + resp.status); return false; }
+  if (!data || !data.url){ console.error('[pricing] no url', data); return false; }
+  console.log('[pricing] method=' + (data.method||'?') + ' url=' + data.url);
+
+  // v113: ЮKassa СБП — открываем qr.nspk.ru ссылку напрямую (выбор банка
+  // → оплата по СБП). Без чата, без QR-картинки, без телефона. Активация
+  // через polling — бот пришлёт «Оплата прошла» в чат после оплаты.
+  if (data.method === 'yookassa_sbp' || data.method === 'yookassa') {
+    try {
+      tg.openLink(data.url);  // открывает qr.nspk.ru — там выбор банка
+      return true;
+    } catch(e) {
+      console.error('[pricing] openLink threw', e);
+      try { window.location.href = data.url; return true; }
+      catch(e2) { console.error('[pricing] location.href threw', e2); }
+    }
+  }
+
+  // Telegram Payments invoice (fallback / method=telegram)
+  return new Promise(resolve => {
+    try {
+      tg.openInvoice(data.url, status => {
+        console.log('[pricing] invoice status:', status);
+        if (status === 'paid') {
+          try { tg.HapticFeedback?.notificationOccurred('success'); } catch(_){}
+          tg.showAlert?.('✅ Оплата прошла! Тариф активирован.', () => { try { tg.close(); } catch(_){}});
+        } else if (status === 'failed') {
+          tg.showAlert?.('❌ Оплата не прошла. Попробуй ещё раз или напиши Николаю.');
+        } else if (status === 'pending') {
+          tg.showAlert?.('⏳ Оплата в обработке. Тариф активируется после подтверждения.');
+        }
+      });
+      resolve(true);
+    } catch(e){ console.error('[pricing] openInvoice threw', e); resolve(false); }
+  });
+}
+
+function openDeepLinkFallback(startParam){
+  const url = BOT_LINK + '?start=' + startParam;
+  console.log('[pricing] fallback openTelegramLink', url);
+  if (tg && tg.openTelegramLink){
+    try { tg.openTelegramLink(url); return; } catch(e){ console.error('[pricing] openTelegramLink threw', e); }
+  }
+  try { window.location.href = url; }
+  catch(e){ tg?.showAlert?.('Не получилось открыть оплату. Напиши боту /tariffs — оплата откроется в чате.'); }
+}
+
+function paySbp(tariff){
+  openPaidInvoice(tariff).then(ok => {
+    if (!ok){
+      console.warn('[pricing] openPaidInvoice failed → deep-link fallback');
+      openDeepLinkFallback('buy_' + tariff);
+    }
+  }).catch(e => {
+    console.error('[pricing] openPaidInvoice rejected', e);
+    openDeepLinkFallback('buy_' + tariff);
+  });
+}
+
+async function payForeign(tariff, fallback){
+  /* v758: fallback-параметр — overage-паки падают в СВОЙ СБП-поток
+     (openPaidInvoice + deep-link overage_), а не в paySbp с чужим
+     buy_-фоллбеком, которого main-бот для SKU паков не знает. */
+  try {
+    const _au = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
+    const _q = (tg && tg.initData)
+      ? 'initData=' + encodeURIComponent(tg.initData)
+      : 'auth=' + encodeURIComponent(_au);
+    const r = await fetch(BOT_API_BASE + '/api/invoice?' + _q
+      + '&tariff=' + encodeURIComponent(tariff)
+      + '&channel=rk', {cache:'no-store'});
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d && d.url){
+      // v759: EN-экран (вариант А) — сервер прислал ≈$ и EN-название,
+      // рисуем лист подтверждения перед уходом на Робокассу.
+      if (d.en && d.usd){ showEnPriceSheet(d, tariff); return; }
+      tg.openLink(d.url); return;
+    }
+    if (d && d.error === 'tariff_expired') {
+      try { tg.showAlert && tg.showAlert('⏰ Тариф истёк. Сначала продли тариф — потом докупай пакеты. Кнопки тарифов выше 👆'); } catch(e){}
+      return;
+    }
+    console.warn('[pricing] rk invoice unavailable', r.status, d);
+  } catch(e){ console.error('[pricing] rk invoice failed', e); }
+  // ин.карта не собралась → честно падаем в СБП, а не в тишину
+  (fallback || function(){ paySbp(tariff); })();
+}
+
+/* v755: tg.showPopup УБРАН. На Telegram Desktop (macOS) попап мог молча
+   не отдавать колбэк — тап по тарифу умирал, владелец: «не перекидывает
+   больше, даже на СБП». Выбор канала рисуем В СТРАНИЦЕ: ноль зависимостей
+   от версии клиента, работает везде одинаково. */
+function chooseChannelAndPay(tariff, onSbp, onForeign){
+  /* v758: onSbp/onForeign — переопределение потоков для overage-паков
+     (свои фоллбеки). Без аргументов — прежнее поведение тарифов. */
+  var old = document.getElementById('chOverlay');
+  if (old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'chOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);' +
+    'z-index:999;display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'background:#14231b;border-radius:16px 16px 0 0;' +
+    'padding:16px 16px 22px;width:100%;max-width:480px;' +
+    'font:15px/1.4 -apple-system,Segoe UI,Roboto,sans-serif;color:#f2f0e6';
+  sheet.innerHTML =
+    '<div style="font-weight:700;margin-bottom:4px">Способ оплаты</div>' +
+    '<div style="font-size:12.5px;opacity:.7;margin-bottom:12px">' +
+      'СБП — банки РФ. Иностранная карта — Visa/Mastercard любых стран ' +
+      '(цена канала выше).</div>';
+  function mkBtn(label, fn){
+    var b = document.createElement('button');
+    b.textContent = label;
+    b.style.cssText = 'display:block;width:100%;margin-top:8px;padding:13px;' +
+      'border-radius:11px;border:1px solid #2c4636;background:#1c3527;' +
+      'color:#f2f0e6;font-size:15px;font-weight:600;cursor:pointer';
+    b.onclick = function(){ ov.remove(); if (fn) fn(); };
+    sheet.appendChild(b);
+    return b;
+  }
+  var sbpBtn = mkBtn('СБП (банки РФ)',
+    onSbp || function(){ paySbp(tariff); });
+  sbpBtn.style.background = '#c4f000'; sbpBtn.style.color = '#0b1208';
+  sbpBtn.style.borderColor = '#c4f000';
+  mkBtn('🌍 Иностранная карта (Visa/MC)',
+    onForeign || function(){ payForeign(tariff); });
+  var cancel = mkBtn('Отмена', null);
+  cancel.style.background = 'transparent'; cancel.style.borderColor = '#2c4636';
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){ if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+/* v759: EN-прайс при выборе ин.карты (вариант А, заказ владельца 06.08).
+   Доллар ИНФОРМАЦИОННЫЙ (курс ЦБ с сервера), списание — честной рублёвой
+   цифрой. Данные d приходят из /api/invoice?channel=rk: {url, amount, usd,
+   title_en}. Сервер не прислал usd → лист не рисуется, прежний прямой
+   переход (см. payForeign). */
+function showEnPriceSheet(d, tariff){
+  var old = document.getElementById('enOverlay');
+  if (old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'enOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);' +
+    'z-index:999;display:flex;align-items:flex-end;justify-content:center';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'background:#14231b;border-radius:16px 16px 0 0;' +
+    'padding:16px 16px 22px;width:100%;max-width:480px;' +
+    'font:15px/1.45 -apple-system,Segoe UI,Roboto,sans-serif;color:#f2f0e6';
+  sheet.innerHTML =
+    '<div style="font-weight:700;margin-bottom:4px">🌍 Pay by card (Visa / Mastercard)</div>' +
+    '<div style="margin:10px 0 2px;font-weight:600">' +
+      String(d.title_en || tariff).replace(/[<>&]/g, '') + '</div>' +
+    '<div style="margin-bottom:10px">Total: <b>' + d.amount +
+      ' RUB</b> ≈ <b>$' + d.usd + '</b></div>' +
+    '<div style="font-size:12.5px;opacity:.7;margin-bottom:12px">' +
+      'Order priced in Russian rubles — your bank charges your card in ' +
+      'the card\'s own currency at its own rate. Secure Robokassa page. ' +
+      'Visa / Mastercard from most countries (US and Canada cards are ' +
+      'not supported).</div>';
+  var pay = document.createElement('button');
+  pay.textContent = '💳 Pay ' + d.amount + ' RUB';
+  pay.style.cssText = 'display:block;width:100%;margin-top:8px;padding:13px;' +
+    'border-radius:11px;border:1px solid #c4f000;background:#c4f000;' +
+    'color:#0b1208;font-size:15px;font-weight:600;cursor:pointer';
+  pay.onclick = function(){
+    ov.remove();
+    try { tg.openLink(d.url); }
+    catch(e){ try { window.location.href = d.url; } catch(_){} }
+  };
+  sheet.appendChild(pay);
+  var back = document.createElement('button');
+  back.textContent = '← Back';
+  back.style.cssText = 'display:block;width:100%;margin-top:8px;padding:13px;' +
+    'border-radius:11px;border:1px solid #2c4636;background:transparent;' +
+    'color:#f2f0e6;font-size:15px;font-weight:600;cursor:pointer';
+  back.onclick = function(){ ov.remove(); };
+  sheet.appendChild(back);
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){ if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+function send(action, payload={}){
+  try { tg?.HapticFeedback?.impactOccurred('light'); } catch(_) {}
+  console.log('[pricing] v113 send action=' + action + ' payload=' + JSON.stringify(payload));
+  // v113: клик на тариф → fetch /api/invoice → tg.openLink(qr.nspk.ru).
+  // Сразу разворачивается страница оплаты СБП (выбор банка), БЕЗ чата,
+  // БЕЗ QR-картинки, БЕЗ запроса телефона. Если /api/invoice не отдал
+  // ссылку — fallback на deep-link в чат (там QR как запасной вариант).
+  if (action === 'buy_master' && payload.tariff){
+    // v754: владелец — «сразу на платёж удобно, но выбора канала нет».
+    // Двухкнопочный попап Телеграма: СБП (как было) / ин.карта (Робокасса).
+    // Где showPopup недоступен (старые клиенты) — прежний путь без выбора.
+    chooseChannelAndPay(payload.tariff);
+    return;
+  }
+  // Trial бесплатный → deep-link на /start trial
+  if (action === 'activate_trial'){
+    openDeepLinkFallback('trial');
+    return;
+  }
+  // Прочие действия — старый sendData (работает если открыто из KeyboardButton)
+  const data = JSON.stringify({ action, ...payload, ts: Date.now() });
+  try { inTelegram ? tg.sendData(data) : console.log('[sendData]', data); } catch(_) {}
+}
+
+const fmt = n => new Intl.NumberFormat('ru-RU').format(n).replace(/,/g,' ');
+
+// v267 (Task B, решение владельца 05.06): карточка ВЕДЁТ РЕЗУЛЬТАТОМ —
+// «клиенты по ссылке → заявки» (дешёвая примерка ≈4₽ → большое число продаёт),
+// а инструменты ушли в читаемый вторичный грид `specs`. Оживления (дорогие,
+// ≈39₽) — только в платных (Pro 4 / Pro+ 10), Lite без оживления — апсейл-крючок
+// к Pro. v272 (решение владельца): из ТРИАЛА убраны видео и оживления (дорогие,
+// ушли в платные) — триал = дешёвый фото-магнит + ссылка-примерка.
+// key/price/old МЕНЯТЬ НЕЛЬЗЯ (buy-flow /api/invoice).
+// v524 (переупаковка «Лестница оживления»): 3 тарифа, ось способностей
+// статика→оживает рисунок→оживает человек. Все 8 функций в каждом пакете.
+// Пробный убран из сетки (онбординг). Премиум → B2B-строка.
+// ⚠️ Числа оживлений/видео-примерок ПОДРАВНИВАЮТСЯ под квоты бота при выкате
+// (pro animations 8 / studio animations 15 + видео-примерка 6; money-guard).
+// key/price НЕ менять (на них buy-flow /api/invoice).
+// ─────────────────────────────────────────────────────────────────────────────
+// v672 (заказ владельца 26.07 «мы не должны вводить человека в заблуждение»):
+// ЧИСЛА БОЛЬШЕ НЕ ЖИВУТ В ЭТОМ ФАЙЛЕ КАК ИСТИНА.
+// ─────────────────────────────────────────────────────────────────────────────
+// Было: витрина держала свою копию квот и цен. Файл лежит на GitHub Pages и
+// кэшируется, поэтому после правки MASTER_TARIFFS человек ещё сутками видел
+// старый состав — а платил и получал новый. При этом страница УЖЕ ходила в
+// /api/cabinet (за has_card) и выбрасывала пришедший payload `tariffs`.
+// Стало: PRESENT — только презентация (имена, оси способностей, флагман-блоки,
+// порядок). Все КОЛИЧЕСТВА и ЦЕНЫ берутся из ответа сервера
+// (_public_tariffs_payload ← MASTER_TARIFFS). FALLBACK_QUOTAS ниже — снимок на
+// случай, когда сервер недоступен (нет initData / офлайн); он показывается,
+// но уже не может разъехаться незамеченным: сверяется тестом.
+// key/price НЕ переименовывать — на них стоит buy-flow /api/invoice.
+const PRESENT = {
+  trial: {
+    // ЛИД-МАГНИТ воронки (не убирать! на нём стоит вся воронка).
+    name:'ПРОБНЫЙ', period:'7 дней', trial:true,
+    cap:q => '🎁 Попробуй всё за ' + fmt(q.price) + ' ₽',
+    resultSub:'распробуй функции, потом выбери тариф',
+  },
+  solo: {
+    name:'СТАРТ', period:'мес',
+    cap:'📸 Статика',
+    resultSub:'их «хочу» → заявки тебе в личку',
+  },
+  pro: {
+    name:'ПРО', period:'мес', star:true, resultIcon:'🔥',
+    cap:'🪄 Тату оживает',
+    resultSub:'поток заявок на запись',
+    // flagAxis: по этой оси решается, честно ли писать «эксклюзив».
+    flagAxis:'animations',
+    flag:{ic:'🪄',tx:'<b>Оживление тату</b> — рисунок двигается: дым, дракон, пламя. Вирусный хук для Reels.'},
+  },
+  studio: {
+    name:'МАКС', period:'мес', top:true, resultIcon:'🔥',
+    cap:'🎬 Клиент оживает',
+    resultSub:'для салонов и кто гонит трафик из Reels',
+    flagAxis:'videos',
+    flag:{ic:'🎬',tx:'<b>Видео-примерка</b> — оживает сам клиент: тату на нём в движении. Живое видео для Reels.',warn:'⚠️ Оживление = двигается рисунок · Видео-примерка = двигается клиент (тату статична)'},
+  },
+};
+const ORDER = ['trial','solo','pro','studio'];
+
+// Зачёркнутый «старый» ценник — маркетинговый якорь витрины, НЕ квота: сервер
+// считает его своей формулой (+30%), и подмена молча переписала бы обещание
+// «−40%» на «−23%». Поэтому якорь остаётся здесь, а живая цена — с сервера.
+const OLD_PRICE = { trial:0, solo:1990, pro:4990, studio:9990 };
+
+// Снимок квот на случай «сервер не ответил». Синхронизирован с MASTER_TARIFFS.
+// Тарифов, скрытых из витрины (premium 14990, pro_intro), тут нет и быть не
+// должно — иначе сбой сети воскрешал бы снятый тариф с рабочей кнопкой оплаты.
+const FALLBACK_QUOTAS = {
+  trial:  {price:399,  days:7,  sketches:5,   tryons:12,  stencils:5,   extracts:3,   photo_retouch:5,  videos:0, animations:0,  demo_pool:25},
+  solo:   {price:1490, days:30, sketches:20,  tryons:15,  stencils:15,  extracts:15,  photo_retouch:10, videos:1, animations:1,  demo_pool:100},
+  pro:    {price:2990, days:30, sketches:120, tryons:40,  stencils:60,  extracts:60,  photo_retouch:30, videos:4, animations:12,  demo_pool:600},
+  studio: {price:5990, days:30, sketches:250, tryons:100, stencils:120, extracts:120, photo_retouch:80, videos:9, animations:22, demo_pool:2000},
+};
+
+// Куда вести, когда оси у тарифа нет: ищем САМЫЙ ДЕШЁВЫЙ тариф витрины, где она
+// есть, и подписываем его именем. Раньше «оживление — на Про» было вбито
+// строкой: включи оживление на Старте — и замок продолжал бы врать.
+function upsellFor(quotas, field){
+  for (const k of ORDER) {
+    if (k === 'trial') continue;
+    if ((quotas[k] || {})[field] > 0) return (PRESENT[k] || {}).name || k;
+  }
+  return null;
+}
+
+function buildSpecs(key, quotas){
+  const q = quotas[key] || {};
+  const specs = [
+    {n:q.sketches, l:'эскизов'},
+    {n:q.tryons,   l:'фото-примерок'},
+  ];
+  // Оживление и видео-примерка — флагман-оси: есть → цифра с вау-стилем,
+  // нет → замок с адресом, где открывается.
+  // Склонение по числу: под рычагом квота может стать 1 («1 оживление тату»,
+  // не «1 оживлений тату») — кривая подпись на витрине читается как халтура.
+  [['animations','оживление','оживление тату','оживления тату','оживлений тату'],
+   ['videos','видео-примерка','видео-примерка','видео-примерки','видео-примерок']]
+  .forEach(([f, locked, one, few, many]) => {
+    const n = q[f];
+    if (n > 0) {
+      const t10 = n % 10, t100 = n % 100;
+      const l = (t100 >= 11 && t100 <= 14) ? many
+              : t10 === 1 ? one : (t10 >= 2 && t10 <= 4) ? few : many;
+      specs.push({n, l, wow:true});
+      return;
+    }
+    const up = upsellFor(quotas, f);
+    if (up) specs.push({n:'🔒', l:locked + ' — на ' + up, lock:true});
+  });
+  specs.push({n:q.stencils,      l:'трансферов'});
+  specs.push({n:q.extracts,      l:'вытащить эскиз'});
+  specs.push({n:q.photo_retouch, l:'улучшить фото'});
+  specs.push({n:q.demo_pool,     l:'клиентов по ссылке'});
+  return specs.filter(s => s.lock || s.n > 0);
+}
+
+function buildTariffs(quotas){
+  return ORDER.filter(k => quotas[k]).map(key => {
+    const p = PRESENT[key] || {};
+    const q = quotas[key];
+    const old = OLD_PRICE[key] || 0;
+    // «≈ N ₽ / день» — производная от живой цены, не отдельное число.
+    const perDay = (!p.trial && q.days) ? Math.round(q.price / q.days) : 0;
+    return {
+      key, price:q.price, old, period:p.period, perDay,
+      name:p.name, trial:!!p.trial, star:!!p.star, top:!!p.top,
+      cap: typeof p.cap === 'function' ? p.cap(q) : p.cap,
+      // «эксклюзив» пишем, только если ось и правда есть ТОЛЬКО здесь.
+      // Под рычагом видео/оживление появляются и в младших тарифах — плашка
+      // осталась бы висеть и врать прямо рядом с цифрой в соседней карточке.
+      flagExcl: !!p.flagAxis && upsellFor(quotas, p.flagAxis) === p.name,
+      result:(p.resultIcon || '🔗') + ' до <b>' + fmt(q.demo_pool)
+              + ' клиентов</b> примерят твою тату',
+      resultSub:p.resultSub, flag:p.flag,
+      specs:buildSpecs(key, quotas),
+      action:'buy_master',
+    };
+  });
+}
+
+// v387: текущий тариф юзера — кабинет передаёт ?current=<key> при переходе.
+// Помечаем карточку «✓ Твой тариф», чтобы юзер видел свой план среди прочих.
+const CURRENT_TARIFF = (new URLSearchParams(location.search).get('current') || '').trim();
+
+function row(t, i){
+  // v524: ОДИН сильный бейдж (⭐ Самый популярный) на ПРО (.hit = центр-якорь).
+  // МАКС = нейтральный «🎬 Максимум» (.save-обводка, не перебивает центр).
+  // Новые блоки (.cap ось способности, .flagblock флагман-вау, .spec.wow/.lock,
+  // .warn) кладутся ВНУТРЬ .l в потоке column — НЕ трогаем flex .row/.r/.arrow.
+  const isMine = CURRENT_TARIFF && t.key === CURRENT_TARIFF;
+  const cls = ['row', t.star && 'hit', t.top && 'toptier', t.trial && 'trial', isMine && 'mine'].filter(Boolean).join(' ');
+  const savePct = t.old > t.price ? Math.round((1 - t.price/t.old)*100) : 0;
+  const badge = t.star ? '<span class="badge">⭐ Самый популярный · −' + savePct + '%</span>'
+              : t.top ? '<span class="badge save">🎬 Максимум · −' + savePct + '%</span>'
+              : savePct ? '<span class="badge save">−' + savePct + '%</span>'
+              : '';
+  const priceEl = `<span class="new">${fmt(t.price)}<span class="cur">&nbsp;₽</span></span>`;
+  const specs = (t.specs || []).map(s => {
+    const c = s.wow ? 'spec wow' : s.lock ? 'spec lock' : 'spec';
+    return `<span class="${c}"><b>${s.n}</b> ${s.l}</span>`;
+  }).join('');
+  const flag = t.flag
+    ? `<div class="flagblock"><span class="fb-ic">${t.flag.ic}</span><span class="fb-tx">${t.flag.tx}${t.flagExcl ? '<span class="fb-excl">эксклюзив</span>' : ''}</span></div>`
+      + (t.flag.warn ? `<div class="warn">${t.flag.warn}</div>` : '')
+    : '';
+  return `
+    <div class="${cls} fade-in" style="--i:${i}" data-action="${t.action}" data-tariff="${t.key}">
+      <div class="l">
+        <div class="name">${t.name}</div>
+        <div class="cap">${t.cap}</div>
+        <div class="result">${t.result}${t.resultSub ? `<span class="res-sub">${t.resultSub}</span>` : ''}</div>
+        ${flag}
+        ${specs ? `<div class="specs"><span class="specs-label">В пакете</span>${specs}</div>` : ''}
+        ${isMine ? '<span class="minechip">✓ Твой тариф</span>' : ''}${badge}
+      </div>
+      <div class="r">
+        ${t.old > t.price ? `<span class="old">${fmt(t.old)} ₽</span>` : ''}
+        ${priceEl}
+        <span class="u">/ ${t.period}</span>
+        ${t.perDay ? `<span class="ph">≈ ${t.perDay}&nbsp;₽ / день</span>` : ''}
+      </div>
+      <div class="arrow"><svg><use href="#i-arrow"/></svg></div>
+    </div>`;
+}
+
+// v672: первый кадр — на снимке (страница не должна ждать сеть), затем
+// молча перерисовываемся живыми числами сервера. Если сервер недоступен,
+// человек видит снимок — но снимок больше не единственный источник.
+function renderStack(quotas){
+  document.getElementById('stack').innerHTML =
+    buildTariffs(quotas).map(row).join('');
+  // Баннер «цена запуска» — та же цена пробного, что в карточке и в кассе.
+  const tp = (quotas.trial || {}).price;
+  if (tp) document.querySelectorAll('.js-trial-price')
+    .forEach(el => { el.textContent = fmt(tp); });
+}
+renderStack(FALLBACK_QUOTAS);
+
+// Живые квоты приходят полем `tariffs` в /api/cabinet (_public_tariffs_payload).
+// Ключи, скрытые из витрины на бэкенде (premium, pro_intro, pmu_*), сюда не
+// попадают — поэтому снятый тариф не может всплыть на витрине через payload.
+(async function hydrateTariffs(){
+  if (!tg || !tg.initData) return;
+  try {
+    const r = await fetch(BOT_API_BASE + '/api/cabinet?initData='
+      + encodeURIComponent(tg.initData), { method:'GET', cache:'no-store' });
+    if (!r.ok) return;
+    const d = await r.json();
+    const list = (d && d.tariffs) || [];
+    if (!list.length) return;
+    const live = {};
+    list.forEach(t => {
+      if (!PRESENT[t.key]) return;   // не витринный ключ — не рисуем
+      live[t.key] = {
+        price:+t.price || 0, days:+t.days || 0,
+        sketches:+t.sketches || 0, tryons:+t.tryons || 0,
+        stencils:+t.stencils || 0, extracts:+t.extracts || 0,
+        photo_retouch:+t.photo_retouch || 0,
+        videos:+t.videos || 0, animations:+t.animations || 0,
+        demo_pool:+t.demo_pool || 0,
+      };
+    });
+    // Пустой/битый payload не должен стирать витрину — рисуем только если
+    // сервер прислал хотя бы один знакомый тариф с ценой.
+    if (!Object.keys(live).length) return;
+    renderStack(live);
+  } catch(_){}
+})();
+
+document.body.addEventListener('click', e => {
+  const t = e.target.closest('[data-action]');
+  if (!t) return;
+  e.preventDefault();
+  const action = t.dataset.action;
+  const tariff = t.dataset.tariff;
+  // v84: «← В кабинет» — внутренняя навигация Mini App. Без sendData.
+  if (action === 'back_to_cabinet') {
+    try { window.location.assign('tariffs-app.html?v=142'); } catch(_){}
+    return;
+  }
+  send(action, tariff ? { tariff } : {});
+});
+
+// Task 3 (03.06): ОДНА кнопка карты ПО СОСТОЯНИЮ has_card:
+//   has_card === true  → «🔕 Отвязать карту» (cancel-subscription flow);
+//   has_card !== true  → «💳 Привязать карту» (bind flow).
+// has_card придёт в payload /api/cabinet (код-сессия добавит поле). Пока его нет
+// — fallback на autorenew_active (карта сохранена ⇒ автопродление активно).
+// ⚠️ TODO (код-сессия): (1) добавить has_card в _build_cabinet_payload;
+// (2) эндпоинт /api/bind-card ИЛИ start-param bind_card → _yookassa_create_card_payment.
+(function(){
+  const btn = document.getElementById('cancelSub');
+  const note = document.querySelector('.unbind-note');
+  if (!btn) return;
+
+  async function doUnbind(){
+    if (!tg || !tg.initData) { tg?.showAlert?.('Открой через Telegram.'); return; }
+    const confirmed = await new Promise(res => {
+      if (tg.showConfirm) {
+        tg.showConfirm('Отвязать карту и отключить автопродление? Карта будет удалена, '
+          + 'автосписания прекратятся, доступ сохранится до конца оплаченного периода.', res);
+      } else { res(window.confirm('Отвязать карту и отключить автопродление?')); }
+    });
+    if (!confirmed) return;
+    btn.textContent = 'Отвязываем…';
+    try {
+      const r = await fetch(BOT_API_BASE + '/api/cancel-subscription?initData='
+        + encodeURIComponent(tg.initData), { method: 'GET' });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) {
+        try { tg.HapticFeedback?.notificationOccurred('success'); } catch(_){}
+        tg.showAlert?.(d.message || 'Карта отвязана, автопродление выключено.');
+        btn.textContent = 'Карта отвязана'; btn.disabled = true;
+      } else if (d.error === 'no_active_subscription') {
+        tg.showAlert?.('Нет привязанной карты или активной подписки.');
+        renderCardButton(false);
+      } else {
+        tg.showAlert?.('Не получилось отвязать. Напиши в поддержку.');
+        renderCardButton(true);
+      }
+    } catch(e) {
+      console.error('[pricing] cancel failed', e);
+      tg.showAlert?.('Ошибка сети. Попробуй позже.'); renderCardButton(true);
+    }
+  }
+
+  async function doBind(){
+    // v254: РОБАСТНАЯ привязка — fetch /api/bind-card → tg.openLink (страница
+    // ЮKassa, 1₽ save_payment_method). Раньше deep-link ?start=bind_card из
+    // Mini App к своему же боту НЕ перезапускал /start → «кнопка не работает».
+    const initData = (tg && tg.initData) ? tg.initData : '';
+    if (!initData) { tg?.showAlert?.('Открой через Telegram.'); return; }
+    try {
+      const r = await fetch(BOT_API_BASE + '/api/bind-card?initData=' + encodeURIComponent(initData));
+      const data = await r.json().catch(() => ({}));
+      if (data && data.already_bound) { tg?.showAlert?.('Карта уже привязана ✅'); return; }
+      if (r.ok && data && data.url) {
+        if (tg && tg.openLink) { tg.openLink(data.url); return; }
+        window.location.href = data.url; return;
+      }
+      tg?.showAlert?.((data && data.message) || 'Не получилось открыть привязку карты.');
+    } catch(e) {
+      console.error('[pricing] bind failed', e);
+      tg?.showAlert?.('Ошибка сети. Попробуй позже.');
+    }
+  }
+
+  function renderCardButton(hasCard){
+    btn.disabled = false;
+    btn.classList.toggle('bind-card-cta', !hasCard);  // v257: ярко когда «Привязать»
+    if (hasCard) {
+      btn.textContent = '🔕 Отвязать карту';
+      btn.onclick = doUnbind;
+      if (note) note.textContent = 'Карта/токен удаляются на нашей стороне сразу при нажатии · ТАТУ ТУТ · @ta2_blockbot';
+    } else {
+      btn.textContent = '💳 Привязать карту (автосписание)';
+      btn.onclick = doBind;
+      if (note) note.textContent = 'Подключи автоплатёж — не теряй доступ и канал заявок, когда период закончится';
+    }
+  }
+
+  // Дефолт «Привязать» (безопаснее ложного «Отвязать» для юзера без карты —
+  // это и была жалоба владельца). Затем уточняем по /api/cabinet.
+  renderCardButton(false);
+  (async function detectCard(){
+    if (!tg || !tg.initData) return;
+    try {
+      const r = await fetch(BOT_API_BASE + '/api/cabinet?initData='
+        + encodeURIComponent(tg.initData), { method: 'GET', cache: 'no-store' });
+      if (!r.ok) return;
+      const d = await r.json();
+      const hasCard = (d && d.has_card !== undefined) ? !!d.has_card : !!(d && d.autorenew_active);
+      renderCardButton(hasCard);
+    } catch(_){}
+  })();
+})();
+</script>
+</body>
+</html>
