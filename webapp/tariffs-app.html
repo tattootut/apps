@@ -2140,8 +2140,21 @@
       // говорит, ЧЕЙ это случай.
       var _plat = 'нет-tg';
       try { _plat = (tg && tg.platform || '?') + ' ' + (tg && tg.version || ''); } catch(e){}
-      showError('Открой через Telegram, чтобы увидеть свой Кабинет. — нажми, '
-        + 'чтобы повторить · [' + _plat + ']');
+      /* v782: вместо пугающего красного тупика — рабочий выход: бот пришлёт
+         персональную кнопку с подписанным входом (deep-link cabinet_auth). */
+      showError('Не удалось узнать тебя автоматически (клиент ' + _plat + '). '
+        + 'Жми кнопку — бот пришлёт персональный вход в Кабинет.');
+      try {
+        var _fx = document.createElement('div');
+        _fx.style.cssText = 'margin:10px 0';
+        _fx.innerHTML = '<a href="https://t.me/ta2_blockbot?start=cabinet_auth"'
+          + ' style="display:block;text-align:center;padding:12px;'
+          + 'background:var(--accent,#c4f000);color:#0b1208;border-radius:12px;'
+          + 'font-weight:700;text-decoration:none">Получить вход в Кабинет</a>';
+        var _err = document.querySelector('.err, #err, [data-err]');
+        (_err && _err.parentNode ? _err.parentNode : document.body)
+          .insertBefore(_fx, _err ? _err.nextSibling : null);
+      } catch (e) {}
       applySignup(FALLBACK_TARIFFS);
       return;
     }
