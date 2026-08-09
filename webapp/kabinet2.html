@@ -419,6 +419,10 @@ function screenMoney(){
   return `<div class="sec"><h2>Движение денег</h2><span class="hint">${m.period_days} дней</span></div>
   <div class="card">
     <div class="klabel">пришло</div><div class="kbig num">${num(m.revenue_rub)}<small>₽</small></div>
+    ${m.by_channel ? `<div class="kctx" style="margin-top:6px">${
+      Object.entries(m.by_channel).filter(([,v])=>v!=null&&v>0)
+        .map(([k,v])=>`${k}: <b>${num(v)} ₽</b>`).join(" · ") || "канал не определён"
+    }</div>` : ""}
     ${m.prev_note?`<div class="kctx">${m.prev_note}</div>`:""}
     <canvas data-k="spark" data-h="60" data-v="${JSON.stringify(m.daily)}" style="margin-top:10px"></canvas>
   </div>
