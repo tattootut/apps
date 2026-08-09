@@ -363,6 +363,7 @@ function screenHome(){
     <div class="klabel">LTV / CAC <span class="chev">подробно ›</span></div>
     <div class="kbig num" style="color:var(${vcol(e.verdict)})">${e.ltv_cac==null?"—":e.ltv_cac.toFixed(2)}</div>
     <div class="kctx">${rub(e.ltv_rub)} с мастера при цене привлечения ${rub(e.cac_rub)}</div>
+    ${e.cac_note ? `<div class="kctx" style="margin-top:4px">⏳ ${e.cac_note}</div>` : ""}
     <canvas data-k="gauge" data-h="46" data-v="${e.ltv_cac}" style="margin-top:8px"></canvas>
     <div class="tl">
       <span><i style="background:var(--bad)"></i>до 1.5 — убыток</span>
