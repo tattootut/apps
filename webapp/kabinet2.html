@@ -419,6 +419,21 @@ function screenMoney(){
   const m=D.money;
   return `<div class="sec"><h2>Движение денег</h2><span class="hint">${m.period_days} дней</span></div>
   <div class="card">
+    <div class="klabel">🧹 сброс юзера для теста</div>
+    <div class="kctx" style="margin:6px 0 8px">Делает юзера холодным: пропадает
+      из сессий, мастеров и лидов, /start проходит воронку с нуля.</div>
+    <div style="display:flex;gap:8px">
+      <input id="ru_uid" inputmode="numeric" placeholder="uid, напр. 7633040711"
+        style="flex:1;min-width:0;padding:10px 12px;border-radius:12px;
+        border:1px solid var(--line);background:var(--pane2);color:var(--ink);
+        font:14px var(--f)">
+      <button onclick="resetUser()" style="padding:10px 16px;border-radius:12px;
+        border:0;background:var(--accent);color:var(--accent-ink);font-weight:650;
+        cursor:pointer">Сбросить</button>
+    </div>
+    <div id="ru_out" class="kctx" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
     <div class="klabel">пришло</div><div class="kbig num">${num(m.revenue_rub)}<small>₽</small></div>
     ${m.by_channel ? `<div class="kctx" style="margin-top:6px">${
       Object.entries(m.by_channel).filter(([,v])=>v!=null&&v>0)
@@ -556,6 +571,25 @@ if(window.Telegram?.WebApp){ Telegram.WebApp.ready(); Telegram.WebApp.expand(); 
 $("#subtitle").textContent=D.meta.brand+" · центр управления";
 $("#freshness").textContent=D.meta.source==="live"?"live":"данные "+D.meta.updated_at;
 render();
+
+/* v809: сброс юзера прямо из ЦУПа — заказ владельца 10.08 («тесты делаю
+   медленно, сбрасывать приходится через компьютер»). Кнопка шлёт uid на
+   /api/reset_user; сервер сам проверяет владельца по токену страницы. */
+async function resetUser(){
+  const el = document.getElementById('ru_uid');
+  const out = document.getElementById('ru_out');
+  const uid = (el.value||'').replace(/\D+/g,'');
+  if(!uid){ out.textContent = 'Впиши uid'; return; }
+  out.textContent = 'Сбрасываю…';
+  try{
+    const q = new URLSearchParams(location.search);
+    const r = await fetch('/api/reset_user?uid=' + uid + '&token=' +
+      encodeURIComponent(q.get('token')||''), {method:'POST'});
+    const j = await r.json();
+    out.textContent = j.ok ? ('🧹 ' + (j.msg||'сброшен')) : ('⚠️ ' + (j.error||'не вышло'));
+    if(j.ok) el.value='';
+  }catch(e){ out.textContent = '⚠️ ' + e.message; }
+}
 </script>
 </body>
 </html>
