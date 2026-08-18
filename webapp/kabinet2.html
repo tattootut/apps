@@ -27,7 +27,6 @@
   --ink:#131a0e; --dim:#5c6353; --dim2:#7d8573;
   --accent:#6f9c00; --accent-ink:#ffffff;
   --good:#2e9e4f; --warn:#c98a00; --bad:#d64545;
-  --grid:#e6ead d;
   --grid:#e6eadd;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -265,6 +264,9 @@ function bars(c){
 }
 function heat(c){
   const {x,w,h}=fit(c), d=JSON.parse(c.dataset.v);
+  /* v851: пустые когорты роняли отрисовку всего таба (TypeError) */
+  if(!d||!d.length){ x.clearRect(0,0,w,h); x.font="10px "+cv("--f");
+    x.fillStyle=cv("--dim2"); x.fillText("данных пока нет — это честно",8,h/2); return; }
   const rows=d.length, cols=d[0].w.length, lw=42;
   const cw=(w-lw)/cols, ch=(h-14)/rows;
   x.clearRect(0,0,w,h);
@@ -322,23 +324,24 @@ function screenHome(){
     </div>
     <div class="klabel">касса за 7 дней</div>
     <div class="kbig num">${num(p.week_rub)}<small>₽</small></div>
-    <div class="kctx">${p.week_payments} оплат · сегодня ${rub(p.today_rub)} · прогноз месяца ${rub(p.month_forecast_rub)}</div>
+    <div class="kctx">${p.week_payments} оплат · сегодня ${rub(p.today_rub)} · за 30 дней ${rub(p.month_forecast_rub)}</div>
+    ${p.spend_line?`<div class="kctx" style="margin-top:4px">${p.spend_line}</div>`:""}
   </div>
 
   <div class="card quest tap" onclick="openQuest()">
     <div class="klabel">🎯 главный рычаг недели</div>
     <div class="qtitle">${q.title}</div>
     <div class="qwhy">${q.why}</div>
-    <div class="bar"><i data-w="${q.progress}"></i></div>
-    <div class="qmeta"><span>${q.done} из ${q.target}</span><span>до ${q.deadline}</span></div>
-    <div class="cost">Каждый день без действия стоит <b>${rub(q.inaction_cost_rub_per_day)}</b> недополученной выручки</div>
+    ${(q.target&&q.target!=="—")?`<div class="bar"><i data-w="${q.progress}"></i></div>
+    <div class="qmeta"><span>${q.done} из ${q.target}</span><span>до ${q.deadline}</span></div>`:""}
+    ${q.inaction_cost_rub_per_day?`<div class="cost">Каждый день без действия стоит <b>${rub(q.inaction_cost_rub_per_day)}</b> недополученной выручки</div>`:""}
   </div>
 
   <div class="card" style="padding:11px 14px">
     <div class="lvl">
       <div>
         <div class="t" style="font-size:12.5px;font-weight:600">${l.current} → ${l.next}</div>
-        <div class="s">MRR — месячная повторяющаяся выручка (прогноз месяца) · серия ${l.streak_days} дн. с оплатой</div>
+        <div class="s">${l.note || "миссия месяца"}</div>
       </div>
       <div class="chev num" style="font-size:14px;font-weight:700;color:var(--dim)">${pct(l.progress)}</div>
     </div>
@@ -374,11 +377,18 @@ function screenHome(){
       <div class="mini"><div class="v num">${e.payback_days} дн</div><div class="l">окупаемость</div></div>
       <div class="mini"><div class="v num">${rub(e.contribution_rub)}</div><div class="l">с мастера чистыми</div></div>
     </div>
+    ${signalHTML()}
     ${noteHTML("engine")}
   </div>
 
+  <div class="sec"><h2>Когорты</h2><span class="hint">юнит-экономика по месяцу первого касания</span></div>
+  <div class="card">${cohortsHTML()}</div>
+
   <div class="sec"><h2>Воронка</h2><span class="hint">${D.funnel.cohort_label}</span></div>
   <div class="card tap" onclick="openFunnel()">${funnelHTML(true)}</div>
+
+  <div class="sec"><h2>Волна дожимов</h2><span class="hint">винбэки + 24ч-письма, боевой журнал</span></div>
+  <div class="card">${waveHTML()}${ladderHTML()}</div>
 
   <div class="sec"><h2>Каналы</h2><span class="hint">по всплескам, без UTM</span></div>
   <div class="card tap" onclick="openChannels()">
@@ -387,9 +397,131 @@ function screenHome(){
       data-v="${JSON.stringify(D.channels.timeline)}"
       data-camps='${JSON.stringify(D.channels.campaigns)}'
       data-buys='${JSON.stringify(D.channels.buys_timeline||[])}' style="margin-top:10px"></canvas>
-    <div class="kctx" style="margin-top:9px">Салатовые столбцы — дни рекламы, точки — покупки в этот день. ${D.channels.mde_note}</div>
+    <div class="kctx" style="margin-top:9px">${D.channels.mde_note}</div>
     ${noteHTML("channels")}
   </div>`;
+}
+
+/* v851: волна дожимов и винбэков — по неделям, зелёное = дошли до оплаты */
+function waveHTML(){
+  const wv=D.wave;
+  if(!wv||!wv.ok) return `<div class="kctx">Журнал событий недоступен — данных нет (это честно, не ноль).</div>`;
+  const mx=Math.max(...wv.weeks.map(w=>w.touch+w.dm),1);
+  const cols=wv.weeks.map(w=>{
+    const t=w.touch+w.dm, hp=Math.max(4,Math.round(t/mx*46));
+    const pp=w.paid?Math.max(3,Math.round(w.paid/Math.max(t,1)*hp)):0;
+    return `<div style="flex:1;text-align:center">
+      <div style="height:52px;display:flex;align-items:flex-end;justify-content:center">
+        <div style="width:64%;height:${hp}px;background:var(--grid);border-radius:4px 4px 0 0;position:relative">
+          ${pp?`<div style="position:absolute;left:0;right:0;bottom:0;height:${pp}px;background:var(--good)"></div>`:""}
+        </div></div>
+      <div class="num" style="font-size:10px;color:var(--dim)">${t}</div>
+      <div style="font-size:9px;color:var(--dim2)">${w.label}</div>
+    </div>`;}).join("");
+  return `<div class="klabel">касания за 4 недели · зелёная часть — дошли до оплаты за ≤7 дн</div>
+  <div style="display:flex;gap:6px;margin-top:8px">${cols}</div>
+  <div class="row" style="margin-top:12px">
+    <div class="mini"><div class="v num">${wv.tot.touch+wv.tot.dm}</div><div class="l">касаний: винбэк ${wv.tot.touch} + дожим ${wv.tot.dm}</div></div>
+    <div class="mini"><div class="v num">${wv.tot.click}</div><div class="l">вернулись по клику</div></div>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <div class="mini"><div class="v num" style="color:var(--good)">${wv.tot.paid} · ${num(wv.tot.paid_rub||0)} ₽</div><div class="l">дошли до оплаты · наличка волны</div></div>
+    <div class="mini"><div class="v num" style="color:var(${vcol(wv.verdict)})">${wv.click_rate==null?"—":wv.click_rate+"%"}</div><div class="l">клик-рейт винбэков</div></div>
+  </div>
+  <div class="kctx" style="margin-top:9px">📌 ${wv.note} <span style="color:var(--dim2)">Отписок за окно — ${wv.tot.optout} · клик есть только у винбэков, 24ч-дожимы меряются оплатой.</span></div>`;
+}
+
+/* v857: этапная лестница касаний — «какое письмо на каком дне» (заказ 14.08).
+   Гарантия честности: числа только из D.ladder (боевой журнал), у каждой
+   ступени подпись «журнал с ДД.ММ», нет данных → говорим словами, не нулями. */
+function ladderHTML(){
+  const ld=D.ladder;
+  if(!ld||!ld.ok||!(ld.stages||[]).length) return "";
+  const st=ld.stages, sent={};
+  st.forEach(s=>sent[s.key]=s.sent);
+  const rows=st.map((s,i)=>{
+    const zero=!s.sent;
+    const cnt=zero
+      ?`<span style="color:var(--dim2)">${s.since?"0 касаний за окно":"ещё не отправлялась — данных нет (это честно, не ноль)"}</span>`
+      :`отправлено <b class="num">${s.sent}</b> (${s.uniq} чел)`
+        +(s.click==null?"":` · клик <b class="num">${s.click}</b>`)
+        +(s.paid?` · <span style="color:var(--good)">оплат ${s.paid} · ${num(s.paid_rub||0)} ₽</span>`:` · оплат 0`)
+        +(s.optout?` · отписок ${s.optout}`:"");
+    const down=(s.key==="wb1"&&sent.wb2)?`↓ дожили до 2-го письма: ${ld.trans.wb12} чел`
+             :(s.key==="wb2"&&sent.wb3)?`↓ дожили до 3-го письма: ${ld.trans.wb23} чел`:"";
+    return `<div style="margin-left:${i*14}px;padding:7px 10px;border-left:2px solid ${zero?"var(--grid)":"var(--accent)"};background:var(--pane2);border-radius:0 8px 8px 0;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
+        <span><b>${s.name}</b> <span style="color:var(--dim);font-size:11px">· ${s.day}</span></span>
+        ${s.since?`<span style="font-size:9px;color:var(--dim2);white-space:nowrap">журнал с ${s.since}</span>`:""}
+      </div>
+      <div class="kctx" style="margin-top:3px">${cnt}</div>
+    </div>${down?`<div class="kctx" style="margin:2px 0 6px ${i*14+12}px;color:var(--dim)">${down}</div>`:""}`;
+  }).join("");
+  const auds=(ld.auds&&ld.auds.length)?`<div class="kctx" style="margin-top:8px">Аудитории винбэков за окно: ${ld.auds.map(a=>`${a[0]} <b class="num">${a[1]}</b>`).join(" · ")}</div>`:"";
+  return `<div style="border-top:1px solid var(--grid);margin-top:12px;padding-top:11px">
+  <div class="klabel">Лестница касаний по этапам · окно ${ld.days} дн (${ld.win.from}–${ld.win.to})</div>
+  <div style="margin-top:8px">${rows}</div>
+  ${auds}
+  <div class="kctx" style="margin-top:8px;color:var(--dim2)">Каждая цифра — из боевого журнала (время UTC). Оплата пишется той ступени, чьё письмо было последним за ≤7 дн до платежа. Свежие касания ещё «в пути»: письмо 2 догоняет через 7 дн, письмо 3 — через 14. У 24ч-дожима и ручной Lava-волны кнопка сразу платёжная — клик там не меряется.</div>
+</div>`;
+}
+
+/* v864: сигнал роста по паку — CAC против ⅓ LTV закрытого окна когорты */
+function signalHTML(){
+  const sg=(D.cohorts||{}).signal;
+  if(!sg||sg.ok==null) return "";
+  const ok=!!sg.ok;
+  // v867: два правила канона. Закрыто окно 90 дн → LTV(90) ≥ 3×CAC.
+  // Ещё не закрыто → судим по окупаемости (payback ≤ 2 мес).
+  const body = sg.rule==="payback<=2m"
+    ? `Окупаемость привлечения ${sg.payback_m} мес при норме ≤ 2 (когорта ${sg.cohort}, CAC ${num(sg.cac_now_rub)} ₽, прибыль за 30 дн ${num(sg.ltv_rub)} ₽). Окно 90 дней ещё не закрыто — как закроется, проверю главным правилом LTV≥3×CAC.`
+    : `CAC ${num(sg.cac_now_rub)} ₽ · порог ${num(sg.threshold_rub)} ₽ = ⅓ LTV(90) когорты ${sg.cohort}. ${ok?"Правило пака выполнено.":"Дойдём до порога — пришлю сигнал в личку сам."}`;
+  return `<div style="margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--pane2);border-left:2px solid var(${ok?"--good":"--warn"})">
+    <b style="color:var(${ok?"--good":"--warn"})">${ok?"🚀 Экономика позволяет наращивать бюджет":"⏳ Лить рано"}</b>
+    <div class="kctx" style="margin-top:3px">${body}</div>
+  </div>`;
+}
+
+/* v864: когортная таблица по паку суперкомпа — LTV окнами, не lifetime.
+   Честность: незакрытое окно = «рано» (не ноль); нет реестра трат = «—». */
+function cohortsHTML(){
+  const c=D.cohorts;
+  if(!c||!c.ok) return `<div class="kctx">Журналы недоступны — данных нет (это честно, не ноль).</div>`;
+  const rows=c.rows||[];
+  if(!rows.length) return `<div class="kctx">Когорт пока нет.</div>`;
+  const f=(v,suf)=>v==null?`<span style="color:var(--dim2)">рано</span>`:num(v)+(suf||"");
+  const body=rows.map(r=>`<tr>
+    <td>${r.month}</td><td class="n num">${r.leads==null?"—":num(r.leads)}</td>
+    <td class="n num">${r.buyers==null?"—":num(r.buyers)}${r.trial_only?`<span style="color:var(--dim2)"> (${r.trial_only} только триал)</span>`:""}</td>
+    <td class="n num">${r.cac==null?"—":num(r.cac)}</td>
+    <td class="n num">${f(r.ltv30)}</td><td class="n num">${f(r.ltv60)}</td><td class="n num">${f(r.ltv90)}</td>
+  </tr>`).join("");
+  const lag=c.lag?`Лаг «пришёл → купил»: половина покупает за ${c.lag.p50} дн, 80% — за ${c.lag.p80} дн (по ${c.lag.n} покупателям). Вердикт волне — не раньше её выхода + ${c.lag.p80} дн.`:"Лаг покупки: данных мало.";
+  const pd=c.paydays, tot=pd?pd.cnt.reduce((a,b)=>a+b,0):0;
+  const pay=tot?`<div class="kctx" style="margin-top:9px">💡 Зарплатный цикл (гипотеза 15.08), платежи за ${pd.days} дн по декадам:
+    <b>1–10</b> ${pd.cnt[0]} шт / ${num(pd.rub[0])} ₽ · <b>11–20</b> ${pd.cnt[1]} шт / ${num(pd.rub[1])} ₽ · <b>21–конец</b> ${pd.cnt[2]} шт / ${num(pd.rub[2])} ₽.
+    Разрыв между лучшей и худшей декадой — ${Math.round((Math.max(...pd.cnt)/Math.max(1,Math.min(...pd.cnt))-1)*100)}%. Копим месяцы: решение о переносе бюджета — когда картина повторится 3 месяца подряд.</div>`:"";
+  return `<div class="klabel">LTV — это ПРИБЫЛЬ с покупателя к дню 30/60/90 от первого касания: нетто ×${c.net_k} (комиссия+налог) минус его личный AI-расход</div>
+  <table style="margin-top:8px">
+    <tr><th>когорта</th><th class="n">лиды</th><th class="n">купили</th><th class="n">CAC ₽</th><th class="n">LTV30</th><th class="n">LTV60</th><th class="n">LTV90</th></tr>
+    ${body}
+  </table>
+  <div class="kctx" style="margin-top:9px">${lag}</div>
+  ${pay}
+  <div class="kctx" style="margin-top:5px;color:var(--dim2)">Правило пака: здоровье = LTV(90) ≥ 3×CAC и окупаемость ≤ 2 мес. Старый «LTV 2801 ₽ за всю историю» — вредная метрика (льстит, смешивая эры), решения по ней не принимаем. Триал 399 ₽ считается покупкой (флаг «только триал»). Реестр волн обновляй в боте: <b>/wave_out Глинская</b> — по имени, чтобы бюджет не посчитался дважды.</div>`;
+}
+
+/* v851: живой срез Lava.top */
+function lavaHTML(){
+  const lv=D.lava;
+  if(!lv||!lv.ok) return `<div class="klabel">🌍 Lava.top</div>
+    <div class="kctx" style="margin-top:6px">⚠️ ${lv&&lv.reason?lv.reason:"данных нет"} — старые числа не показываем.</div>`;
+  return `<div class="klabel">🌍 Lava.top — подключена ✓ <span class="hint">срез ${lv.at}</span></div>
+  <div class="row" style="margin-top:8px">
+    <div class="mini"><div class="v num">${lv.n} · $${lv.usd}</div><div class="l">оплат всего (без тестов)</div></div>
+    <div class="mini"><div class="v num">${lv.n7==null?"н/д":lv.n7+" · $"+lv.usd7}</div><div class="l">за 7 дней</div></div>
+  </div>
+  <div class="kctx" style="margin-top:9px">Тестовых покупок владельца: ${lv.owner_tests}. Баланс после комиссии ~8% и вывод — в кабинете Lava.</div>`;
 }
 
 function funnelHTML(short){
@@ -442,9 +574,10 @@ function screenMoney(){
     ${m.prev_note?`<div class="kctx">${m.prev_note}</div>`:""}
     <canvas data-k="spark" data-h="60" data-v="${JSON.stringify(m.daily)}" style="margin-top:10px"></canvas>
   </div>
+  <div class="card">${lavaHTML()}</div>
   <div class="card">
     <table><tr><th>статья</th><th class="n">сумма</th><th class="n">доля</th></tr>
-    ${[["AI-генерации",m.ai_cost_rub],["Комиссия кассы ~2.2%",m.fee_rub],["Реклама",m.marketing_rub],
+    ${[["AI-генерации (30 дн)",m.ai_cost_rub],["Комиссия кассы ~2.2%",m.fee_rub],["Реклама (календ. месяц, реестр)",m.marketing_rub],
        ["Инфраструктура",m.infra_rub],["Налог 6% (с полной выручки)",m.tax_reserved_rub]].map(([k,v])=>
       `<tr><td>${k}</td><td class="n num">−${num(v)} ₽</td><td class="n num">${(v!=null&&m.revenue_rub)?pct(v/m.revenue_rub):dash}</td></tr>`).join("")}
     <tr><td><b>Осталось</b></td><td class="n num acc"><b>${num(m.net_profit_rub)} ₽</b></td>
@@ -503,9 +636,9 @@ function screenProduct(){
   <div class="card"><div class="row">
     <div class="mini"><div class="v num">${h.errors_24h}</div><div class="l">ошибок 24ч</div></div>
     <div class="mini"><div class="v num">${h.complaints_24h}</div><div class="l">жалоб 24ч</div></div>
-    <div class="mini"><div class="v num down">${h.restarts_30d}</div><div class="l">рестартов 30д</div></div>
   </div>
-  <div class="kctx" style="margin-top:10px">${h.error_note}. Медиана генерации ${h.p95_gen_sec} сек.</div></div>`;
+  <div class="kctx" style="margin-top:10px">${h.error_note}.</div>
+  ${noteHTML("health")}</div>`;
 }
 
 /* ======================= листы ======================= */
@@ -515,10 +648,7 @@ function openQuest(){ const q=D.quest;
   <div class="bar"><i data-w="${q.progress}"></i></div>
   <div class="qmeta"><span>${q.done} из ${q.target}</span><span>до ${q.deadline}</span></div></div>
   <div class="card"><div class="klabel">следующий шаг</div>
-  <p style="margin:8px 0 0;font-size:15px">${q.step}</p></div>
-  <div class="card"><div class="klabel">почему это, а не что-то другое</div>
-  <p style="margin:8px 0 0;font-size:13.5px;color:var(--dim)">Эти люди уже прошли активацию — они дороже
-  холодного трафика, но стоят 0 ₽. Пока не выбран этот резерв, покупать новых блогеров дороже.</p></div>`);
+  <p style="margin:8px 0 0;font-size:15px">${q.step}</p></div>`);
 }
 function openMoney(){ sheet("Деньги","источник: платёжка + журнал расходов",screenMoney()); }
 function openEngine(){ const e=D.engine;

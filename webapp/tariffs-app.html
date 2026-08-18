@@ -1897,9 +1897,23 @@
     banner.classList.remove('hidden');
     const msg = $('eb_msg');
     if (msg) {
-      const hours = Math.max(1, Math.round(daysLeft * 24));
-      msg.innerHTML = `Магнит-ссылка выключится через <b>${hours} часов</b>. ` +
-        `Клиенты увидят «мастер недоступен». Продли сейчас — сохрани приоритет в очереди.`;
+      /* v884: было `Math.max(1, ...)` + жёсткое «часов» — при daysLeft=0
+         печаталось «через 1 часов»: и склонение сломано, и смысл. У кого
+         срок ВЫШЕЛ, ссылка уже не работает, обещать ему «выключится через»
+         значит врать в момент, когда человек и так теряет клиентов. */
+      const hoursLeft = Math.round(daysLeft * 24);
+      if (hoursLeft <= 0) {
+        msg.innerHTML = `Магнит-ссылка <b>уже выключена</b>. ` +
+          `Клиенты, которые её откроют, видят «мастер недоступен». ` +
+          `Продли — ссылка заработает сразу.`;
+      } else {
+        const n10 = hoursLeft % 10, n100 = hoursLeft % 100;
+        const word = (n10 === 1 && n100 !== 11) ? 'час'
+          : (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) ? 'часа'
+          : 'часов';
+        msg.innerHTML = `Магнит-ссылка выключится через <b>${hoursLeft} ${word}</b>. ` +
+          `Клиенты увидят «мастер недоступен». Продли сейчас — сохрани приоритет в очереди.`;
+      }
     }
     const cta = $('eb_cta');
     if (cta && !cta._bound) {
@@ -2049,11 +2063,37 @@
     }
   }
 
+  /* v884 (18.08, стенка у владельца). РАНЬШЕ любой сбой авторизации или
+     сервера звал applySignup(), а он делает location.REPLACE на прайс. Это
+     создавало ПЕТЛЮ: replace затирает историю, человек возвращается в
+     Кабинет, тот снова падает и снова подменяется прайсом. Изнутри выхода
+     нет — ровно «не заходит, перекидывает всё на прайс».
+     Хуже: редирект стирал только что нарисованную кнопку «Получить вход в
+     Кабинет» (v782) — то есть уносил единственный выход, который мы дали.
+     Теперь при сбое ОСТАЁМСЯ на месте: ошибка + кнопка входа + ручная ссылка
+     на тарифы. Редирект живёт ТОЛЬКО для честного «не зарегистрирован». */
+  function offerPricingLink() {
+    try {
+      if (document.getElementById('toPricingFallback')) return;
+      var a = document.createElement('a');
+      a.id = 'toPricingFallback';
+      a.href = 'pricing-window.html?v=147';
+      a.textContent = 'Посмотреть тарифы';
+      a.style.cssText = 'display:block;text-align:center;margin:10px 0;'
+        + 'padding:12px;border:1px solid rgba(255,255,255,.25);'
+        + 'border-radius:12px;color:#fff;text-decoration:none;opacity:.85';
+      var _errN = document.querySelector('.err, #err, [data-err]');
+      (_errN && _errN.parentNode ? _errN.parentNode : document.body)
+        .insertBefore(a, _errN ? _errN.nextSibling : null);
+    } catch (e) {}
+  }
+
   function applySignup(tariffs) {
     // v81 (24.05.2026): больше НЕ показываем signup view inline — редиректим
     // на отдельную страницу pricing-window.html (премиум-лендинг от Claude Design).
     // Mini App при загрузке: если юзер не зарегистрирован → pricing-window.html.
     // Это даёт двухстраничную архитектуру: Cabinet и Tariffs (лендинг).
+    // v884: сюда попадают ТОЛЬКО незарегистрированные. Сбои — в offerPricingLink().
     try {
       window.location.replace('pricing-window.html?v=147');
     } catch (e) {
@@ -2155,7 +2195,7 @@
         (_err && _err.parentNode ? _err.parentNode : document.body)
           .insertBefore(_fx, _err ? _err.nextSibling : null);
       } catch (e) {}
-      applySignup(FALLBACK_TARIFFS);
+      offerPricingLink();   // v884: НЕ редиректим — иначе стираем кнопку выше
       return;
     }
     try {
@@ -2183,12 +2223,12 @@
           (_er2 && _er2.parentNode ? _er2.parentNode : document.body)
             .insertBefore(_fx2, _er2 ? _er2.nextSibling : null);
         } catch (e) {}
-        applySignup(FALLBACK_TARIFFS);
+        offerPricingLink();   // v884: остаёмся, кнопка входа обязана дожить
         return;
       }
       if (!resp.ok) {
-        showError(`Сервер вернул ${resp.status}.`);
-        applySignup(FALLBACK_TARIFFS);
+        showError(`Сервер вернул ${resp.status}. Обнови окно через минуту.`);
+        offerPricingLink();   // v884: сбой сервера ≠ «ты не зарегистрирован»
         return;
       }
       const data = await resp.json();
@@ -2204,8 +2244,8 @@
       }
       else applySignup(data.tariffs || FALLBACK_TARIFFS);
     } catch (e) {
-      showError('Нет связи с сервером. Покажу тарифы в read-only режиме.');
-      applySignup(FALLBACK_TARIFFS);
+      showError('Нет связи с сервером. Попробуй через минуту.');
+      offerPricingLink();   // v884: обрыв связи ≠ «ты не зарегистрирован»
     }
   }
 
