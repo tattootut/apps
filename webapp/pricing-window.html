@@ -297,7 +297,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
            Была вбита числом в трёх местах и пережила бы плановый флип
            299→399: баннер обещал бы одно, касса брала другое. -->
       <!-- v714 (владелец 01.08): без дат и обещаний — просто цена. -->
-      <span class="mh-line">🎁 Стартовый набор — <b><span class="js-trial-price">399</span> ₽</b> / 7 дней</span>
+      <span class="mh-line">🎁 Пробный — <b><span class="js-trial-price">399</span> ₽</b> / 7 дней</span>
       <span class="mh-sub">Попробуй все функции за <span class="js-trial-price">399</span> ₽, потом выбери тариф.</span>
     </div>
     <div class="eyebrow">
@@ -466,8 +466,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
           // v758: выбор канала и на паках (утренний список владельца 06.08 —
           // счёт докупки летел сразу в СБП). Ин.карта при неудаче падает в
           // СВОЙ СБП-поток, не в чужой buy_-фоллбек тарифов.
+          // v928: паки тоже получают второй экран — способ прокидывается
+          // тем же payForeign, СБП-фоллбек у пака остаётся своим.
           chooseChannelAndPay(sku, sbpFlow,
-            function(){ payForeign(sku, sbpFlow); });
+            function(){ payForeign(sku, sbpFlow); },
+            function(m, c){ payForeign(sku, sbpFlow, m, c); });
         });
       });
     })();
@@ -632,17 +635,26 @@ function paySbp(tariff){
   });
 }
 
-async function payForeign(tariff, fallback){
+/* v928: query-хвост авторизации — один на все ручки мини-аппа. */
+function _authQ(){
+  const _au = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
+  return (tg && tg.initData)
+    ? 'initData=' + encodeURIComponent(tg.initData)
+    : 'auth=' + encodeURIComponent(_au);
+}
+
+async function payForeign(tariff, fallback, method, cur){
   /* v758: fallback-параметр — overage-паки падают в СВОЙ СБП-поток
      (openPaidInvoice + deep-link overage_), а не в paySbp с чужим
-     buy_-фоллбеком, которого main-бот для SKU паков не знает. */
+     buy_-фоллбеком, которого main-бот для SKU паков не знает.
+     v928: method/cur — выбор человека на втором экране. Пусто = прежний
+     дефолт кассы (карта в долларах). */
   try {
-    const _au = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
-    const _q = (tg && tg.initData)
-      ? 'initData=' + encodeURIComponent(tg.initData)
-      : 'auth=' + encodeURIComponent(_au);
+    const _q = _authQ();
     const r = await fetch(BOT_API_BASE + '/api/invoice?' + _q
       + '&tariff=' + encodeURIComponent(tariff)
+      + (method ? '&method=' + encodeURIComponent(method) : '')
+      + (cur ? '&cur=' + encodeURIComponent(cur) : '')
       + '&channel=rk', {cache:'no-store'});
     const d = await r.json().catch(() => ({}));
     if (r.ok && d && d.url){
@@ -665,9 +677,30 @@ async function payForeign(tariff, fallback){
    не отдавать колбэк — тап по тарифу умирал, владелец: «не перекидывает
    больше, даже на СБП». Выбор канала рисуем В СТРАНИЦЕ: ноль зависимостей
    от версии клиента, работает везде одинаково. */
-function chooseChannelAndPay(tariff, onSbp, onForeign){
-  /* v758: onSbp/onForeign — переопределение потоков для overage-паков
-     (свои фоллбеки). Без аргументов — прежнее поведение тарифов. */
+/* v928: подписи способов. Ключ — «МЕТОД|ВАЛЮТА», ровно как их называет
+   касса (матрица снята живыми счетами 23.08). Способа нет в ответе сервера
+   → кнопки нет: предлагать то, что касса отвергает, значит вести человека
+   в белый экран после тапа. */
+var FOREIGN_LABELS = {
+  'CARD|USD':  '💳 Карта Visa / Mastercard',
+  'CARD|EUR':  '💳 Карта в евро',
+  'APPLE_PAY|USD': ' Apple Pay',
+  'APPLE_PAY|EUR': ' Apple Pay (€)',
+  'PAYPAL|USD': '🅿️ PayPal',
+  'PAYPAL|EUR': '🅿️ PayPal (€)',
+  'IDEAL|EUR':  '🇳🇱 iDEAL — из Европы',
+  'MBWAY|EUR':  '🇵🇹 MB Way — из Европы',
+  'SEPATRANSFER|EUR': '🇪🇺 Перевод SEPA',
+  'PIX|USD':    '🇧🇷 Pix',
+};
+function _curSign(c){ return c === 'EUR' ? '€' : (c === 'USD' ? '$' : '₽'); }
+function _money(a, c){
+  var n = (Math.round(a * 100) / 100).toFixed(2).replace(/\.00$/, '');
+  return _curSign(c) + n;
+}
+
+/* Общий «лист снизу»: одна рамка на оба экрана выбора. */
+function _sheet(titleHtml, subHtml){
   var old = document.getElementById('chOverlay');
   if (old) old.remove();
   var ov = document.createElement('div');
@@ -679,31 +712,95 @@ function chooseChannelAndPay(tariff, onSbp, onForeign){
     'padding:16px 16px 22px;width:100%;max-width:480px;' +
     'font:15px/1.4 -apple-system,Segoe UI,Roboto,sans-serif;color:#f2f0e6';
   sheet.innerHTML =
-    '<div style="font-weight:700;margin-bottom:4px">Способ оплаты</div>' +
+    '<div style="font-weight:700;margin-bottom:4px">' + titleHtml + '</div>' +
     '<div style="font-size:12.5px;opacity:.7;margin-bottom:12px">' +
-      'СБП — банки РФ. Иностранная карта — Visa/Mastercard любых стран ' +
-      '(цена канала выше).</div>';
-  function mkBtn(label, fn){
+      subHtml + '</div>';
+  ov.appendChild(sheet);
+  ov.addEventListener('click', function(e){ if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+  function mkBtn(label, note, fn){
     var b = document.createElement('button');
-    b.textContent = label;
-    b.style.cssText = 'display:block;width:100%;margin-top:8px;padding:13px;' +
+    b.style.cssText = 'display:flex;width:100%;margin-top:8px;padding:13px;' +
       'border-radius:11px;border:1px solid #2c4636;background:#1c3527;' +
-      'color:#f2f0e6;font-size:15px;font-weight:600;cursor:pointer';
+      'color:#f2f0e6;font-size:15px;font-weight:600;cursor:pointer;' +
+      'align-items:center;justify-content:space-between;gap:10px;text-align:left';
+    var l = document.createElement('span'); l.textContent = label;
+    var n = document.createElement('span');
+    n.style.cssText = 'font-weight:600;opacity:.85;white-space:nowrap';
+    n.textContent = note || '';
+    b.appendChild(l); b.appendChild(n);
     b.onclick = function(){ ov.remove(); if (fn) fn(); };
     sheet.appendChild(b);
     return b;
   }
-  var sbpBtn = mkBtn('СБП (банки РФ)',
+  return {ov: ov, sheet: sheet, mkBtn: mkBtn};
+}
+
+/* ЭКРАН 1 — СБП или заграница.
+   v928 (заказ владельца): СБП первым. Напротив инокарты — НЕ процент, а
+   живая сумма из кассы. Процент писать нельзя: замер 23.08 показал разброс
+   наценки +9…16% по позициям (Макс +9.0%, Про +10.6%, клиентский +15.8%),
+   и он плавает по курсу Lava. «+9%» было бы неправдой на всех позициях,
+   кроме одной. У СБП слово «дешевле» не пишем — прайс уже рублёвый. */
+function chooseChannelAndPay(tariff, onSbp, onForeign, foreignGo){
+  /* v758: onSbp/onForeign — переопределение потоков для overage-паков
+     (свои фоллбеки). Без аргументов — прежнее поведение тарифов. */
+  var s = _sheet('Способ оплаты',
+    'СБП — банки РФ, оплата в рублях. Из-за рубежа — карта, Apple Pay ' +
+    'или PayPal: спишут в валюте.');
+  var sbpBtn = s.mkBtn('СБП (банки РФ)', '',
     onSbp || function(){ paySbp(tariff); });
   sbpBtn.style.background = '#c4f000'; sbpBtn.style.color = '#0b1208';
   sbpBtn.style.borderColor = '#c4f000';
-  mkBtn('🌍 Иностранная карта (Visa/MC)',
-    onForeign || function(){ payForeign(tariff); });
-  var cancel = mkBtn('Отмена', null);
+  var frBtn = s.mkBtn('🌍 Из другой страны', '',
+    function(){ chooseForeignMethod(tariff, onForeign, foreignGo, onSbp); });
+  // Сумма подтягивается из кассы и дописывается на кнопку, когда придёт.
+  // Не пришла — кнопка работает без неё (деньги важнее украшения).
+  fetchForeignMethods(tariff).then(function(d){
+    if (!d || !d.prices || !d.prices.USD) return;
+    var note = _money(d.prices.USD, 'USD');
+    if (d.prices.RUB) note += ' ≈ ' + Math.round(d.prices.RUB) + ' ₽';
+    var span = frBtn.lastChild;
+    if (span) span.textContent = note;
+  });
+  var cancel = s.mkBtn('Отмена', '', null);
   cancel.style.background = 'transparent'; cancel.style.borderColor = '#2c4636';
-  ov.appendChild(sheet);
-  ov.addEventListener('click', function(e){ if (e.target === ov) ov.remove(); });
-  document.body.appendChild(ov);
+}
+
+/* Кэш ответа на один тап — экран 1 и экран 2 не должны дёргать кассу дважды. */
+var _FOREIGN_CACHE = {};
+function fetchForeignMethods(tariff){
+  if (_FOREIGN_CACHE[tariff]) return Promise.resolve(_FOREIGN_CACHE[tariff]);
+  return fetch(BOT_API_BASE + '/api/pay_methods?' + _authQ()
+      + '&tariff=' + encodeURIComponent(tariff), {cache:'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (d && d.ok && d.methods && d.methods.length) _FOREIGN_CACHE[tariff] = d;
+      return _FOREIGN_CACHE[tariff] || null;
+    })
+    .catch(function(){ return null; });
+}
+
+/* ЭКРАН 2 — конкретный способ. Ручка молчит (PAY_METHOD_PICKER=0, касса
+   недоступна, старый билд бота) → ведём прежним единственным путём, а не
+   показываем пустой лист. */
+function chooseForeignMethod(tariff, onForeign, foreignGo, onSbp){
+  var go = foreignGo || function(m, c){ payForeign(tariff, null, m, c); };
+  fetchForeignMethods(tariff).then(function(d){
+    if (!d) { (onForeign || function(){ payForeign(tariff); })(); return; }
+    var s = _sheet('Оплата из другой страны',
+      'Спишут в указанной валюте — банк пересчитает по своему курсу.');
+    d.methods.forEach(function(m){
+      var label = FOREIGN_LABELS[m.id + '|' + m.cur];
+      if (!label) return;
+      s.mkBtn(label, m.amount ? _money(m.amount, m.cur) : '',
+        function(){ go(m.id, m.cur); });
+    });
+    var back = s.mkBtn('← Назад', '', function(){
+      chooseChannelAndPay(tariff, onSbp, onForeign, foreignGo);
+    });
+    back.style.background = 'transparent'; back.style.borderColor = '#2c4636';
+  });
 }
 
 /* v759: EN-прайс при выборе ин.карты (вариант А, заказ владельца 06.08).

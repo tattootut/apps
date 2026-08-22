@@ -366,6 +366,7 @@ function screenHome(){
     <div class="klabel">LTV / CAC <span class="chev">подробно ›</span></div>
     <div class="kbig num" style="color:var(${vcol(e.verdict)})">${e.ltv_cac==null?"—":e.ltv_cac.toFixed(2)}</div>
     <div class="kctx">${rub(e.ltv_rub)} с мастера при цене привлечения ${rub(e.cac_rub)}</div>
+    ${e.cohort ? `<div class="kctx" style="margin-top:4px">🧪 когорта ${e.cohort.month}: LTV30 ${rub(e.cohort.ltv30_rub)} / CAC ${rub(e.cohort.cac_rub)} = <b>${e.cohort.ratio.toFixed(2)}</b> — это строже и честнее верхней цифры</div>` : ""}
     ${e.cac_note ? `<div class="kctx" style="margin-top:4px">⏳ ${e.cac_note}</div>` : ""}
     <canvas data-k="gauge" data-h="46" data-v="${e.ltv_cac}" style="margin-top:8px"></canvas>
     <div class="tl">
@@ -544,6 +545,7 @@ function funnelHTML(short){
       ${(i===(f.rec_step??wi)&&f.rec)?`<div class="d" style="color:var(--warn);margin-top:4px">💡 ${f.rec}${f.rec_type?` <span class="tag n">${f.rec_type}</span>`:""}</div>`:""}
     </div>`;
   });
+  if(f.base_payers) out+=`<div class="d" style="margin-top:8px;opacity:.75">➕ ещё <b>${num(f.base_payers)}</b> оплат в этом окне — продления СТАРОЙ базы (в воронку новых не входят, деньги в выручке учтены)</div>`;
   return out;
 }
 

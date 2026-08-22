@@ -1001,7 +1001,7 @@
     </p>
     <div class="features-mini" id="trialFeatures"></div>
     <button class="btn-trial" id="btnActivateTrial">
-      Активировать Стартовый набор
+      Активировать Пробный
     </button>
     <div class="small">
       Разовая проба за <span class="js-trial-price">399</span> ₽ через СБП —
@@ -1555,7 +1555,7 @@
     if (isCurrent) {
       btnHtml = '<button class="btn-buy" disabled>Используется</button>';
     } else if (isFree) {
-      btnHtml = '<button class="btn-buy" data-tariff="trial" data-action="trial">Активировать Стартовый набор</button>';
+      btnHtml = '<button class="btn-buy" data-tariff="trial" data-action="trial">Активировать Пробный</button>';
       // v217: цена триала из payload (sync с MASTER_TARIFFS["trial"]["price"]).
       // Жёсткий «1 ₽» был bait-and-switch (ЗоЗПП ст.16) — теперь динамика.
       trialNote = '<div class="trial-note">Разовая проба за <b>' + fmtPrice(t.price) + ' ₽</b> через СБП — <b>без привязки карты</b>.<br>Через 7 дней доступ закроется, дальше — любой платный тариф.</div>';
