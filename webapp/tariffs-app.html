@@ -1855,7 +1855,7 @@
   // него сейчас, и видел CTA «купить» на собственном тарифе).
   function goPricing() {
     try {
-      window.location.assign('pricing-window.html?v=147&current='
+      window.location.assign('pricing-window.html?v=931&current='
         + encodeURIComponent(CURRENT_TARIFF_KEY || ''));
     } catch (e) {}
   }
@@ -2077,7 +2077,7 @@
       if (document.getElementById('toPricingFallback')) return;
       var a = document.createElement('a');
       a.id = 'toPricingFallback';
-      a.href = 'pricing-window.html?v=147';
+      a.href = 'pricing-window.html?v=931';
       a.textContent = 'Посмотреть тарифы';
       a.style.cssText = 'display:block;text-align:center;margin:10px 0;'
         + 'padding:12px;border:1px solid rgba(255,255,255,.25);'
@@ -2095,7 +2095,7 @@
     // Это даёт двухстраничную архитектуру: Cabinet и Tariffs (лендинг).
     // v884: сюда попадают ТОЛЬКО незарегистрированные. Сбои — в offerPricingLink().
     try {
-      window.location.replace('pricing-window.html?v=147');
+      window.location.replace('pricing-window.html?v=931');
     } catch (e) {
       // Если редирект упал — fallback на inline signup view (старая логика).
       showView('signup');

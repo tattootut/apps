@@ -1120,7 +1120,7 @@ document.body.addEventListener('click', e => {
   const tariff = t.dataset.tariff;
   // v84: «← В кабинет» — внутренняя навигация Mini App. Без sendData.
   if (action === 'back_to_cabinet') {
-    try { window.location.assign('tariffs-app.html?v=142'); } catch(_){}
+    try { window.location.assign('tariffs-app.html?v=931'); } catch(_){}
     return;
   }
   send(action, tariff ? { tariff } : {});
