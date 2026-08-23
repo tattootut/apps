@@ -167,12 +167,21 @@
   }
 
   var PACK_LABELS = {
-    'CARD|USD':'💳 Карта Visa / Mastercard', 'CARD|EUR':'💶 Карта в евро',
+    'CARD|USD':'💳 Карта Visa / Mastercard',
+    'CARD|RUB':'💳 Карта МИР — Беларусь, Казахстан',
+    'CARD|EUR':'💶 Карта в евро',
     'APPLE_PAY|USD':'📱 Apple Pay', 'APPLE_PAY|EUR':'📱 Apple Pay (€)',
     'PAYPAL|USD':'🅿️ PayPal', 'PAYPAL|EUR':'🅿️ PayPal (€)',
     'IDEAL|EUR':'🇳🇱 iDEAL — из Европы', 'MBWAY|EUR':'🇵🇹 MB Way — из Европы',
     'SEPATRANSFER|EUR':'🇪🇺 Перевод SEPA', 'PIX|USD':'🇧🇷 Pix',
   };
+  /* v929: рубли — «3 306 ₽», а не «₽3306.27»: копейки на денежной кнопке
+     читаются как сбой вёрстки. */
+  function _packMoney(a, c){
+    if (c === 'RUB') return Math.round(a).toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽';
+    return (c === 'EUR' ? '€' : '$') + a;
+  }
   function _authQpack(){
     var initData=(tg && tg.initData)||'';
     var au=(function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
@@ -197,7 +206,7 @@
       var sh=document.createElement('div');
       sh.style.cssText='background:#fff;border-radius:16px 16px 0 0;padding:16px 16px 22px;width:100%;max-width:480px;font:15px/1.4 -apple-system,Segoe UI,Roboto,sans-serif;color:#1a2b22';
       sh.innerHTML='<div style="font-weight:700;margin-bottom:4px">Оплата из другой страны</div>'
-        +'<div style="font-size:12.5px;opacity:.65;margin-bottom:12px">Спишут в указанной валюте — банк пересчитает по своему курсу.</div>';
+        +'<div style="font-size:12.5px;opacity:.65;margin-bottom:12px">Спишут в указанной валюте. Если валюта карты другая — банк пересчитает по своему курсу.</div>';
       function mk2(label, note, fn){
         var b=document.createElement('button');
         b.style.cssText='display:flex;width:100%;margin-top:8px;padding:13px;border-radius:11px;border:1px solid #cfe0d5;background:#f3f7f4;color:#1a2b22;font-size:15px;font-weight:600;cursor:pointer;align-items:center;justify-content:space-between;gap:10px;text-align:left';
@@ -209,8 +218,8 @@
       }
       d.methods.forEach(function(m){
         var label=PACK_LABELS[m.id+'|'+m.cur]; if(!label) return;
-        var sign = m.cur==='EUR' ? '€' : '$';
-        mk2(label, m.amount ? sign+m.amount : '', function(){ payForeignPack(sku, dl, m.id, m.cur); });
+        mk2(label, m.amount ? _packMoney(m.amount, m.cur) : '',
+            function(){ payForeignPack(sku, dl, m.id, m.cur); });
       });
       mk2('← Назад','',function(){ chooseChannel(dl); });
       ov.appendChild(sh);

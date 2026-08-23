@@ -683,6 +683,7 @@ async function payForeign(tariff, fallback, method, cur){
    в белый экран после тапа. */
 var FOREIGN_LABELS = {
   'CARD|USD':  '💳 Карта Visa / Mastercard',
+  'CARD|RUB':  '💳 Карта МИР — Беларусь, Казахстан',
   'CARD|EUR':  '💶 Карта в евро',
   'APPLE_PAY|USD': '📱 Apple Pay',
   'APPLE_PAY|EUR': '📱 Apple Pay (€)',
@@ -695,6 +696,10 @@ var FOREIGN_LABELS = {
 };
 function _curSign(c){ return c === 'EUR' ? '€' : (c === 'USD' ? '$' : '₽'); }
 function _money(a, c){
+  // v929: рубли пишем по-русски — «3 306 ₽», а не «₽3306.27». Копейки в
+  // рублёвой цене выглядят как ошибка вёрстки на денежном экране.
+  if (c === 'RUB') return Math.round(a).toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽';
   var n = (Math.round(a * 100) / 100).toFixed(2).replace(/\.00$/, '');
   return _curSign(c) + n;
 }
@@ -789,7 +794,8 @@ function chooseForeignMethod(tariff, onForeign, foreignGo, onSbp){
   fetchForeignMethods(tariff).then(function(d){
     if (!d) { (onForeign || function(){ payForeign(tariff); })(); return; }
     var s = _sheet('Оплата из другой страны',
-      'Спишут в указанной валюте — банк пересчитает по своему курсу.');
+      'Спишут в указанной валюте. Если валюта карты другая — банк ' +
+      'пересчитает по своему курсу.');
     d.methods.forEach(function(m){
       var label = FOREIGN_LABELS[m.id + '|' + m.cur];
       if (!label) return;
