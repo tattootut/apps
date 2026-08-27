@@ -407,6 +407,18 @@
     font-weight: 500;
     font-size: 18px;
   }
+  /* v998: пометка «сегодня» для ДНЕВНЫХ осей (бэкенд отдаёт q.daily с v995).
+     На триале трансферы 15/день и примерки 3/день — без этой строки суточный
+     потолок читается как месячный запас, и человек планирует работу на неделю
+     по числу, которое обнулится к утру. */
+  .metric-box .day-note {
+    font-family: var(--font-text);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    color: var(--color-text-muted);
+    margin-top: 4px;
+  }
   .metric-box .bar {
     margin-top: 10px;
     height: 4px;
@@ -1675,6 +1687,15 @@
     box.appendChild(lab);
     box.appendChild(val);
     box.appendChild(bar);
+    // v998: ось с ДНЕВНЫМ лимитом (бэкенд ставит q.daily с v995). Число выше —
+    // это сегодняшний потолок, а не запас на период: к утру он обнулится.
+    // Молчать нельзя — «осталось 12 трансферов» человек планирует на неделю.
+    if (q.daily) {
+      const note = document.createElement('div');
+      note.className = 'day-note';
+      note.textContent = 'сегодня · обновится завтра';
+      box.appendChild(note);
+    }
     return box;
   }
 
@@ -1808,6 +1829,11 @@
       const used = Number(q.used) || 0;
       const left = Number(q.left);
       const total = isFinite(left) ? (used + left) : (Number(q.limit) || 0);
+      // v998: у ДНЕВНОЙ оси знаменатель — сегодняшний кап, а used считается за
+      // всё время. Отношение used/total тут не значит «квота кончается», и
+      // апсейл по нему сработал бы у триальщика в первый же день. Дневные оси
+      // в детект не берём: их лечит завтрашнее утро, а не тариф.
+      if (q.daily) return;
       if (total > 0 && total < 9999 && used / total >= 0.8) nearFull = true;
     });
     // v385: апсейл-воронка — квоты кончаются → кнопка к прайсу.
