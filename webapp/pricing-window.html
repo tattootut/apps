@@ -566,6 +566,27 @@ const BOT_API_BASE = 'https://worker-production-c1cb.up.railway.app';
 
 const BOT_LINK = 'https://t.me/ta2_blockbot';
 
+// 🔴 v1032: три способа, которые владелец назвал нужными. ЮMoney и ручной
+// ввод карты не предлагаем — заказ 31.08.
+const PAY_METHODS = [
+  { id: 'sbp',          label: '⚡️ СБП — любой банк' },
+  { id: 'sberbank',     label: '💚 SberPay' },
+  { id: 'tinkoff_bank', label: '🟡 TPay — Т-Банк' },
+];
+
+function askPayMethod(){
+  return new Promise(resolve => {
+    if (!tg || !tg.showPopup) { resolve('sbp'); return; }
+    try {
+      tg.showPopup({
+        title: 'Как удобно оплатить?',
+        message: 'Откроется приложение вашего банка — подтвердите платёж там.',
+        buttons: PAY_METHODS.map(m => ({ id:m.id, type:'default', text:m.label })),
+      }, id => resolve(id || ''));
+    } catch(e) { resolve('sbp'); }
+  });
+}
+
 // v110: ОСНОВНОЙ путь оплаты — openInvoice. Раньше pricing-window.html
 // использовал tg.sendData() который НЕ работает из menu_button (Telegram
 // API spec: sendData только из KeyboardButton). Из-за этого кнопки тарифов
@@ -584,8 +605,16 @@ async function openPaidInvoice(tariffKey, extraQ){
   const _q757 = initData
     ? 'initData=' + encodeURIComponent(initData)
     : 'auth=' + encodeURIComponent(_auth757);
+  // 🔴 v1032: спрашиваем способ и просим у бэкенда ПРЯМУЮ ссылку кассы.
+  // Раньше прайс открывал QR-СТРОКУ (qr.nspk.ru / sub.nspk.ru) как ссылку —
+  // и человек на телефоне попадал на страницу «отсканируйте QR в мобильном
+  // приложении банка». Сканировать нечем: телефон один. Комментарий рядом
+  // годами утверждал «там выбор банка» — это было неправдой.
+  const _pm = await askPayMethod();
+  if (!_pm) return true;                       // закрыл выбор — не ошибка
   const apiUrl = BOT_API_BASE + '/api/invoice?' + _q757
-    + '&tariff=' + encodeURIComponent(tariffKey) + (extraQ || '');
+    + '&tariff=' + encodeURIComponent(tariffKey)
+    + '&m=' + encodeURIComponent(_pm) + (extraQ || '');
   let resp;
   try { resp = await fetch(apiUrl, { method:'GET' }); }
   catch(e){ console.error('[pricing] fetch /api/invoice failed', e); return false; }
@@ -607,9 +636,17 @@ async function openPaidInvoice(tariffKey, extraQ){
   // v113: ЮKassa СБП — открываем qr.nspk.ru ссылку напрямую (выбор банка
   // → оплата по СБП). Без чата, без QR-картинки, без телефона. Активация
   // через polling — бот пришлёт «Оплата прошла» в чат после оплаты.
-  if (data.method === 'yookassa_sbp' || data.method === 'yookassa') {
+  if (data.open === 'link' || data.method === 'yookassa_sbp'
+      || data.method === 'yookassa') {
     try {
-      tg.openLink(data.url);  // открывает qr.nspk.ru — там выбор банка
+      // v1032: при open==='link' это confirmation_url кассы — страница со
+      // СПИСКОМ БАНКОВ (проверено на мобильном: «сейчас перейдём к списку
+      // банков»). Старый ответ без поля open — прежнее поведение.
+      tg.openLink(data.url);
+      if (data.open === 'link') {
+        tg.showAlert?.('Открыл оплату. Выберите банк и подтвердите платёж — '
+          + 'тариф включится сам, вернитесь сюда через минуту.');
+      }
       return true;
     } catch(e) {
       console.error('[pricing] openLink threw', e);
