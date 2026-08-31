@@ -1350,16 +1350,60 @@
     { id: 'tinkoff_bank',  label: '🟡 TPay — Т-Банк' },
   ];
 
+  /* v1041: лист выбора способа — со своей кнопкой выхода.
+     Системный tg.showPopup держит максимум ТРИ кнопки, и все три занимают
+     способы оплаты: «Отмена» в него не помещается физически. Владелец уперся
+     в это 31.08: «нельзя выйти из этого окна». Окно стоит на пути тех самых
+     248 брошенных счетов из 490 за август, так что выход тут — про деньги,
+     а не про удобство. Разметка повторяет лист витрины (pricing-window). */
+  function _paySheet(titleText, subText) {
+    var old = document.getElementById('pmOverlay');
+    if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'pmOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);' +
+      'z-index:999;display:flex;align-items:flex-end;justify-content:center';
+    var sheet = document.createElement('div');
+    sheet.style.cssText = 'background:#14231b;border-radius:16px 16px 0 0;' +
+      'padding:16px 16px 22px;width:100%;max-width:480px;' +
+      'font:15px/1.4 -apple-system,Segoe UI,Roboto,sans-serif;color:#f2f0e6';
+    var h = document.createElement('div');
+    h.style.cssText = 'font-weight:700;margin-bottom:4px';
+    h.textContent = titleText;
+    var sub = document.createElement('div');
+    sub.style.cssText = 'font-size:12.5px;opacity:.7;margin-bottom:12px';
+    sub.textContent = subText;
+    sheet.appendChild(h); sheet.appendChild(sub);
+    ov.appendChild(sheet);
+    document.body.appendChild(ov);
+    function mkBtn(label, note, fn) {
+      var b = document.createElement('button');
+      b.style.cssText = 'display:flex;width:100%;margin-top:8px;padding:13px;' +
+        'border-radius:11px;border:1px solid #2c4636;background:#1c3527;' +
+        'color:#f2f0e6;font-size:15px;font-weight:600;cursor:pointer;' +
+        'align-items:center;justify-content:space-between;gap:10px;text-align:left';
+      var l = document.createElement('span'); l.textContent = label;
+      b.appendChild(l);
+      b.onclick = function () { ov.remove(); if (fn) fn(); };
+      sheet.appendChild(b);
+      return b;
+    }
+    return { ov: ov, sheet: sheet, mkBtn: mkBtn };
+  }
+
   function askPayMethod() {
-    // Telegram-попап держит максимум 3 кнопки — ровно наши три.
     return new Promise(resolve => {
-      if (!tg || !tg.showPopup) { resolve('sbp'); return; }   // не умеет — СБП
       try {
-        tg.showPopup({
-          title: 'Как удобно оплатить?',
-          message: 'Откроется приложение вашего банка — подтвердите платёж там.',
-          buttons: PAY_METHODS.map(m => ({ id: m.id, type: 'default', text: m.label })),
-        }, id => resolve(id || ''));
+        var s = _paySheet('Как удобно оплатить?',
+          'Откроется приложение вашего банка — подтвердите платёж там.');
+        PAY_METHODS.forEach(function (m) {
+          s.mkBtn(m.label, '', function () { resolve(m.id); });
+        });
+        s.mkBtn('Отмена', '', function () { resolve(''); });
+        // Тап по фону — первый рефлекс на телефоне; считаем это отказом.
+        s.ov.addEventListener('click', function (e) {
+          if (e.target === s.ov) { s.ov.remove(); resolve(''); }
+        });
       } catch (e) { resolve('sbp'); }
     });
   }
