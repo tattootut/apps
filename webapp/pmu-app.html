@@ -188,7 +188,9 @@
     try{
       const r = await fetch(API+'/api/bind-card?initData='+encodeURIComponent(initData));
       const d = await r.json().catch(()=>({}));
-      if(d?.already_bound){ tg?.showAlert?.('Карта уже привязана ✅'); return; }
+      // v1021: способ уже сохранён → бэкенд включил подписку сам, показываем
+      // его ответ (раньше здесь была заглушка и тап не менял ничего).
+      if(d?.already_bound){ tg?.showAlert?.(d.message || 'Способ оплаты уже сохранён ✅'); return; }
       if(r.ok && d?.url){ tg?.openLink ? tg.openLink(d.url) : (location.href=d.url); return; }
       tg?.showAlert?.(d?.message || 'Не получилось открыть привязку карты.');
     }catch(e){ tg?.showAlert?.('Сеть недоступна, попробуйте ещё раз.'); }

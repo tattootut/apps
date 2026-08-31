@@ -158,6 +158,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .row.free .r .new{color:var(--accent)}
 .row .r .u{font-size:11px;color:var(--text-muted);letter-spacing:.04em;text-transform:lowercase;margin-top:3px}
 .row .r .ph{font-family:Oswald,sans-serif;font-weight:600;font-size:11px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-top:6px;padding:3px 7px;background:rgba(196,240,0,.08);border-radius:6px}
+/* v1004: подписочный бейдж под ценой (solo/pro/studio, триал — без него) */
+.row .r .sub-badge{font-family:Oswald,sans-serif;font-weight:600;font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);background:rgba(196,240,0,.1);border:1px solid rgba(196,240,0,.35);border-radius:6px;padding:3px 7px;margin-top:6px;text-align:right;line-height:1.45;max-width:130px}
 
 .row .arrow{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.04);display:grid;place-items:center;color:var(--text-muted);flex:0 0 auto;transition:var(--tap);z-index:1}
 .row.hit .arrow{background:var(--accent);color:#0b1208}
@@ -484,12 +486,16 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   </div>
 
   <div class="bottom fade-in" style="animation-delay:600ms">
+    <!-- v1004: trust-строка про подписку (тексты — из утверждённого макета) -->
     <div class="trust">
-      <span class="item"><svg><use href="#i-lock"/></svg>оплата картой РФ</span>
+      <span class="item"><svg><use href="#i-cancel"/></svg>продление само</span>
       <span class="dot"></span>
-      <span class="item"><svg><use href="#i-cancel"/></svg>отмена в любой момент</span>
+      <span class="item"><svg><use href="#i-clock"/></svg>напомним за сутки до списания</span>
+    </div>
+    <div class="trust" style="margin-top:5px">
+      <span class="item"><svg><use href="#i-zap"/></svg>отмена — один тап</span>
       <span class="dot"></span>
-      <span class="item"><svg><use href="#i-shield"/></svg>чек после оплаты</span>
+      <span class="item"><svg><use href="#i-shield"/></svg>квитанция в чат</span>
     </div>
     <!-- v766: акцепт публичной оферты — без этой строки документ не
          связывает покупателя (дыра найдена 07.08 на кейсе возврата). -->
@@ -504,15 +510,33 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
   </div>
 
-  <!-- v117: отвязка карты + отмена автопродления (для скриншота ЮKassa) -->
-  <button class="cancel-sub" id="cancelSub">Отвязать карту и отменить автопродление</button>
-  <div class="unbind-note">ТАТУ&nbsp;ТУТ · @ta2_blockbot — карта/токен удаляются на нашей стороне сразу при нажатии</div>
+  <!-- v117: отвязка + отмена автопродления (для скриншота ЮKassa).
+       v1004: текст кнопки — «Отключить подписку», слово «карта» в клиентских
+       текстах заменено на «способ оплаты» (путь может быть СБП). -->
+  <button class="cancel-sub" id="cancelSub">Отключить подписку</button>
+  <div class="unbind-note">ТАТУ&nbsp;ТУТ · @ta2_blockbot — способ оплаты удаляется на нашей стороне сразу при нажатии</div>
 </div>
 
 <script>
 const tg = window.Telegram?.WebApp;
 const inTelegram = !!(tg && tg.initData && tg.initData.length > 0);
 try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor('#0E1A14'); tg.setBackgroundColor && tg.setBackgroundColor('#0E1A14'); } } catch(_){}
+
+// 🔴 v1021 (критерий владельца «из мини-аппа всегда можно выйти назад»):
+// НАТИВНАЯ КНОПКА «НАЗАД» TELEGRAM. Эта страница — 8 900 пикселей, и
+// единственный выход «← В кабинет» живёт в шапке, которая не липкая: человек
+// доскроллил до тарифов, передумал покупать — и назад ему уже нечем, в
+// шапке Telegram остаётся только «✕», а это выход из мини-аппа целиком, с
+// потерей места. Кнопка ← стоит в шапке всегда и ведёт туда же, куда пилюля.
+function goCabinet() {
+  try { window.location.assign('tariffs-app.html?v=931'); } catch(_) {}
+}
+try {
+  if (tg && tg.BackButton) {
+    tg.BackButton.onClick(goCabinet);
+    tg.BackButton.show();
+  }
+} catch(_) {}
 
 // v110: API endpoint бота (Railway) для создания invoice link.
 const BOT_API_BASE = 'https://worker-production-c1cb.up.railway.app';
@@ -549,7 +573,7 @@ const BOT_LINK = 'https://t.me/ta2_blockbot';
 //   1) fetch /api/invoice → tg.openInvoice(url) — работает из любого launch
 //   2) openTelegramLink(t.me/bot?start=buy_X) — fallback
 //   3) window.location.href — последний fallback
-async function openPaidInvoice(tariffKey){
+async function openPaidInvoice(tariffKey, extraQ){
   if (!tg) return false;
   /* v757: нативный macOS-клиент не передаёт initData в menu-запуске —
      бот подписывает ссылку токеном ?auth=, он и есть запасная авторизация.
@@ -561,7 +585,7 @@ async function openPaidInvoice(tariffKey){
     ? 'initData=' + encodeURIComponent(initData)
     : 'auth=' + encodeURIComponent(_auth757);
   const apiUrl = BOT_API_BASE + '/api/invoice?' + _q757
-    + '&tariff=' + encodeURIComponent(tariffKey);
+    + '&tariff=' + encodeURIComponent(tariffKey) + (extraQ || '');
   let resp;
   try { resp = await fetch(apiUrl, { method:'GET' }); }
   catch(e){ console.error('[pricing] fetch /api/invoice failed', e); return false; }
@@ -603,7 +627,7 @@ async function openPaidInvoice(tariffKey){
           try { tg.HapticFeedback?.notificationOccurred('success'); } catch(_){}
           tg.showAlert?.('✅ Оплата прошла! Тариф активирован.', () => { try { tg.close(); } catch(_){}});
         } else if (status === 'failed') {
-          tg.showAlert?.('❌ Оплата не прошла. Попробуй ещё раз или напиши Николаю.');
+          tg.showAlert?.('❌ Оплата не прошла — деньги не списаны.\n\nПопробуйте ещё раз или выберите другой способ. Не выходит — напишите в поддержку @tatututbot, разберёмся.');
         } else if (status === 'pending') {
           tg.showAlert?.('⏳ Оплата в обработке. Тариф активируется после подтверждения.');
         }
@@ -932,6 +956,15 @@ const PRESENT = {
     flagAxis:'animations',
     flag:{ic:'🪄',tx:'<b>Оживление тату</b> — рисунок двигается: дым, дракон, пламя. Вирусный хук для Reels.'},
   },
+  atelier: {
+    // v1006: средняя верхняя ступень. Не выдумана — 9 мастеров уже платили
+    // 3 200-3 700 ₽/мес, перекупая тариф руками. Для этих денег не было кнопки.
+    name:'ПРО+', period:'мес', resultIcon:'💼',   /* v1014: «Студия» → «Про+» (владелец 30.08) */
+    cap:'💼 Поток без потолка',
+    resultSub:'когда клиентов больше, чем влезает в Про',
+    flagAxis:'sketches',
+    flag:{ic:'✍️',tx:'<b>70 эскизов в месяц</b> — эскиз выходит дешевле, чем в Про, и не надо считать остаток.'},
+  },
   studio: {
     name:'МАКС', period:'мес', top:true, resultIcon:'🔥',
     cap:'🎬 Клиент оживает',
@@ -940,21 +973,22 @@ const PRESENT = {
     flag:{ic:'🎬',tx:'<b>Видео-примерка</b> — оживает сам клиент: тату на нём в движении. Живое видео для Reels.',warn:'⚠️ Оживление = двигается рисунок · Видео-примерка = двигается клиент (тату статична)'},
   },
 };
-const ORDER = ['trial','solo','pro','studio'];
+const ORDER = ['trial','solo','pro','atelier','studio'];
 
 // Зачёркнутый «старый» ценник — маркетинговый якорь витрины, НЕ квота: сервер
 // считает его своей формулой (+30%), и подмена молча переписала бы обещание
 // «−40%» на «−23%». Поэтому якорь остаётся здесь, а живая цена — с сервера.
-const OLD_PRICE = { trial:0, solo:1990, pro:4990, studio:9990 };
+const OLD_PRICE = { trial:0, solo:1990, pro:4990, atelier:5990, studio:9990 };
 
 // Снимок квот на случай «сервер не ответил». Синхронизирован с MASTER_TARIFFS.
 // Тарифов, скрытых из витрины (premium 14990, pro_intro), тут нет и быть не
 // должно — иначе сбой сети воскрешал бы снятый тариф с рабочей кнопкой оплаты.
 const FALLBACK_QUOTAS = {
-  trial:  {price:399,  days:7,  sketches:5,   tryons:12,  stencils:5,   extracts:3,   photo_retouch:5,  videos:0, animations:0,  demo_pool:25},
-  solo:   {price:1490, days:30, sketches:20,  tryons:15,  stencils:15,  extracts:15,  photo_retouch:10, videos:1, animations:1,  demo_pool:100},
-  pro:    {price:2990, days:30, sketches:120, tryons:40,  stencils:60,  extracts:60,  photo_retouch:30, videos:4, animations:12,  demo_pool:600},
-  studio: {price:5990, days:30, sketches:250, tryons:100, stencils:120, extracts:120, photo_retouch:80, videos:9, animations:22, demo_pool:2000},
+  trial:   {price:399,  days:7,  sketches:5,   tryons:3,   stencils:5,   extracts:3,   photo_retouch:3,  videos:0, animations:0,  demo_pool:25},
+  solo:    {price:1490, days:30, sketches:12,  tryons:5,   stencils:20,  extracts:15,  photo_retouch:12, videos:1, animations:1,  demo_pool:100},
+  pro:     {price:2990, days:30, sketches:40,  tryons:10,  stencils:60,  extracts:40,  photo_retouch:25, videos:2, animations:5,  demo_pool:600},
+  atelier: {price:3990, days:30, sketches:70,  tryons:20,  stencils:100, extracts:60,  photo_retouch:40, videos:3, animations:8,  demo_pool:1200},
+  studio:  {price:6990, days:30, sketches:130, tryons:40,  stencils:150, extracts:100, photo_retouch:60, videos:5, animations:12, demo_pool:2000},
 };
 
 // Куда вести, когда оси у тарифа нет: ищем САМЫЙ ДЕШЁВЫЙ тариф витрины, где она
@@ -1063,6 +1097,7 @@ function row(t, i){
         ${priceEl}
         <span class="u">/ ${t.period}</span>
         ${t.perDay ? `<span class="ph">≈ ${t.perDay}&nbsp;₽ / день</span>` : ''}
+        ${t.trial ? '' : '<span class="sub-badge">ПОДПИСКА · ОТКЛЮЧАЕТСЯ В 1 ТАП</span>'}
       </div>
       <div class="arrow"><svg><use href="#i-arrow"/></svg></div>
     </div>`;
@@ -1120,15 +1155,15 @@ document.body.addEventListener('click', e => {
   const tariff = t.dataset.tariff;
   // v84: «← В кабинет» — внутренняя навигация Mini App. Без sendData.
   if (action === 'back_to_cabinet') {
-    try { window.location.assign('tariffs-app.html?v=931'); } catch(_){}
+    goCabinet();          // v1021: один путь назад для пилюли и кнопки ←
     return;
   }
   send(action, tariff ? { tariff } : {});
 });
 
-// Task 3 (03.06): ОДНА кнопка карты ПО СОСТОЯНИЮ has_card:
-//   has_card === true  → «🔕 Отвязать карту» (cancel-subscription flow);
-//   has_card !== true  → «💳 Привязать карту» (bind flow).
+// Task 3 (03.06): ОДНА кнопка ПО СОСТОЯНИЮ has_card (тексты v1004):
+//   has_card === true  → «🔕 Отключить подписку» (cancel-subscription flow);
+//   has_card !== true  → «💳 Сохранить способ оплаты» (bind flow).
 // has_card придёт в payload /api/cabinet (код-сессия добавит поле). Пока его нет
 // — fallback на autorenew_active (карта сохранена ⇒ автопродление активно).
 // ⚠️ TODO (код-сессия): (1) добавить has_card в _build_cabinet_payload;
@@ -1142,22 +1177,23 @@ document.body.addEventListener('click', e => {
     if (!tg || !tg.initData) { tg?.showAlert?.('Открой через Telegram.'); return; }
     const confirmed = await new Promise(res => {
       if (tg.showConfirm) {
-        tg.showConfirm('Отвязать карту и отключить автопродление? Карта будет удалена, '
-          + 'автосписания прекратятся, доступ сохранится до конца оплаченного периода.', res);
-      } else { res(window.confirm('Отвязать карту и отключить автопродление?')); }
+        tg.showConfirm('Отключить подписку? Списаний больше не будет, доступ сохранится '
+          + 'до конца оплаченного периода.', res);
+      } else { res(window.confirm('Отключить подписку? Списаний больше не будет, '
+          + 'доступ сохранится до конца оплаченного периода.')); }
     });
     if (!confirmed) return;
-    btn.textContent = 'Отвязываем…';
+    btn.textContent = 'Отключаем…';
     try {
       const r = await fetch(BOT_API_BASE + '/api/cancel-subscription?initData='
         + encodeURIComponent(tg.initData), { method: 'GET' });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.ok) {
         try { tg.HapticFeedback?.notificationOccurred('success'); } catch(_){}
-        tg.showAlert?.(d.message || 'Карта отвязана, автопродление выключено.');
-        btn.textContent = 'Карта отвязана'; btn.disabled = true;
+        tg.showAlert?.(d.message || 'Подписка отключена. Списаний больше не будет.');
+        btn.textContent = 'Подписка отключена'; btn.disabled = true;
       } else if (d.error === 'no_active_subscription') {
-        tg.showAlert?.('Нет привязанной карты или активной подписки.');
+        tg.showAlert?.('Нет сохранённого способа оплаты или активной подписки.');
         renderCardButton(false);
       } else {
         tg.showAlert?.('Не получилось отвязать. Напиши в поддержку.');
@@ -1178,12 +1214,20 @@ document.body.addEventListener('click', e => {
     try {
       const r = await fetch(BOT_API_BASE + '/api/bind-card?initData=' + encodeURIComponent(initData));
       const data = await r.json().catch(() => ({}));
-      if (data && data.already_bound) { tg?.showAlert?.('Карта уже привязана ✅'); return; }
+      // v1021: способ уже сохранён → бэкенд ВКЛЮЧИЛ подписку (ветка
+      // already_bound в /api/bind-card). Показываем его ответ и
+      // перерисовываем кнопку — иначе экран остаётся в прошлом состоянии и
+      // человек жмёт второй раз, думая что не сработало.
+      if (data && data.already_bound) {
+        tg?.showAlert?.(data.message || 'Способ оплаты уже сохранён ✅');
+        if (data.resumed || data.subscribed) { try { renderCardButton(true); } catch(e) {} }
+        return;
+      }
       if (r.ok && data && data.url) {
         if (tg && tg.openLink) { tg.openLink(data.url); return; }
         window.location.href = data.url; return;
       }
-      tg?.showAlert?.((data && data.message) || 'Не получилось открыть привязку карты.');
+      tg?.showAlert?.((data && data.message) || 'Не получилось открыть сохранение способа оплаты.');
     } catch(e) {
       console.error('[pricing] bind failed', e);
       tg?.showAlert?.('Ошибка сети. Попробуй позже.');
@@ -1192,15 +1236,15 @@ document.body.addEventListener('click', e => {
 
   function renderCardButton(hasCard){
     btn.disabled = false;
-    btn.classList.toggle('bind-card-cta', !hasCard);  // v257: ярко когда «Привязать»
+    btn.classList.toggle('bind-card-cta', !hasCard);  // v257: ярко когда «Сохранить способ оплаты»
     if (hasCard) {
-      btn.textContent = '🔕 Отвязать карту';
+      btn.textContent = '🔕 Отключить подписку';
       btn.onclick = doUnbind;
-      if (note) note.textContent = 'Карта/токен удаляются на нашей стороне сразу при нажатии · ТАТУ ТУТ · @ta2_blockbot';
+      if (note) note.textContent = 'Способ оплаты удаляется на нашей стороне сразу при нажатии · ТАТУ ТУТ · @ta2_blockbot';
     } else {
-      btn.textContent = '💳 Привязать карту (автосписание)';
+      btn.textContent = '💳 Сохранить способ оплаты';
       btn.onclick = doBind;
-      if (note) note.textContent = 'Подключи автоплатёж — не теряй доступ и канал заявок, когда период закончится';
+      if (note) note.textContent = 'Подключи подписку — не теряй доступ и канал заявок, когда период закончится';
     }
   }
 
@@ -1218,6 +1262,91 @@ document.body.addEventListener('click', e => {
       renderCardButton(hasCard);
     } catch(_){}
   })();
+})();
+
+/* ═══ v1015: РЕЖИМЫ КОНЦА ПРОБНОГО — весь путь в мини-аппе ═══════════════
+   Заказ владельца 30.08: человека не гоняем чат↔мини-апп. Пуш в чате —
+   только звонок в дверь, выбор и оплата здесь.
+   ?mode=trial_choice — экран выбора: три подписки ПОЛНЫМИ ценами (карточка
+     пробного скрыта — он у человека уже есть), внизу «Пока не готов».
+   ?mode=nudge — экран дожима: /api/trial_choice?action=not_ready открывает
+     вступительный оффер НА БЭКЕ (правило: не обесцениваем до отказа) и
+     возвращает состав; цены на кнопках = те, что выставит касса. */
+(function(){
+  const MODE = (new URLSearchParams(location.search).get('mode') || '').trim();
+  if (MODE !== 'trial_choice' && MODE !== 'nudge') return;
+
+  const css = document.createElement('style');
+  css.textContent = `
+    body.tc-mode .row.trial, body.tc-mode .hero, body.tc-mode .pill-back { display:none !important; }
+    body.tc-nudge .stack, body.tc-nudge .row { display:none !important; }
+    .tc-banner{margin:14px 16px 4px;padding:14px 16px;border:1px solid rgba(196,240,0,.35);
+      border-radius:14px;background:rgba(196,240,0,.07);font-size:14px;line-height:1.45}
+    .tc-banner b{color:#C4F000}
+    .tc-notready{margin:10px 16px 26px;width:calc(100% - 32px);padding:13px;border:1px solid rgba(255,255,255,.18);
+      border-radius:12px;background:transparent;color:rgba(255,255,255,.75);font-size:14px;font-weight:600;cursor:pointer}
+    .tc-card{margin:12px 16px;padding:16px;border:1.5px solid rgba(196,240,0,.4);border-radius:14px;background:rgba(255,255,255,.04)}
+    .tc-card.once{border-color:rgba(255,255,255,.22)}
+    .tc-card .t{font-weight:700;font-size:15.5px;margin-bottom:6px}
+    .tc-card .p{font-size:22px;font-weight:700;color:#C4F000}
+    .tc-card .p .old{font-size:14px;color:rgba(255,255,255,.45);text-decoration:line-through;margin-left:8px}
+    .tc-card .d{font-size:12.5px;color:rgba(255,255,255,.6);margin-top:6px;line-height:1.45}
+    .tc-card button{margin-top:12px;width:100%;padding:13px;border:none;border-radius:11px;
+      background:#C4F000;color:#0a0a0a;font-weight:700;font-size:14px;cursor:pointer}
+    .tc-card.once button{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25)}`;
+  document.head.appendChild(css);
+
+  function payOnce(key){
+    openPaidInvoice(key, '&once=1').then(ok => { if (!ok) openDeepLinkFallback('buy_' + key); });
+  }
+  function renderNudge(){
+    document.body.classList.add('tc-mode','tc-nudge');
+    const host = document.querySelector('.app') || document.body;
+    const box = document.createElement('div');
+    box.id = 'tcNudge';
+    box.innerHTML = '<div class="tc-banner">Секунду, считаем варианты…</div>';
+    host.appendChild(box);
+    fetch(BOT_API_BASE + '/api/trial_choice?' + _authQ() + '&action=not_ready',
+          { method:'GET', cache:'no-store' })
+      .then(r => r.json())
+      .then(d => {
+        const n = (d && d.nudge) || {};
+        let html = '<div class="tc-banner">Понял. Тогда два честных варианта 👇</div>';
+        if (n.intro_available) {
+          html += '<div class="tc-card"><div class="t">🔥 Про — первый месяц</div>'
+            + '<div class="p">' + fmt(n.intro_price) + ' ₽<span class="old">' + fmt(n.pro_full) + ' ₽</span></div>'
+            + '<div class="d">Дальше ' + fmt(n.pro_full) + ' ₽/мес, отменить — в любой момент в кабинете.</div>'
+            + '<button data-tc="pro">Взять Про за ' + fmt(n.intro_price) + ' ₽</button></div>';
+        }
+        html += '<div class="tc-card once"><div class="t">' + (n.once_title || 'Старт') + ' — один месяц</div>'
+          + '<div class="p">' + fmt(n.once_price || 0) + ' ₽</div>'
+          + '<div class="d">Разовая оплата — подписки нет, ничего не продлевается. Вернёшься, когда захочешь.</div>'
+          + '<button data-tc="once">Взять разово за ' + fmt(n.once_price || 0) + ' ₽</button></div>';
+        box.innerHTML = html;
+        box.querySelector('[data-tc="pro"]')?.addEventListener('click', () => paySbp('pro'));
+        box.querySelector('[data-tc="once"]')?.addEventListener('click', () => payOnce(n.once_key || 'solo'));
+      })
+      .catch(() => { box.innerHTML = '<div class="tc-banner">Не дозвонился до сервера — открой ещё раз.</div>'; });
+  }
+  if (MODE === 'nudge') { renderNudge(); return; }
+  /* trial_choice: полные цены уже на карточках, пробный скрыт, внизу выход в дожим */
+  document.body.classList.add('tc-mode');
+  const stack = document.getElementById('stack');
+  if (stack) {
+    const b = document.createElement('div');
+    b.className = 'tc-banner';
+    b.innerHTML = '⏳ <b>Пробный заканчивается.</b> Дальше — подписка: квота обновляется сама, отмена в один тап. Пока сам не выберешь — ничего не спишем.';
+    stack.parentNode.insertBefore(b, stack);
+    const nr = document.createElement('button');
+    nr.className = 'tc-notready';
+    nr.textContent = 'Пока не готов';
+    nr.addEventListener('click', () => {
+      document.getElementById('tcNudge')?.remove();
+      renderNudge();
+      try { window.scrollTo({top: 0, behavior: 'smooth'}); } catch(_){}
+    });
+    stack.parentNode.insertBefore(nr, stack.nextSibling);
+  }
 })();
 </script>
 </body>
