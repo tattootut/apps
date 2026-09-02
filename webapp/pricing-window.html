@@ -577,22 +577,25 @@ const PAY_METHODS = [
    первый кадр рисуется до ответа сервера и не должен обещать. Живые цены
    тарифов — для подзаголовка листа с суммой и периодом. */
 let SUB_OFFER = false;
+let SUB_METHODS = ['sbp'];   // v1059: с сервера (sub_methods) — способы, сохраняющие способ оплаты
 const LIVE_PRICES = {};
 /* Подписи способов — по правде: подписку сохраняет ТОЛЬКО СБП (живой факт
    31.08: SberPay и TPay отвечают 400 «can't be saved for recurring»). */
 /* v1058 (владелец 02.09): слов «разово / без продления» на листе нет —
    подписка только с продлением, а при подписке лист показывает ОДИН
    способ (СБП — единственный, который сохраняет способ оплаты). */
+/* v1059 (владелец 02.09, второй скриншот): в самой кнопке слов про
+   продление нет — заголовок листа «Подписка · как удобно оплатить?» и
+   подзаголовок с суммой и периодом уже сказали всё. */
 function payMethodLabel(m, isSub){
-  if (m.id === 'sbp') return isSub ? '⚡️ СБП — подписка, продлевается сама'
-                                   : '⚡️ СБП — любой банк';
+  if (m.id === 'sbp') return '⚡️ СБП — любой банк';
   if (m.id === 'sberbank') return '💚 SberPay';
   return '🟡 TPay — Т-Банк';
 }
 function payMethodSubtitle(isSub, info){
   var i = info || {};
   if (isSub && i.price) {
-    return (i.title ? i.title + ': ' : '') + i.price + ' ₽ сейчас по СБП, дальше '
+    return (i.title ? i.title + ': ' : '') + i.price + ' ₽ сейчас, дальше '
       + 'каждые 30 дней автоматически. Отключить — один тап в кабинете.';
   }
   return 'Откроется приложение вашего банка — подтвердите платёж там.';
@@ -614,7 +617,7 @@ function askPayMethod(isSub, info){
         payMethodSubtitle(!!isSub, info));
       // v1058: подписка = только СБП (SberPay/TPay способ не сохраняют);
       // разовые покупки (пробный, дожим «один раз») — все три способа.
-      var _methods = isSub ? PAY_METHODS.filter(function(m){ return m.id === 'sbp'; })
+      var _methods = isSub ? PAY_METHODS.filter(function(m){ return SUB_METHODS.indexOf(m.id) >= 0; })
                            : PAY_METHODS;
       _methods.forEach(function(m){
         s.mkBtn(payMethodLabel(m, !!isSub), '', function(){ resolve(m.id); });
@@ -663,7 +666,10 @@ async function openPaidInvoice(tariffKey, extraQ){
     try {
       const _r2 = await fetch(BOT_API_BASE + '/api/cabinet?initData='
         + encodeURIComponent(tg.initData), { method:'GET', cache:'no-store' });
-      if (_r2.ok) { const _d2 = await _r2.json(); SUB_OFFER = !!(_d2 && _d2.sub_on); }
+      if (_r2.ok) {
+        const _d2 = await _r2.json(); SUB_OFFER = !!(_d2 && _d2.sub_on);
+        if (_d2 && Array.isArray(_d2.sub_methods) && _d2.sub_methods.length) SUB_METHODS = _d2.sub_methods.map(String);
+      }
     } catch(e) { console.warn('[pricing] sub_on recheck failed', e); }
   }
   const _isSub = !!SUB_OFFER && !/once=1/.test(extraQ || '') && tariffKey !== 'trial';
@@ -1228,6 +1234,7 @@ const HYDRATED = (async function hydrateTariffs(){
     // v1051: подписка при покупке — по правде с сервера; живые цены — для
     // подзаголовка листа способов (сумма и период).
     SUB_OFFER = !!(d && d.sub_on);
+    if (d && Array.isArray(d.sub_methods) && d.sub_methods.length) SUB_METHODS = d.sub_methods.map(String);
     list.forEach(t => { if (t && t.key) LIVE_PRICES[t.key] = +t.price || 0; });
     if (!list.length) return;
     const live = {};

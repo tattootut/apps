@@ -1394,12 +1394,23 @@
     return { ov: ov, sheet: sheet, mkBtn: mkBtn };
   }
 
-  function askPayMethod() {
+  /* v1059: лист кабинета знает подписку так же, как витрина: заголовок
+     «Подписка · …», подзаголовок с суммой и периодом, способы — только те,
+     что сохраняют способ оплаты (sub_methods с сервера). Пометок про
+     разовый платёж или продление в кнопках нет (владелец 02.09). */
+  function askPayMethod(isSub, info) {
+    var i = info || {};
     return new Promise(resolve => {
       try {
-        var s = _paySheet('Как удобно оплатить?',
-          'Откроется приложение вашего банка — подтвердите платёж там.');
-        PAY_METHODS.forEach(function (m) {
+        var _title = isSub ? 'Подписка · как удобно оплатить?' : 'Как удобно оплатить?';
+        var _sub = (isSub && i.price)
+          ? ((i.title ? i.title + ': ' : '') + i.price + ' ₽ сейчас, дальше каждые 30 дней автоматически. Отключить — один тап в кабинете.')
+          : 'Откроется приложение вашего банка — подтвердите платёж там.';
+        var s = _paySheet(_title, _sub);
+        var _allowed = (isSub && Array.isArray(i.methods) && i.methods.length) ? i.methods : null;
+        var _methods = _allowed ? PAY_METHODS.filter(function (m) { return _allowed.indexOf(m.id) >= 0; })
+                                : PAY_METHODS;
+        _methods.forEach(function (m) {
           s.mkBtn(m.label, '', function () { resolve(m.id); });
         });
         s.mkBtn('Отмена', '', function () { resolve(''); });
@@ -1418,7 +1429,23 @@
       console.warn('[tariffs] no initData — cannot call /api/invoice');
       return false;
     }
-    const method = await askPayMethod();
+    // v1059: подписка узнаёт себя с сервера тем же /api/cabinet (sub_on,
+    // sub_methods, живая цена) — лист не гадает и не показывает способы,
+    // которые подписку не сохранят.
+    var _subInfo = { on: false, methods: ['sbp'], price: 0, title: '' };
+    try {
+      const _cr = await fetch(BOT_API_BASE + '/api/cabinet?initData='
+        + encodeURIComponent(initData), { method: 'GET', cache: 'no-store' });
+      if (_cr.ok) {
+        const _cd = await _cr.json();
+        _subInfo.on = !!(_cd && _cd.sub_on);
+        if (_cd && Array.isArray(_cd.sub_methods) && _cd.sub_methods.length) _subInfo.methods = _cd.sub_methods.map(String);
+        var _ct = ((_cd && _cd.tariffs) || []).find(function (t) { return t && t.key === tariffKey; });
+        if (_ct) { _subInfo.price = +_ct.price || 0; _subInfo.title = _ct.title || _ct.name || ''; }
+      }
+    } catch (e) { console.warn('[tariffs] sub info fetch failed', e); }
+    const _isSub = _subInfo.on && tariffKey !== 'trial';
+    const method = await askPayMethod(_isSub, _subInfo);
     if (!method) return true;          // закрыл выбор — это не ошибка
     const apiUrl = BOT_API_BASE + '/api/invoice?initData='
       + encodeURIComponent(initData) + '&tariff=' + encodeURIComponent(tariffKey)
