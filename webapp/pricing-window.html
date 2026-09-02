@@ -888,6 +888,7 @@ function chooseChannelAndPay(tariff, onSbp, onForeign, foreignGo){
   // Сумма подтягивается из кассы и дописывается на кнопку, когда придёт.
   // Не пришла — кнопка работает без неё (деньги важнее украшения).
   fetchForeignMethods(tariff).then(function(d){
+    if (d && d.error === 'lava_price_mismatch') { frBtn.remove(); return; }
     if (!d || !d.prices || !d.prices.USD) return;
     var note = _money(d.prices.USD, 'USD');
     if (d.prices.RUB) note += ' ≈ ' + Math.round(d.prices.RUB) + ' ₽';
@@ -904,8 +905,15 @@ function fetchForeignMethods(tariff){
   if (_FOREIGN_CACHE[tariff]) return Promise.resolve(_FOREIGN_CACHE[tariff]);
   return fetch(BOT_API_BASE + '/api/pay_methods?' + _authQ()
       + '&tariff=' + encodeURIComponent(tariff), {cache:'no-store'})
-    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(r){
+      // v1061: 409 = цена в кабинете Lava разошлась с нашей — сервер
+      // инокарту на этой позиции не даёт; кнопку прячем, а не ведём на
+      // счёт по чужой цене.
+      if (r.status === 409) return { error: 'lava_price_mismatch' };
+      return r.ok ? r.json() : null;
+    })
     .then(function(d){
+      if (d && d.error === 'lava_price_mismatch') { _FOREIGN_CACHE[tariff] = d; return d; }
       if (d && d.ok && d.methods && d.methods.length) _FOREIGN_CACHE[tariff] = d;
       return _FOREIGN_CACHE[tariff] || null;
     })
@@ -918,6 +926,10 @@ function fetchForeignMethods(tariff){
 function chooseForeignMethod(tariff, onForeign, foreignGo, onSbp){
   var go = foreignGo || function(m, c){ payForeign(tariff, null, m, c); };
   fetchForeignMethods(tariff).then(function(d){
+    if (d && d.error === 'lava_price_mismatch') {
+      try { tg && tg.showAlert && tg.showAlert('Оплата из-за рубежа на этой позиции временно недоступна — оплати по СБП.'); } catch(e) {}
+      return;
+    }
     if (!d) { (onForeign || function(){ payForeign(tariff); })(); return; }
     var s = _sheet('Оплата из другой страны',
       'Спишут в указанной валюте. Если валюта карты другая — банк ' +
