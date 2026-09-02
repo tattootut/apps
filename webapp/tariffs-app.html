@@ -1305,10 +1305,13 @@
   //     недоступности сервера.
   // Расхождение с MASTER_TARIFFS ловит tests/test_v672_tariff_video_boost.py.
   const FALLBACK_TARIFFS = [
-    { key:'trial',   name:'Trial',  price:499,  old_price:0,    days:7,  sketches:5,   stencils:5,   tryons:3,   extracts:3,   photo_retouch:3,  videos:0, clients_quota:25, animations:0,  demo_pool:25,   popular:false },
+    { key:'trial',   name:'Пробный',  price:499,  old_price:0,    days:7,  sketches:5,   stencils:5,   tryons:3,   extracts:3,   photo_retouch:3,  videos:0, clients_quota:25, animations:0,  demo_pool:25,   popular:false },
     { key:'solo',    name:'Старт',  price:1490, old_price:1990, days:30, sketches:12,  stencils:20,  tryons:5,   extracts:15,  photo_retouch:12, videos:1, clients_quota:5,  animations:1,  demo_pool:100,  popular:false },
     { key:'pro',     name:'Про',    price:2990, old_price:4990, days:30, sketches:40,  stencils:60,  tryons:10,  extracts:40,  photo_retouch:25, videos:2, clients_quota:10, animations:5,  demo_pool:600,  popular:true  },
-    { key:'atelier', name:'Про+', price:4990, old_price:5990, days:30, sketches:70,  stencils:100, tryons:20,  extracts:60,  photo_retouch:40, videos:3, clients_quota:12, animations:8,  demo_pool:1200, popular:false },
+    // 🔴 v1038: было price:4990 против 3990 в MASTER_TARIFFS. Фолбэк живёт,
+    // когда сервер не ответил, — и человек видел цену на 1000 ₽ выше той,
+    // что возьмёт касса. Цена берётся из кода, а не из этой строки.
+    { key:'atelier', name:'Про+', price:3990, old_price:5990, days:30, sketches:70,  stencils:100, tryons:20,  extracts:60,  photo_retouch:40, videos:3, clients_quota:12, animations:8,  demo_pool:1200, popular:false },
     { key:'studio',  name:'Макс',   price:6990, old_price:9990, days:30, sketches:130, stencils:150, tryons:40,  extracts:100, photo_retouch:60, videos:5, clients_quota:15, animations:12, demo_pool:2000, popular:false },
   ];
 
