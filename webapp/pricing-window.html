@@ -397,45 +397,44 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       <div class="ov-packs ov-packs-3">
         <!-- v650: АКЦИЯ феста (утверждено 23.07). База после феста: 99/449/799
              — при выключении PACK_PROMO_PRICING поправить карточки на базу
-             и убрать ov-old. -->
+             и убрать ov-old.
+             🔴 v1038: цены пересинхронизированы с картой после v1006
+             (+5: 329→290, +10: 599→490). До этого витрина показывала старые
+             числа, а касса брала новые — /api/packs перекрывает их только
+             если долетел; при сбое fetch человек видел цену, которой нет. -->
         <button class="vid-pack ov-pack" data-sku="animations_1">
           <span class="ov-q">+1 оживление</span>
-          <span><span class="ov-old">290&nbsp;₽</span><span class="ov-price">69<i>&nbsp;₽</i></span></span>
+          <span><span class="ov-old">290&nbsp;₽</span><span class="ov-price">99<i>&nbsp;₽</i></span></span>
           <span class="ov-note">попробовать</span>
         </button>
         <button class="vid-pack ov-pack ov-best" data-sku="animations_5">
           <span class="ov-flag">выгодно</span>
           <span class="ov-q">+5 оживлений</span>
           <span><span class="ov-old">690&nbsp;₽</span><span class="ov-price">329<i>&nbsp;₽</i></span></span>
-          <span class="ov-note">≈ 66 ₽ за видео</span>
+          <span class="ov-note">≈ 65 ₽ за видео</span>
         </button>
         <button class="vid-pack ov-pack ov-best" data-sku="animations_10">
           <span class="ov-flag">лучший</span>
           <span class="ov-q">+10 оживлений</span>
           <span><span class="ov-old">1990&nbsp;₽</span><span class="ov-price">599<i>&nbsp;₽</i></span></span>
-          <span class="ov-note">≈ 60 ₽ за видео</span>
+          <span class="ov-note">≈ 59 ₽ за видео</span>
         </button>
       </div>
 
       <div style="text-align:center;margin:14px 2px 4px;font-size:10.5px;line-height:1.4;color:var(--text-dim);letter-spacing:.01em">⚠️ Оживление ≠ видео-примерка: в первом двигается РИСУНОК, во втором — КЛИЕНТ (тату статична)</div>
       <div class="ov-sub">🎬 Видео-примерка <span>— оживает ЧЕЛОВЕК, тату статична</span></div>
-      <div class="ov-packs ov-packs-3">
+      <!-- 🔴 v1038: «+10 видео» и «+25 видео» СНЯТЫ с витрины. v1006 пометил
+           их legacy («прямой убыток по единице», 69 и 60 ₽/шт при
+           себестоимости ~40) и выкинул из OVERAGE_SHOWCASE_SKUS — то есть из
+           /api/packs. Но карточки остались в разметке: сервер их цену не
+           обновлял (в payload их нет), а /api/invoice пускает любой ключ из
+           OVERAGE_PACKS — и снятый пак продолжал продаваться по старой цене.
+           Ключи в карте НЕ трогаем: по ним активируются оплаченные счета. -->
+      <div class="ov-packs">
         <button class="vid-pack ov-pack" data-sku="videos_3">
           <span class="ov-q">+3 видео</span>
-          <span><span class="ov-old">690&nbsp;₽</span><span class="ov-price">249<i>&nbsp;₽</i></span></span>
-          <span class="ov-note">≈ 83 ₽ за видео</span>
-        </button>
-        <button class="vid-pack ov-pack ov-best" data-sku="videos_10">
-          <span class="ov-flag">выгодно</span>
-          <span class="ov-q">+10 видео</span>
-          <span><span class="ov-old">1990&nbsp;₽</span><span class="ov-price">690<i>&nbsp;₽</i></span></span>
-          <span class="ov-note">≈ 69 ₽ за видео</span>
-        </button>
-        <button class="vid-pack ov-pack ov-best" data-sku="videos_30">
-          <span class="ov-flag">лучший</span>
-          <span class="ov-q">+25 видео</span>
-          <span><span class="ov-old">4990&nbsp;₽</span><span class="ov-price">1490<i>&nbsp;₽</i></span></span>
-          <span class="ov-note">≈ 60 ₽ за видео</span>
+          <span><span class="ov-old">690&nbsp;₽</span><span class="ov-price">390<i>&nbsp;₽</i></span></span>
+          <span class="ov-note">≈ 130 ₽ за видео</span>
         </button>
       </div>
     </section>
@@ -1037,7 +1036,9 @@ const FALLBACK_QUOTAS = {
   trial:   {price:499,  days:7,  sketches:5,   tryons:3,   stencils:5,   extracts:3,   photo_retouch:3,  videos:0, animations:0,  demo_pool:25},
   solo:    {price:1490, days:30, sketches:12,  tryons:5,   stencils:20,  extracts:15,  photo_retouch:12, videos:1, animations:1,  demo_pool:100},
   pro:     {price:2990, days:30, sketches:40,  tryons:10,  stencils:60,  extracts:40,  photo_retouch:25, videos:2, animations:5,  demo_pool:600},
-  atelier: {price:4990, days:30, sketches:70,  tryons:20,  stencils:100, extracts:60,  photo_retouch:40, videos:3, animations:8,  demo_pool:1200},
+  // 🔴 v1038: 4990 против 3990 в MASTER_TARIFFS — тот же расхождённый фолбэк,
+  // что и в tariffs-app. Правится вместе с кодом, не отдельно.
+  atelier: {price:3990, days:30, sketches:70,  tryons:20,  stencils:100, extracts:60,  photo_retouch:40, videos:3, animations:8,  demo_pool:1200},
   studio:  {price:6990, days:30, sketches:130, tryons:40,  stencils:150, extracts:100, photo_retouch:60, videos:5, animations:12, demo_pool:2000},
 };
 
