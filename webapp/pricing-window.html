@@ -580,11 +580,14 @@ let SUB_OFFER = false;
 const LIVE_PRICES = {};
 /* Подписи способов — по правде: подписку сохраняет ТОЛЬКО СБП (живой факт
    31.08: SberPay и TPay отвечают 400 «can't be saved for recurring»). */
+/* v1058 (владелец 02.09): слов «разово / без продления» на листе нет —
+   подписка только с продлением, а при подписке лист показывает ОДИН
+   способ (СБП — единственный, который сохраняет способ оплаты). */
 function payMethodLabel(m, isSub){
   if (m.id === 'sbp') return isSub ? '⚡️ СБП — подписка, продлевается сама'
-                                   : '⚡️ СБП — любой банк · разово';
-  if (m.id === 'sberbank') return '💚 SberPay — разово, без продления';
-  return '🟡 TPay — Т-Банк — разово, без продления';
+                                   : '⚡️ СБП — любой банк';
+  if (m.id === 'sberbank') return '💚 SberPay';
+  return '🟡 TPay — Т-Банк';
 }
 function payMethodSubtitle(isSub, info){
   var i = info || {};
@@ -609,7 +612,11 @@ function askPayMethod(isSub, info){
     try {
       var s = _sheet(isSub ? 'Подписка · как удобно оплатить?' : 'Как удобно оплатить?',
         payMethodSubtitle(!!isSub, info));
-      PAY_METHODS.forEach(function(m){
+      // v1058: подписка = только СБП (SberPay/TPay способ не сохраняют);
+      // разовые покупки (пробный, дожим «один раз») — все три способа.
+      var _methods = isSub ? PAY_METHODS.filter(function(m){ return m.id === 'sbp'; })
+                           : PAY_METHODS;
+      _methods.forEach(function(m){
         s.mkBtn(payMethodLabel(m, !!isSub), '', function(){ resolve(m.id); });
       });
       s.mkBtn('Отмена', '', function(){ resolve(''); });
@@ -647,6 +654,18 @@ async function openPaidInvoice(tariffKey, extraQ){
   // v1051: подписка оформляется только если сервер сказал sub_on, это не
   // разовый дожим (once=1) и не пробный — те же условия, что у
   // save_payment_method в _yookassa_create_payment.
+  // v1058: подпись листа не зависит от гонки с /api/cabinet — ждём ответ
+  // сервера (до 4 с); не дождались или не получили — спрашиваем ещё раз.
+  // Иначе быстрый тап после открытия витрины читал «разово» у пилота,
+  // хотя счёт с сервера уходил подписочным (владелец 02.09, скриншот).
+  try { await Promise.race([HYDRATED, new Promise(function(r){ setTimeout(r, 4000); })]); } catch(e) {}
+  if (!SUB_OFFER && tg.initData) {
+    try {
+      const _r2 = await fetch(BOT_API_BASE + '/api/cabinet?initData='
+        + encodeURIComponent(tg.initData), { method:'GET', cache:'no-store' });
+      if (_r2.ok) { const _d2 = await _r2.json(); SUB_OFFER = !!(_d2 && _d2.sub_on); }
+    } catch(e) { console.warn('[pricing] sub_on recheck failed', e); }
+  }
   const _isSub = !!SUB_OFFER && !/once=1/.test(extraQ || '') && tariffKey !== 'trial';
   const _info = { title: (PRESENT[tariffKey] || {}).name || '',
                   price: LIVE_PRICES[tariffKey] || 0 };
@@ -1198,7 +1217,7 @@ renderStack(FALLBACK_QUOTAS);
 // Живые квоты приходят полем `tariffs` в /api/cabinet (_public_tariffs_payload).
 // Ключи, скрытые из витрины на бэкенде (premium, pro_intro, pmu_*), сюда не
 // попадают — поэтому снятый тариф не может всплыть на витрине через payload.
-(async function hydrateTariffs(){
+const HYDRATED = (async function hydrateTariffs(){
   if (!tg || !tg.initData) return;
   try {
     const r = await fetch(BOT_API_BASE + '/api/cabinet?initData='
