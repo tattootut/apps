@@ -572,6 +572,28 @@ const PAY_METHODS = [
   { id: 'sberbank',     label: '💚 SberPay' },
   { id: 'tinkoff_bank', label: '🟡 TPay — Т-Банк' },
 ];
+/* v1051 (этап 1 подписки): правда о подписке приходит С СЕРВЕРА (sub_on из
+   /api/cabinet — та же дверь, что ставит save_payment_method). Дефолт false:
+   первый кадр рисуется до ответа сервера и не должен обещать. Живые цены
+   тарифов — для подзаголовка листа с суммой и периодом. */
+let SUB_OFFER = false;
+const LIVE_PRICES = {};
+/* Подписи способов — по правде: подписку сохраняет ТОЛЬКО СБП (живой факт
+   31.08: SberPay и TPay отвечают 400 «can't be saved for recurring»). */
+function payMethodLabel(m, isSub){
+  if (m.id === 'sbp') return isSub ? '⚡️ СБП — подписка, продлевается сама'
+                                   : '⚡️ СБП — любой банк · разово';
+  if (m.id === 'sberbank') return '💚 SberPay — разово, без продления';
+  return '🟡 TPay — Т-Банк — разово, без продления';
+}
+function payMethodSubtitle(isSub, info){
+  var i = info || {};
+  if (isSub && i.price) {
+    return (i.title ? i.title + ': ' : '') + i.price + ' ₽ сейчас по СБП, дальше '
+      + 'каждые 30 дней автоматически. Отключить — один тап в кабинете.';
+  }
+  return 'Откроется приложение вашего банка — подтвердите платёж там.';
+}
 
 /* v1041: СВОЙ ЛИСТ ВМЕСТО СИСТЕМНОГО ПОПАПА.
    Владелец 31.08: «нельзя выйти из этого окна — можно выбрать любой из
@@ -582,13 +604,13 @@ const PAY_METHODS = [
    окно стоит ровно на их пути.
    Лист `_sheet` уже используется на этом экране («Способ оплаты» → СБП /
    заграница / Отмена) — берём готовое, а не заводим второй механизм. */
-function askPayMethod(){
+function askPayMethod(isSub, info){
   return new Promise(resolve => {
     try {
-      var s = _sheet('Как удобно оплатить?',
-        'Откроется приложение вашего банка — подтвердите платёж там.');
+      var s = _sheet(isSub ? 'Подписка · как удобно оплатить?' : 'Как удобно оплатить?',
+        payMethodSubtitle(!!isSub, info));
       PAY_METHODS.forEach(function(m){
-        s.mkBtn(m.label, '', function(){ resolve(m.id); });
+        s.mkBtn(payMethodLabel(m, !!isSub), '', function(){ resolve(m.id); });
       });
       s.mkBtn('Отмена', '', function(){ resolve(''); });
       // Тап по фону — первый рефлекс на телефоне; для нас это тоже отказ.
@@ -622,7 +644,13 @@ async function openPaidInvoice(tariffKey, extraQ){
   // и человек на телефоне попадал на страницу «отсканируйте QR в мобильном
   // приложении банка». Сканировать нечем: телефон один. Комментарий рядом
   // годами утверждал «там выбор банка» — это было неправдой.
-  const _pm = await askPayMethod();
+  // v1051: подписка оформляется только если сервер сказал sub_on, это не
+  // разовый дожим (once=1) и не пробный — те же условия, что у
+  // save_payment_method в _yookassa_create_payment.
+  const _isSub = !!SUB_OFFER && !/once=1/.test(extraQ || '') && tariffKey !== 'trial';
+  const _info = { title: (PRESENT[tariffKey] || {}).name || '',
+                  price: LIVE_PRICES[tariffKey] || 0 };
+  const _pm = await askPayMethod(_isSub, _info);
   if (!_pm) return true;                       // закрыл выбор — не ошибка
   const apiUrl = BOT_API_BASE + '/api/invoice?' + _q757
     + '&tariff=' + encodeURIComponent(tariffKey)
@@ -1148,7 +1176,7 @@ function row(t, i){
         ${priceEl}
         <span class="u">/ ${t.period}</span>
         ${t.perDay ? `<span class="ph">≈ ${t.perDay}&nbsp;₽ / день</span>` : ''}
-        ${t.trial ? '' : '<span class="sub-badge">ПОДПИСКА · ОТКЛЮЧАЕТСЯ В 1 ТАП</span>'}
+        ${(t.trial || !SUB_OFFER) ? '' : '<span class="sub-badge">ПОДПИСКА · ОТКЛЮЧАЕТСЯ В 1 ТАП</span>'}
       </div>
       <div class="arrow"><svg><use href="#i-arrow"/></svg></div>
     </div>`;
@@ -1178,6 +1206,10 @@ renderStack(FALLBACK_QUOTAS);
     if (!r.ok) return;
     const d = await r.json();
     const list = (d && d.tariffs) || [];
+    // v1051: подписка при покупке — по правде с сервера; живые цены — для
+    // подзаголовка листа способов (сумма и период).
+    SUB_OFFER = !!(d && d.sub_on);
+    list.forEach(t => { if (t && t.key) LIVE_PRICES[t.key] = +t.price || 0; });
     if (!list.length) return;
     const live = {};
     list.forEach(t => {

@@ -2161,7 +2161,19 @@
             bindBtn._bound = true;
             bindBtn.addEventListener('click', function() {
               if (window.posthog) posthog.capture('cabinet_bind_card_click', {});
-              startCardBind();   // v254: робастный /api/bind-card → openLink
+              // v1051 (этап 1): подписка не включается молча — человек
+              // подтверждает сумму и период до похода в банк. Сумма из
+              // блока подписки с сервера (одна дверь с самим списанием).
+              var _amt = (sub && (sub.next_amount || sub.amount)) || '';
+              var _ttl = (sub && (sub.next_title || sub.title)) || 'текущий тариф';
+              var _msg = 'Подключить подписку: ' + _ttl
+                + (_amt ? ' — ' + _amt + ' ₽' : '') + ' раз в 30 дней, '
+                + 'списание автоматически по СБП. Отключить — один тап здесь же.';
+              if (tg && tg.showConfirm) {
+                tg.showConfirm(_msg, function(ok){ if (ok) startCardBind(); });
+              } else if (window.confirm(_msg)) {
+                startCardBind();   // v254: робастный /api/bind-card → openLink
+              }
             });
           }
         } else {
