@@ -52,15 +52,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .pill-back{display:inline-flex;align-items:center;gap:7px;padding:8px 13px 8px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border-2);font-family:Oswald,sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600;cursor:pointer;transition:var(--tap)}
 .pill-back:hover,.pill-back:active{color:var(--text);border-color:var(--accent);background:var(--surface-2)}
 .pill-back svg{color:var(--accent)}
-/* v114: узкая неброская кнопка отмены подписки — на всю ширину, плоская,
-   приглушённая, не конкурирует с CTA тарифов. */
-.cancel-sub{display:block;width:100%;margin-top:20px;padding:11px 14px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text-dim);font-family:Inter,sans-serif;font-size:12px;letter-spacing:.03em;text-align:center;cursor:pointer;transition:var(--tap)}
-.cancel-sub:active{background:var(--surface);color:var(--text-muted)}
-/* v257: «Привязать карту» = ЯРКИЙ primary-CTA (владелец: «тусклая, незаметная»).
-   Отвязка остаётся приглушённой (.cancel-sub). Класс ставится в renderCardButton. */
-.cancel-sub.bind-card-cta{background:var(--accent);border:none;color:#0a0a0a;font-weight:700;font-size:14px;padding:15px 14px;letter-spacing:0;box-shadow:0 0 18px var(--accent-glow)}
-.cancel-sub.bind-card-cta:active{background:var(--accent-2);color:#0a0a0a}
-.unbind-note{margin-top:8px;text-align:center;font-size:10px;line-height:1.4;color:var(--text-dim);letter-spacing:.02em}
+/* v1064: кнопка подписки под витриной снята вместе со своими стилями —
+   включает и выключает подписку кабинет (tariffs-app, блок «Подписка»). */
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(196,240,0,.55)}70%{box-shadow:0 0 0 6px rgba(196,240,0,0)}100%{box-shadow:0 0 0 0 rgba(196,240,0,0)}}
 
 /* ─── Hero ─────────────────────────────────────────────────────── */
@@ -158,8 +151,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .row.free .r .new{color:var(--accent)}
 .row .r .u{font-size:11px;color:var(--text-muted);letter-spacing:.04em;text-transform:lowercase;margin-top:3px}
 .row .r .ph{font-family:Oswald,sans-serif;font-weight:600;font-size:11px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-top:6px;padding:3px 7px;background:rgba(196,240,0,.08);border-radius:6px}
-/* v1004: подписочный бейдж под ценой (solo/pro/studio, триал — без него) */
-.row .r .sub-badge{font-family:Oswald,sans-serif;font-weight:600;font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);background:rgba(196,240,0,.1);border:1px solid rgba(196,240,0,.35);border-radius:6px;padding:3px 7px;margin-top:6px;text-align:right;line-height:1.45;max-width:130px}
 
 .row .arrow{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.04);display:grid;place-items:center;color:var(--text-muted);flex:0 0 auto;transition:var(--tap);z-index:1}
 .row.hit .arrow{background:var(--accent);color:#0b1208}
@@ -168,10 +159,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 /* ─── Footer & trust ───────────────────────────────────────────── */
 .bottom{margin-top:24px;display:flex;flex-direction:column;gap:14px}
-.trust{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px 18px;color:var(--text-muted);font-size:11.5px;letter-spacing:.02em;padding:0 4px;line-height:1.5}
-.trust .item{display:inline-flex;align-items:center;gap:6px}
-.trust .item svg{width:13px;height:13px;color:var(--accent-2);flex:0 0 auto}
-.trust .dot{width:3px;height:3px;border-radius:50%;background:var(--text-dim)}
 
 .cta-link{display:flex;justify-content:center;align-items:center;gap:6px;padding:6px;color:var(--text-muted);font-size:12.5px;letter-spacing:.02em}
 .cta-link a{color:var(--text);border-bottom:1px dashed var(--text-dim);padding-bottom:1px;display:inline-flex;align-items:center;gap:4px}
@@ -259,11 +246,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     <circle cx="120" cy="90" r="14" fill="#C4F000"/>
   </symbol>
   <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
-  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></symbol>
-  <symbol id="i-cancel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v8h8"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.01"/></symbol>
   <!-- v84: иконки для блока «4 шага что делает бот» -->
   <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
@@ -439,6 +423,90 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       </div>
     </section>
 
+    <!-- v1064: ДОКУПКИ ВСЕХ ОСЕЙ. В карте OVERAGE_PACKS давно живут паки
+         эскизов / трансферов / примерок / извлечений / ретуши, а витрина
+         рисовала только оживления и «+3 видео» — человек с деньгами и
+         выеденной квотой упирался в «нечего купить» (класс дыры v793/v1001).
+         Карточки того же класса, что видео: vid-pack + data-sku → общий
+         обработчик выше (openPaidInvoice). Цены и «≈ за штуку» — с сервера
+         (гидрация ниже); статика в разметке = снимок карты ТЕКУЩЕГО режима
+         на случай недоступности API (сторож test_круг4_showcase_matches_
+         current_mode держит её равной карте). «За штуку» числом не пишем —
+         считается из цены и data-qty. Якорь #addons — сюда ведёт CTA
+         «докупить» из кабинета. -->
+    <section class="ov-block" id="addons">
+      <div class="ov-head">
+        <div class="ov-ico">➕</div>
+        <div class="ov-titles">
+          <h3 class="ov-title">Докупить к&nbsp;тарифу</h3>
+          <p class="ov-hook">Квота кончилась раньше месяца — добери нужное, тариф менять не нужно. Зачислим сразу после оплаты.</p>
+        </div>
+      </div>
+
+      <div class="ov-sub">✍️ Эскизы <span>— идея клиента → готовый эскиз</span></div>
+      <div class="ov-packs ov-packs-2">
+        <button class="vid-pack ov-pack" data-sku="sketches_5" data-qty="5">
+          <span class="ov-q">+5 эскизов</span>
+          <span><span class="ov-price">590<i>&nbsp;₽</i></span></span>
+          <span class="ov-note" data-unit="эскиз"></span>
+        </button>
+        <button class="vid-pack ov-pack" data-sku="sketches_10" data-qty="10">
+          <span class="ov-flag">дешевле за штуку</span>
+          <span class="ov-q">+10 эскизов</span>
+          <span><span class="ov-price">990<i>&nbsp;₽</i></span></span>
+          <span class="ov-note" data-unit="эскиз"></span>
+        </button>
+      </div>
+
+      <div class="ov-sub">📐 Трансферы <span>— эскиз → трафарет под перенос</span></div>
+      <div class="ov-packs ov-packs-2">
+        <button class="vid-pack ov-pack" data-sku="stencils_20" data-qty="20">
+          <span class="ov-q">+20 трансферов</span>
+          <span><span class="ov-price">290<i>&nbsp;₽</i></span></span>
+          <span class="ov-note" data-unit="трансфер"></span>
+        </button>
+        <button class="vid-pack ov-pack" data-sku="stencils_50" data-qty="50">
+          <span class="ov-flag">дешевле за штуку</span>
+          <span class="ov-q">+50 трансферов</span>
+          <span><span class="ov-price">590<i>&nbsp;₽</i></span></span>
+          <span class="ov-note" data-unit="трансфер"></span>
+        </button>
+      </div>
+
+      <div class="ov-sub">🖼 Примерки <span>— эскиз на фото клиента</span></div>
+      <div class="ov-packs">
+        <button class="vid-pack ov-pack" data-sku="tryons_10" data-qty="10">
+          <span class="ov-q">+10 примерок</span>
+          <span><span class="ov-price">290<i>&nbsp;₽</i></span></span>
+          <span class="ov-note" data-unit="примерку"></span>
+        </button>
+      </div>
+
+      <div class="ov-sub">🧲 Извлечения <span>— вытащить эскиз из фото тату</span></div>
+      <div class="ov-packs">
+        <button class="vid-pack ov-pack" data-sku="extracts_20" data-qty="20">
+          <span class="ov-q">+20 извлечений</span>
+          <span><span class="ov-price">390<i>&nbsp;₽</i></span></span>
+          <span class="ov-note" data-unit="извлечение"></span>
+        </button>
+      </div>
+
+      <div class="ov-sub">✨ Улучшить фото <span>— фото работы как из студии</span></div>
+      <div class="ov-packs ov-packs-2">
+        <button class="vid-pack ov-pack" data-sku="retouch_10" data-qty="10">
+          <span class="ov-q">+10 фото</span>
+          <span><span class="ov-price">290<i>&nbsp;₽</i></span></span>
+          <span class="ov-note" data-unit="фото"></span>
+        </button>
+        <button class="vid-pack ov-pack" data-sku="retouch_25" data-qty="25">
+          <span class="ov-flag">дешевле за штуку</span>
+          <span class="ov-q">+25 фото</span>
+          <span><span class="ov-price">590<i>&nbsp;₽</i></span></span>
+          <span class="ov-note" data-unit="фото"></span>
+        </button>
+      </div>
+    </section>
+
   </div>
   <script>
     // v369: vid-pack → openPaidInvoice (SBP QR без закрытия Mini App).
@@ -485,17 +553,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   </div>
 
   <div class="bottom fade-in" style="animation-delay:600ms">
-    <!-- v1004: trust-строка про подписку (тексты — из утверждённого макета) -->
-    <div class="trust">
-      <span class="item"><svg><use href="#i-cancel"/></svg>продление само</span>
-      <span class="dot"></span>
-      <span class="item"><svg><use href="#i-clock"/></svg>дата списания — в кабинете</span>
-    </div>
-    <div class="trust" style="margin-top:5px">
-      <span class="item"><svg><use href="#i-zap"/></svg>отмена — один тап</span>
-      <span class="dot"></span>
-      <span class="item"><svg><use href="#i-shield"/></svg>квитанция в чат</span>
-    </div>
+    <!-- v1064: trust-строки про подписку и кнопка подписки под витриной
+         сняты. О подписке витрина говорит в ОДНОМ месте — на листе способов
+         оплаты (askPayMethod: сумма, период, где выключить), а включает и
+         выключает её кабинет (tariffs-app, блок «Подписка»). Две правды на
+         двух экранах расходились при каждой правке текстов. -->
     <!-- v766: акцепт публичной оферты — без этой строки документ не
          связывает покупателя (дыра найдена 07.08 на кейсе возврата). -->
     <div style="text-align:center;margin-top:8px;font-size:11.5px;opacity:.55">
@@ -508,12 +570,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
          оставлена как deprecated и не используется в routing. -->
 
   </div>
-
-  <!-- v117: отвязка + отмена автопродления (для скриншота ЮKassa).
-       v1004: текст кнопки — «Отключить подписку», слово «карта» в клиентских
-       текстах заменено на «способ оплаты» (путь может быть СБП). -->
-  <button class="cancel-sub" id="cancelSub">Отключить подписку</button>
-  <div class="unbind-note">ТАТУ&nbsp;ТУТ · @ta2_blockbot — способ оплаты удаляется на нашей стороне сразу при нажатии</div>
 </div>
 
 <script>
@@ -545,6 +601,20 @@ const BOT_API_BASE = 'https://worker-production-c1cb.up.railway.app';
     // сторож-тест держит их равными карте ТЕКУЩЕГО режима (рассинхрон =
     // красный pre-commit → HTML правится в день флипа).
     (function(){
+      // v1064: «≈ N ₽ за штуку» на карточках докупок (#addons) считается из
+      // цены и объёма (data-qty в разметке / qty из payload), а не пишется
+      // числом: иначе при переоценке карточка врала бы про штуку, показывая
+      // при этом живую цену пака.
+      function fillUnitNote(b, price, qty){
+        var n = b.querySelector('.ov-note[data-unit]');
+        var q = parseInt(qty || b.getAttribute('data-qty') || '0', 10);
+        if (!n || !q || !price) return;
+        n.textContent = '≈ ' + Math.round(price / q) + ' ₽ за ' + n.getAttribute('data-unit');
+      }
+      document.querySelectorAll('.ov-pack[data-sku][data-qty]').forEach(function(b){
+        var el = b.querySelector('.ov-price');
+        fillUnitNote(b, parseInt((el && el.textContent) || '0', 10), 0);
+      });
       fetch(BOT_API_BASE + '/api/packs').then(function(r){ return r.json(); })
         .then(function(d){
           if (!d || !d.packs) return;
@@ -559,6 +629,7 @@ const BOT_API_BASE = 'https://worker-production-c1cb.up.railway.app';
             } else if (oldEl) {
               oldEl.remove();          // база: зачёркнутых нет
             }
+            fillUnitNote(b, +p.price, +p.qty);
           });
         }).catch(function(e){ console.warn('[pricing] /api/packs', e); });
     })();
@@ -1068,7 +1139,8 @@ const fmt = n => new Intl.NumberFormat('ru-RU').format(n).replace(/,/g,' ');
 // Было: витрина держала свою копию квот и цен. Файл лежит на GitHub Pages и
 // кэшируется, поэтому после правки MASTER_TARIFFS человек ещё сутками видел
 // старый состав — а платил и получал новый. При этом страница УЖЕ ходила в
-// /api/cabinet (за has_card) и выбрасывала пришедший payload `tariffs`.
+// /api/cabinet (за флагом сохранённого способа оплаты) и выбрасывала
+// пришедший payload `tariffs`.
 // Стало: PRESENT — только презентация (имена, оси способностей, флагман-блоки,
 // порядок). Все КОЛИЧЕСТВА и ЦЕНЫ берутся из ответа сервера
 // (_public_tariffs_payload ← MASTER_TARIFFS). FALLBACK_QUOTAS ниже — снимок на
@@ -1129,7 +1201,7 @@ const FALLBACK_QUOTAS = {
   // 🔴 v1038: 4990 против 3990 в MASTER_TARIFFS — тот же расхождённый фолбэк,
   // что и в tariffs-app. Правится вместе с кодом, не отдельно.
   atelier: {price:3990, days:30, sketches:100,  tryons:20,  stencils:100, extracts:60,  photo_retouch:40, videos:3, animations:8,  demo_pool:1200},
-  studio:  {price:6990, days:30, sketches:130, tryons:40,  stencils:150, extracts:100, photo_retouch:60, videos:5, animations:12, demo_pool:2000},
+  studio:  {price:6990, days:30, sketches:150, tryons:40,  stencils:150, extracts:100, photo_retouch:60, videos:5, animations:12, demo_pool:2000},
 };
 
 // Куда вести, когда оси у тарифа нет: ищем САМЫЙ ДЕШЁВЫЙ тариф витрины, где она
@@ -1238,7 +1310,6 @@ function row(t, i){
         ${priceEl}
         <span class="u">/ ${t.period}</span>
         ${t.perDay ? `<span class="ph">≈ ${t.perDay}&nbsp;₽ / день</span>` : ''}
-        ${(t.trial || !SUB_OFFER) ? '' : '<span class="sub-badge">ПОДПИСКА · ОТКЛЮЧАЕТСЯ В 1 ТАП</span>'}
       </div>
       <div class="arrow"><svg><use href="#i-arrow"/></svg></div>
     </div>`;
@@ -1307,108 +1378,13 @@ document.body.addEventListener('click', e => {
   send(action, tariff ? { tariff } : {});
 });
 
-// Task 3 (03.06): ОДНА кнопка ПО СОСТОЯНИЮ has_card (тексты v1004):
-//   has_card === true  → «🔕 Отключить подписку» (cancel-subscription flow);
-//   has_card !== true  → «💳 Сохранить способ оплаты» (bind flow).
-// has_card придёт в payload /api/cabinet (код-сессия добавит поле). Пока его нет
-// — fallback на autorenew_active (карта сохранена ⇒ автопродление активно).
-// ⚠️ TODO (код-сессия): (1) добавить has_card в _build_cabinet_payload;
-// (2) эндпоинт /api/bind-card ИЛИ start-param bind_card → _yookassa_create_card_payment.
-(function(){
-  const btn = document.getElementById('cancelSub');
-  const note = document.querySelector('.unbind-note');
-  if (!btn) return;
-
-  async function doUnbind(){
-    if (!tg || !tg.initData) { tg?.showAlert?.('Открой через Telegram.'); return; }
-    const confirmed = await new Promise(res => {
-      if (tg.showConfirm) {
-        tg.showConfirm('Отключить подписку? Списаний больше не будет, доступ сохранится '
-          + 'до конца оплаченного периода.', res);
-      } else { res(window.confirm('Отключить подписку? Списаний больше не будет, '
-          + 'доступ сохранится до конца оплаченного периода.')); }
-    });
-    if (!confirmed) return;
-    btn.textContent = 'Отключаем…';
-    try {
-      const r = await fetch(BOT_API_BASE + '/api/cancel-subscription?initData='
-        + encodeURIComponent(tg.initData), { method: 'GET' });
-      const d = await r.json().catch(() => ({}));
-      if (r.ok && d.ok) {
-        try { tg.HapticFeedback?.notificationOccurred('success'); } catch(_){}
-        tg.showAlert?.(d.message || 'Подписка отключена. Списаний больше не будет.');
-        btn.textContent = 'Подписка отключена'; btn.disabled = true;
-      } else if (d.error === 'no_active_subscription') {
-        tg.showAlert?.('Нет сохранённого способа оплаты или активной подписки.');
-        renderCardButton(false);
-      } else {
-        tg.showAlert?.('Не получилось отвязать. Напиши в поддержку.');
-        renderCardButton(true);
-      }
-    } catch(e) {
-      console.error('[pricing] cancel failed', e);
-      tg.showAlert?.('Ошибка сети. Попробуй позже.'); renderCardButton(true);
-    }
-  }
-
-  async function doBind(){
-    // v254: РОБАСТНАЯ привязка — fetch /api/bind-card → tg.openLink (страница
-    // ЮKassa, 1₽ save_payment_method). Раньше deep-link ?start=bind_card из
-    // Mini App к своему же боту НЕ перезапускал /start → «кнопка не работает».
-    const initData = (tg && tg.initData) ? tg.initData : '';
-    if (!initData) { tg?.showAlert?.('Открой через Telegram.'); return; }
-    try {
-      const r = await fetch(BOT_API_BASE + '/api/bind-card?initData=' + encodeURIComponent(initData));
-      const data = await r.json().catch(() => ({}));
-      // v1021: способ уже сохранён → бэкенд ВКЛЮЧИЛ подписку (ветка
-      // already_bound в /api/bind-card). Показываем его ответ и
-      // перерисовываем кнопку — иначе экран остаётся в прошлом состоянии и
-      // человек жмёт второй раз, думая что не сработало.
-      if (data && data.already_bound) {
-        tg?.showAlert?.(data.message || 'Способ оплаты уже сохранён ✅');
-        if (data.resumed || data.subscribed) { try { renderCardButton(true); } catch(e) {} }
-        return;
-      }
-      if (r.ok && data && data.url) {
-        if (tg && tg.openLink) { tg.openLink(data.url); return; }
-        window.location.href = data.url; return;
-      }
-      tg?.showAlert?.((data && data.message) || 'Не получилось открыть сохранение способа оплаты.');
-    } catch(e) {
-      console.error('[pricing] bind failed', e);
-      tg?.showAlert?.('Ошибка сети. Попробуй позже.');
-    }
-  }
-
-  function renderCardButton(hasCard){
-    btn.disabled = false;
-    btn.classList.toggle('bind-card-cta', !hasCard);  // v257: ярко когда «Сохранить способ оплаты»
-    if (hasCard) {
-      btn.textContent = '🔕 Отключить подписку';
-      btn.onclick = doUnbind;
-      if (note) note.textContent = 'Способ оплаты удаляется на нашей стороне сразу при нажатии · ТАТУ ТУТ · @ta2_blockbot';
-    } else {
-      btn.textContent = '💳 Сохранить способ оплаты';
-      btn.onclick = doBind;
-      if (note) note.textContent = 'Подключи подписку — не теряй доступ и канал заявок, когда период закончится';
-    }
-  }
-
-  // Дефолт «Привязать» (безопаснее ложного «Отвязать» для юзера без карты —
-  // это и была жалоба владельца). Затем уточняем по /api/cabinet.
-  renderCardButton(false);
-  (async function detectCard(){
-    if (!tg || !tg.initData) return;
-    try {
-      const r = await fetch(BOT_API_BASE + '/api/cabinet?initData='
-        + encodeURIComponent(tg.initData), { method: 'GET', cache: 'no-store' });
-      if (!r.ok) return;
-      const d = await r.json();
-      const hasCard = (d && d.has_card !== undefined) ? !!d.has_card : !!(d && d.autorenew_active);
-      renderCardButton(hasCard);
-    } catch(_){}
-  })();
-})();
+// v1064: кнопка «Сохранить способ оплаты / выключить подписку» и её скрипт
+// (bind/unbind поверх /api/cabinet и ручек привязки и отмены) сняты с
+// витрины. Витрина говорит о подписке в ОДНОМ месте — на листе
+// способов оплаты (askPayMethod / payMethodSubtitle), а включает и
+// выключает подписку кабинет (tariffs-app: #autorenewBox, #autorenewOffBtn,
+// #bindCardBtn). Пока кнопка жила здесь, два экрана держали две правды и
+// расходились при каждой правке текстов.
 
 /* ═══ v1015: РЕЖИМЫ КОНЦА ПРОБНОГО — весь путь в мини-аппе ═══════════════
    Заказ владельца 30.08: человека не гоняем чат↔мини-апп. Пуш в чате —

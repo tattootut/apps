@@ -509,9 +509,10 @@
   .expiry-banner { border-color: rgba(216,72,74,0.5) !important; box-shadow: 0 0 18px rgba(216,72,74,0.10); }
   .expiry-banner .card-label { color: #FFAA88 !important; }
 
-  /* v214: AUTORENEW BOX — индикатор автопродления (информационный, преchecked).
-     Чекбокс не управляет реальной логикой — реальное отключение через
-     cancel-flow в pricing-window. Здесь — для прозрачности «как это работает». */
+  /* v214: AUTORENEW BOX — блок подписки. v1004: чекбокс заменён кнопкой
+     «🔕 Отключить подписку» (cancel-flow с retention). v1064: с витрины
+     (pricing-window) кнопка подписки снята — этот блок единственный
+     выключатель и включатель подписки. */
   .autorenew-box { padding: 14px 16px; }
 
   /* TRYON-LINKS (🔗 Ссылки примерки) — v145 ─────────────
@@ -1307,12 +1308,12 @@
   const FALLBACK_TARIFFS = [
     { key:'trial',   name:'Пробный',  price:499,  old_price:0,    days:7,  sketches:5,   stencils:5,   tryons:3,   extracts:3,   photo_retouch:3,  videos:0, clients_quota:25, animations:0,  demo_pool:25,   popular:false },
     { key:'solo',    name:'Старт',  price:1490, old_price:1990, days:30, sketches:12,  stencils:20,  tryons:5,   extracts:15,  photo_retouch:12, videos:1, clients_quota:5,  animations:1,  demo_pool:100,  popular:false },
-    { key:'pro',     name:'Про',    price:2990, old_price:4990, days:30, sketches:40,  stencils:60,  tryons:10,  extracts:40,  photo_retouch:25, videos:2, clients_quota:10, animations:5,  demo_pool:600,  popular:true  },
+    { key:'pro',     name:'Про',    price:2990, old_price:4990, days:30, sketches:60,  stencils:60,  tryons:10,  extracts:40,  photo_retouch:25, videos:2, clients_quota:10, animations:5,  demo_pool:600,  popular:true  },
     // 🔴 v1038: было price:4990 против 3990 в MASTER_TARIFFS. Фолбэк живёт,
     // когда сервер не ответил, — и человек видел цену на 1000 ₽ выше той,
     // что возьмёт касса. Цена берётся из кода, а не из этой строки.
-    { key:'atelier', name:'Про+', price:3990, old_price:5990, days:30, sketches:70,  stencils:100, tryons:20,  extracts:60,  photo_retouch:40, videos:3, clients_quota:12, animations:8,  demo_pool:1200, popular:false },
-    { key:'studio',  name:'Макс',   price:6990, old_price:9990, days:30, sketches:130, stencils:150, tryons:40,  extracts:100, photo_retouch:60, videos:5, clients_quota:15, animations:12, demo_pool:2000, popular:false },
+    { key:'atelier', name:'Про+', price:3990, old_price:5990, days:30, sketches:100,  stencils:100, tryons:20,  extracts:60,  photo_retouch:40, videos:3, clients_quota:12, animations:8,  demo_pool:1200, popular:false },
+    { key:'studio',  name:'Макс',   price:6990, old_price:9990, days:30, sketches:150, stencils:150, tryons:40,  extracts:100, photo_retouch:60, videos:5, clients_quota:15, animations:12, demo_pool:2000, popular:false },
   ];
 
   // v672: последний ЖИВОЙ payload тарифов (из /api/cabinet). Всё, что
@@ -2021,6 +2022,17 @@
     } catch (e) {}
   }
 
+  // v1064: CTA «докупить» ведёт в витрину, к секции докупок (#addons): цены
+  // там живые (/api/packs) и продаются все оси. Раньше кнопка уходила
+  // deep-link'ом в @tatututbot на пак tryons_50, снятый с продажи в v1006,
+  // с ценой, вписанной в текст.
+  function goAddons() {
+    try {
+      window.location.assign('pricing-window.html?v=931&current='
+        + encodeURIComponent(CURRENT_TARIFF_KEY || '') + '#addons');
+    } catch (e) {}
+  }
+
   // v217 (LAUNCH-BLOCKER #4): включён ли реальный retention-ops pipeline
   // (discount30/pause30/downgrade_lite). default false — пока YooKassa
   // вручную не подключён, сервер вернёт 503 на эти ветки. Чтобы не врать
@@ -2029,9 +2041,9 @@
   // в applyCabinet.
   let RETENTION_OPS_ACTIVE = false;
 
-  // v214: bind autorenew checkbox onChange — если юзер дернул чекбокс,
-  // ведём его на cancel-flow (тот же путь что и кнопка в pricing-window).
-  // Сам тогл visual-only — реальное отключение через showPopup 3-shot retention.
+  // v214: bind autorenew box — тап по кнопке ведёт на cancel-flow
+  // (showPopup 3-shot retention). v1064: витрина кнопки подписки больше не
+  // держит — этот блок единственный вход в отключение.
   let _autorenewBound = false;
   function bindAutorenewBox() {
     if (_autorenewBound) return;
@@ -2460,9 +2472,10 @@
   }
 
   // v214: ─── 3-SHOT RETENTION CANCEL FLOW ───────────────────
-  // Когда юзер хочет отменить (через checkbox autorenew или через
-  // pricing-window cancel-sub button) — сначала показываем 3 ретеншн-оффера,
-  // и только потом «всё равно отменить». Каждый шаг — отдельный showPopup.
+  // Когда юзер хочет отменить (кнопка «🔕 Отключить подписку» в блоке
+  // подписки кабинета; v1064: с витрины кнопка снята, вход только здесь) —
+  // сначала показываем 3 ретеншн-оффера, и только потом «всё равно
+  // отменить». Каждый шаг — отдельный showPopup.
   //
   // Endpoints (стабы в bot.py /api/cancel-subscription?action=...):
   //   discount30       — 30% скидка на след.месяц + cancel auto-renew
@@ -2666,7 +2679,7 @@
   $('navFAQ').onclick = () => {
     const faq = 'Оплата: «Сменить тариф» → выбери → СБП.\n'
       + 'Промокод: отправь боту /promo КОД.\n'
-      + 'Отключить подписку: кнопка внизу окна тарифов.\n'
+      + 'Подписка: подключить или отключить — здесь, в кабинете (блок «Подписка» наверху).\n'
       + 'Поддержка: @tatututbot';
     if (tg?.showPopup) { try { tg.showPopup({ title: 'FAQ', message: faq, buttons: [{ type: 'ok' }] }); return; } catch (e) {} }
     tg?.showAlert?.(faq);
@@ -2770,8 +2783,8 @@
 
   // v214: goal-gradient link-pool-bar. Loss-aversion + overage CTA.
   // pct=used/total*100. ≥70% → 'warn' (мягкая CTA на Pro+). ≥90% → 'danger'
-  // (горящая CTA на overage SKU «+50 примерок за 690₽»). Юзер видит как
-  // утекает бюджет → апселл срабатывает в момент максимальной боли.
+  // (горящая CTA «докупи примерки» → витрина, секция докупок; v1064). Юзер
+  // видит как утекает бюджет → апселл срабатывает в момент максимальной боли.
   function renderLinkPoolBar(pool, remaining) {
     const bar = $('linkPoolBar');
     if (!bar) return;
@@ -2795,15 +2808,11 @@
       bar.classList.add('danger');
       cta.classList.remove('hidden');
       cta.innerHTML = '🔥 Бюджет почти исчерпан — ' +
-        '<a id="lpOverageLink">докупи +50 примерок за 690₽</a>';
+        '<a id="lpOverageLink">докупи примерки</a>';
       const a = $('lpOverageLink');
       if (a) a.onclick = () => {
         if (window.posthog) posthog.capture('link_pool_overage_cta_clicked', { pct, used, total });
-        const url = 'https://t.me/tatututbot?start=overage_tryons_50';
-        if (tg && tg.openTelegramLink) {
-          try { tg.openTelegramLink(url); return; } catch (e) {}
-        }
-        try { window.location.href = url; } catch (e) {}
+        goAddons();
       };
     } else if (pct >= 70) {
       bar.classList.add('warn');
