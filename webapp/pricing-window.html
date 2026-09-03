@@ -675,7 +675,10 @@ async function openPaidInvoice(tariffKey, extraQ){
   const _isSub = !!SUB_OFFER && !/once=1/.test(extraQ || '') && tariffKey !== 'trial';
   const _info = { title: (PRESENT[tariffKey] || {}).name || '',
                   price: LIVE_PRICES[tariffKey] || 0 };
-  const _pm = await askPayMethod(_isSub, _info);
+  // v1065: подписка уже объяснена на первом окне (способ + цена); если
+  // сохраняющий способ один (СБП) — второе окно с одной кнопкой не нужно.
+  const _pm = (_isSub && SUB_METHODS.length === 1) ? SUB_METHODS[0]
+                                                    : await askPayMethod(_isSub, _info);
   if (!_pm) return true;                       // закрыл выбор — не ошибка
   const apiUrl = BOT_API_BASE + '/api/invoice?' + _q757
     + '&tariff=' + encodeURIComponent(tariffKey)
@@ -875,10 +878,31 @@ function _sheet(titleHtml, subHtml){
    кроме одной. У СБП слово «дешевле» не пишем — прайс уже рублёвый. */
 function chooseChannelAndPay(tariff, onSbp, onForeign, foreignGo){
   /* v758: onSbp/onForeign — переопределение потоков для overage-паков
-     (свои фоллбеки). Без аргументов — прежнее поведение тарифов. */
-  var s = _sheet('Способ оплаты',
-    'СБП — банки РФ, оплата в рублях. Из-за рубежа — карта, Apple Pay ' +
-    'или PayPal: спишут в валюте.');
+     (свои фоллбеки). Без аргументов — прежнее поведение тарифов.
+     v1065 (владелец 03.09): подписка объясняется ЗДЕСЬ — там, где человек
+     видит цену и выбирает способ: что это подписка, что спишется сейчас и
+     дальше каждые 30 дней, пока он сам не отключит её в Кабинете. Ждём
+     ответ сервера (sub_on), чтобы не решать гонкой. */
+  var _wait = Promise.race([HYDRATED, new Promise(function(r){ setTimeout(r, 4000); })]);
+  _wait.catch(function(){}).then(function(){ _renderChannelSheet(tariff, onSbp, onForeign, foreignGo); });
+}
+function _channelSheetSubtitle(isSub, info){
+  var i = info || {};
+  if (isSub) {
+    return 'По СБП это подписка: ' + (i.title ? i.title + ' — ' : '') + (i.price ? i.price + ' ₽ ' : '')
+      + 'сейчас и дальше каждые 30 дней автоматически, пока не отключишь её в Кабинете. '
+      + 'Из-за рубежа — оплата картой на 30 дней, спишут в валюте.';
+  }
+  return 'СБП — банки РФ, оплата в рублях. Из-за рубежа — карта, Apple Pay ' +
+    'или PayPal: спишут в валюте.';
+}
+function _renderChannelSheet(tariff, onSbp, onForeign, foreignGo){
+  // подписка — только у тарифов (у паков свои потоки onSbp), только по правде
+  // сервера и не у пробного
+  var _isSub = !onSbp && !!SUB_OFFER && tariff !== 'trial';
+  var _info = { title: (PRESENT[tariff] || {}).name || '', price: LIVE_PRICES[tariff] || 0 };
+  var s = _sheet(_isSub ? 'Подписка · способ оплаты' : 'Способ оплаты',
+    _channelSheetSubtitle(_isSub, _info));
   var sbpBtn = s.mkBtn('СБП (банки РФ)', '',
     onSbp || function(){ paySbp(tariff); });
   sbpBtn.style.background = '#c4f000'; sbpBtn.style.color = '#0b1208';
@@ -892,6 +916,7 @@ function chooseChannelAndPay(tariff, onSbp, onForeign, foreignGo){
     if (!d || !d.prices || !d.prices.USD) return;
     var note = _money(d.prices.USD, 'USD');
     if (d.prices.RUB) note += ' ≈ ' + Math.round(d.prices.RUB) + ' ₽';
+    if (_isSub) note += ' · на 30 дней';   // v1065: инокарта подписку не оформляет
     var span = frBtn.lastChild;
     if (span) span.textContent = note;
   });
@@ -1100,7 +1125,7 @@ const OLD_PRICE = { trial:0, solo:1990, pro:4990, atelier:5990, studio:9990 };
 const FALLBACK_QUOTAS = {
   trial:   {price:499,  days:7,  sketches:5,   tryons:3,   stencils:5,   extracts:3,   photo_retouch:3,  videos:0, animations:0,  demo_pool:25},
   solo:    {price:1490, days:30, sketches:12,  tryons:5,   stencils:20,  extracts:15,  photo_retouch:12, videos:1, animations:1,  demo_pool:100},
-  pro:     {price:2990, days:30, sketches:40,  tryons:10,  stencils:60,  extracts:40,  photo_retouch:25, videos:2, animations:5,  demo_pool:600},
+  pro:     {price:2990, days:30, sketches:60,  tryons:10,  stencils:60,  extracts:40,  photo_retouch:25, videos:2, animations:5,  demo_pool:600},
   // 🔴 v1038: 4990 против 3990 в MASTER_TARIFFS — тот же расхождённый фолбэк,
   // что и в tariffs-app. Правится вместе с кодом, не отдельно.
   atelier: {price:3990, days:30, sketches:100,  tryons:20,  stencils:100, extracts:60,  photo_retouch:40, videos:3, animations:8,  demo_pool:1200},
@@ -1121,7 +1146,7 @@ function upsellFor(quotas, field){
 function buildSpecs(key, quotas){
   const q = quotas[key] || {};
   const specs = [
-    {n:q.sketches, l:'эскизов'},
+    {n:q.sketches, l:'эскизов или правок'},   // v1065: единица = создание или правка (честное имя)
     {n:q.tryons,   l:'фото-примерок'},
   ];
   // Оживление и видео-примерка — флагман-оси: есть → цифра с вау-стилем,
