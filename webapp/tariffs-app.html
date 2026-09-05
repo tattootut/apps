@@ -1249,6 +1249,21 @@
     <button id="bindCardBtn" class="hidden" style="margin-top:12px;width:100%;padding:11px 12px;border:none;border-radius:10px;background:var(--color-accent);color:#0a0a0a;font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:0.2px;cursor:pointer">🔔 Подключить подписку</button>
   </div>
 
+  <!-- v1079: ЧЕКИ НА ПОЧТУ. Кассовый чек (54-ФЗ) приходит файлом в чат после
+       каждой оплаты ЮKassa; почта — необязательная копия «и на почту»,
+       спрашиваем ПОСЛЕ оплаты, здесь, а не гейтом до неё (идея владельца).
+       Backend: /api/cabinet отдаёт receipt_email, POST /api/receipt_email
+       сохраняет. Старый бэкенд поле не отдаёт → карточка остаётся скрытой. -->
+  <div class="card autorenew-box hidden" id="receiptEmailBox" style="order:4;margin-top:6px">
+    <span style="font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--color-text);display:block">Чеки на почту</span>
+    <span id="receiptEmailStatus" style="font-size:11.5px;color:var(--color-text-muted);display:block;margin-top:3px">Кассовый чек приходит в чат после каждой оплаты. Почта — по желанию.</span>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <input id="receiptEmailInput" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" maxlength="64"
+             style="flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--color-border);background:rgba(255,255,255,0.04);color:var(--color-text);font-size:13px;outline:none">
+      <button id="receiptEmailSave" style="padding:10px 14px;border:none;border-radius:10px;background:var(--color-accent);color:#0a0a0a;font-family:var(--font-display);font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap">Сохранить</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- FOOTER -->
@@ -2233,6 +2248,8 @@
     // v152: промокод больше не показывается отдельным блоком (QR-база удалена),
     // но нужен для партнёрской ссылки — храним в JS-переменной.
     PROMO_CODE = d.promo_code || '';
+    // v1079: почта для чеков ОФД — карточка «Чеки на почту» (поле + Сохранить).
+    try { applyReceiptEmail(d); } catch (e) { console.warn('[receipt_email] apply failed', e); }
     PROMO_LINK = d.promo_link || '';            // v673
     SHARE_LINK_HINT = d.share_link_hint || '';  // v673
     // v215 (LAUNCH-BLOCKER #3): сохранить текущий тариф для retention-flow.
@@ -2492,6 +2509,69 @@
     return fetch(API_BASE + '/api/cancel-subscription' + qs, { method: 'POST' })
       .then(r => r.json().catch(() => ({})))
       .catch(e => { console.error('[cancel] failed', e); return null; });
+  }
+
+  // v1079: почта для чеков ОФД. Чек файлом приходит в чат после каждой
+  // оплаты; почта — необязательная копия «и на почту». POST JSON в
+  // /api/receipt_email: initData в query (как у cancel), почта — в теле.
+  // Запасной вход ?auth= (macOS без initData) — тот же, что у loadCabinet.
+  function _receiptEmailQs() {
+    const initData = (tg && tg.initData) ? tg.initData : '';
+    if (initData) return '?initData=' + encodeURIComponent(initData);
+    if (window.__AUTH) return '?auth=' + encodeURIComponent(window.__AUTH);
+    return '';
+  }
+  function postReceiptEmail(email) {
+    const qs = _receiptEmailQs();
+    if (!qs) {
+      tg?.showAlert?.('Открой через Telegram.');
+      return Promise.resolve(null);
+    }
+    return fetch(API_BASE + '/api/receipt_email' + qs, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+      .then(r => r.json().catch(() => ({})))
+      .catch(e => { console.error('[receipt_email] failed', e); return null; });
+  }
+  function applyReceiptEmail(d) {
+    const box = document.getElementById('receiptEmailBox');
+    const input = document.getElementById('receiptEmailInput');
+    const btn = document.getElementById('receiptEmailSave');
+    const st = document.getElementById('receiptEmailStatus');
+    if (!box || !input || !btn) return;
+    // Старый бэкенд поле не отдаёт — карточку не показываем (поле «в никуда»).
+    if (d.receipt_email === undefined) { box.classList.add('hidden'); return; }
+    box.classList.remove('hidden');
+    if (document.activeElement !== input) input.value = d.receipt_email || '';
+    if (st && !btn._touched) {
+      st.textContent = d.receipt_email
+        ? 'Чеки приходят в чат и на ' + d.receipt_email + '.'
+        : 'Кассовый чек приходит в чат после каждой оплаты. Почта — по желанию.';
+    }
+    if (btn._bound) return;
+    btn._bound = true;
+    btn.addEventListener('click', function () {
+      const v = (input.value || '').trim();
+      if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) {
+        if (st) st.textContent = 'Похоже, в почте опечатка — проверь адрес.';
+        return;
+      }
+      btn.disabled = true;
+      btn._touched = true;
+      postReceiptEmail(v).then(function (r) {
+        btn.disabled = false;
+        if (r && r.ok) {
+          if (st) st.textContent = v
+            ? 'Сохранено. Со следующей оплаты чек придёт и на ' + v + '.'
+            : 'Почта убрана — чеки остаются в чате.';
+          if (window.posthog) posthog.capture('cabinet_receipt_email_saved', { has_email: !!v });
+        } else if (st) {
+          st.textContent = (r && r.message) || 'Не удалось сохранить. Попробуй ещё раз.';
+        }
+      });
+    });
   }
 
   // v1013: ОДНА точка «отменить на самом деле» — её зовут и попап, и
