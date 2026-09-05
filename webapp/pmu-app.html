@@ -101,7 +101,11 @@
         <div class="ts-name" id="tname">—</div>
         <div class="ts-meta" id="tmeta">загрузка…</div>
       </div>
-      <button class="ts-change" onclick="showPrice()">Сменить тариф</button>
+      <!-- v1073: витрина pmu_* — только тем, у кого ЕСТЬ pmu_*-тариф (продление,
+           оферта 4.1.2). Новым вертикаль закрыта решением 05.09; кнопка появится
+           после /api/cabinet, если tariff_key начинается с pmu_. Бот со своей
+           стороны тоже не выпишет счёт по ?start=buy_pmu_* чужому. -->
+      <button class="ts-change" id="tsChange" onclick="showPrice()" style="display:none">Сменить тариф</button>
     </div>
 
     <!-- Сэкономлено -->
@@ -226,6 +230,8 @@
       const tk = d.tariff_key || '';
       document.getElementById('tname').textContent = TITLES[tk] || d.tariff_name || tk || '—';
       document.getElementById('tmeta').textContent = (d.days_left>=0 ? ('осталось '+d.days_left+' дн.') : 'нет активного тарифа');
+      // v1073: прайс ПМ открывается только владельцу pmu_*-тарифа (продление)
+      if(tk.indexOf('pmu_')===0) document.getElementById('tsChange').style.display='';
       if(tk==='pmu_lead') document.getElementById('pc-lead').classList.add('active');
       if(tk==='pmu_mid') document.getElementById('pc-mid').classList.add('active');
       if(tk==='pmu_main') document.getElementById('pc-main').classList.add('active');
