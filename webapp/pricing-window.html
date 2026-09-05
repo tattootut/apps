@@ -861,10 +861,19 @@ async function payForeign(tariff, fallback, method, cur){
       // v759: EN-экран (вариант А) — сервер прислал ≈$ и EN-название,
       // рисуем лист подтверждения перед уходом на Робокассу.
       if (d.en && d.usd){ showEnPriceSheet(d, tariff); return; }
+      // v1074 (оферта 4.A.1): счёт подписочный, а окно перед ним подписку
+      // не называло (сервер молчал при рендере) — сначала лист согласия.
+      if (d.sub && !_SUB_ANNOUNCED[tariff]){ _confirmForeignSub(d, tariff); return; }
       tg.openLink(d.url); return;
     }
     if (d && d.error === 'tariff_expired') {
       try { tg.showAlert && tg.showAlert('⏰ Тариф истёк. Сначала продли тариф — потом докупай пакеты. Кнопки тарифов выше 👆'); } catch(e){}
+      return;
+    }
+    // v1074: нет подписочного товара / цена разошлась — в СБП не падаем
+    // молча (иностранцу это тупик), говорим честно.
+    if (d && (d.error === 'lava_sub_missing' || d.error === 'lava_price_mismatch')) {
+      try { tg.showAlert && tg.showAlert('Оплата из-за рубежа на этой позиции временно недоступна — оплатите по СБП.'); } catch(e){}
       return;
     }
     console.warn('[pricing] rk invoice unavailable', r.status, d);
@@ -903,6 +912,24 @@ function _money(a, c){
   var n = (Math.round(a * 100) / 100).toFixed(2).replace(/\.00$/, '');
   return _curSign(c) + n;
 }
+/* v1074 (владелец 05.09): доллары на подписке — РОВНО как в кассе Lava,
+   две цифры после точки ($19.00, не $19). Сервер шлёт строку usd. */
+function _usd2(v){
+  var n = Number(v);
+  return isFinite(n) && n > 0 ? '$' + n.toFixed(2) : '';
+}
+/* Разовое окно (пробный, паки): подпись инокарты с рублёвым ориентиром —
+   как было до v1074. На подписочном окне не используется. */
+function _foreignOneOffNote(d){
+  if (!d || !d.prices || !d.prices.USD) return '';
+  var note = _money(d.prices.USD, 'USD');
+  if (d.prices.RUB) note += ' ≈ ' + Math.round(d.prices.RUB) + ' ₽';
+  return note;
+}
+/* v1074: для какого тарифа человек УЖЕ прочитал, что инокарта — подписка
+   (окно выбора / лист способов). payForeign без этой отметки покажет лист
+   согласия перед уходом на счёт — оферта 4.A.1. */
+var _SUB_ANNOUNCED = {};
 
 /* Общий «лист снизу»: одна рамка на оба экрана выбора. */
 function _sheet(titleHtml, subHtml){
@@ -957,40 +984,91 @@ function chooseChannelAndPay(tariff, onSbp, onForeign, foreignGo){
   var _wait = Promise.race([HYDRATED, new Promise(function(r){ setTimeout(r, 4000); })]);
   _wait.catch(function(){}).then(function(){ _renderChannelSheet(tariff, onSbp, onForeign, foreignGo); });
 }
-function _channelSheetSubtitle(isSub, info){
+/* v1074 (владелец 05.09, текст — канон владельца): подписочная система
+   объясняется ОДНИМ абзацем, ниже — кнопки способов. rails — правда по
+   каждому рельсу: {sbp: bool, foreign: bool}; рельс без подписки (СБП вне
+   пилота / инокарта до включения Lava-подписок) назван честно — окно не
+   обещает автопродление там, где его нет. rails.sheet === 'foreign' —
+   подзаголовок второго листа (способы инокарты) при подписке. */
+function _channelSheetSubtitle(isSub, info, rails){
   var i = info || {};
+  var r = rails || {};
   if (isSub) {
-    return 'По СБП это подписка: ' + (i.title ? i.title + ' — ' : '') + (i.price ? i.price + ' ₽ ' : '')
-      + 'сейчас и дальше каждые 30 дней автоматически, пока не отключишь её в Кабинете. '
-      + 'Из-за рубежа — оплата картой на 30 дней, спишут в валюте.';
+    if (r.sheet === 'foreign') {
+      return 'Это подписка: ' + (i.title ? i.title + ' — ' : '') + 'спишется сейчас и дальше '
+        + 'каждые 30 дней автоматически в валюте выбранного способа. Отключить можно в любой '
+        + 'момент в Кабинете. Если валюта карты другая — банк пересчитает по своему курсу.';
+    }
+    var s = 'Тарифы работают по подписке: ' + (i.title ? i.title + ' — ' : '')
+      + (i.price ? i.price + ' ₽ в месяц' : 'оплата раз в месяц')
+      + ', продление автоматически каждые 30 дней. '
+      + 'Отключить можно в любой момент в Кабинете на главном экране и вернуться, '
+      + 'когда снова понадобится. ';
+    if (r.sbp === false) s += 'По СБП сейчас — разовая оплата на месяц, без автопродления. ';
+    if (r.foreign === false) s += 'Картой другой страны сейчас — разовая оплата на месяц, без автопродления. ';
+    return s + 'Ниже выберите, чем платить.';
   }
-  return 'СБП — банки РФ, оплата в рублях. Из-за рубежа — карта, Apple Pay ' +
+  return 'СБП — оплата в рублях. Из-за рубежа — карта, Apple Pay ' +
     'или PayPal: спишут в валюте.';
 }
 function _renderChannelSheet(tariff, onSbp, onForeign, foreignGo){
-  // подписка — только у тарифов (у паков свои потоки onSbp), только по правде
-  // сервера и не у пробного
-  var _isSub = !onSbp && !!SUB_OFFER && tariff !== 'trial';
+  // подписка по СБП — только у тарифов (у паков свои потоки onSbp), только
+  // по правде сервера (sub_on) и не у пробного
+  var _sbpSub = !onSbp && !!SUB_OFFER && tariff !== 'trial';
   var _info = { title: (PRESENT[tariff] || {}).name || '', price: LIVE_PRICES[tariff] || 0 };
-  var s = _sheet(_isSub ? 'Подписка · способ оплаты' : 'Способ оплаты',
-    _channelSheetSubtitle(_isSub, _info));
-  var sbpBtn = s.mkBtn('СБП (банки РФ)', '',
-    onSbp || function(){ paySbp(tariff); });
-  sbpBtn.style.background = '#c4f000'; sbpBtn.style.color = '#0b1208';
-  sbpBtn.style.borderColor = '#c4f000';
-  var frBtn = s.mkBtn('🌍 Из другой страны', '',
-    function(){ chooseForeignMethod(tariff, onForeign, foreignGo, onSbp); });
-  // Сумма подтягивается из кассы и дописывается на кнопку, когда придёт.
-  // Не пришла — кнопка работает без неё (деньги важнее украшения).
-  fetchForeignMethods(tariff).then(function(d){
-    if (d && d.error === 'lava_price_mismatch') { frBtn.remove(); return; }
-    if (!d || !d.prices || !d.prices.USD) return;
-    var note = _money(d.prices.USD, 'USD');
-    if (d.prices.RUB) note += ' ≈ ' + Math.round(d.prices.RUB) + ' ₽';
-    if (_isSub) note += ' · на 30 дней';   // v1065: инокарта подписку не оформляет
-    var span = frBtn.lastChild;
-    if (span) span.textContent = note;
+  // v1074: инокарта тоже может быть подпиской (Lava, /api/pay_methods:sub).
+  // Окно рисуем ПОСЛЕ ответа сервера — заголовок и абзац не имеют права
+  // соврать ни одному рельсу (оферта 4.A.1: согласие — на экране оплаты).
+  // Сервер молчит дольше 4 с — рисуем без инокарты-подписки, payForeign
+  // покажет лист согласия сам, если счёт окажется подписочным.
+  var _wait = Promise.race([fetchForeignMethods(tariff),
+    new Promise(function(r){ setTimeout(function(){ r(null); }, 4000); })]);
+  return _wait.catch(function(){ return null; }).then(function(d){
+    var _frOk = !!(d && d.ok);
+    var _frErr = !!(d && d.error);
+    var _frSub = _frOk && !!d.sub;
+    var _isSub = _sbpSub || _frSub;
+    if (_frSub) _SUB_ANNOUNCED[tariff] = true;
+    var _rails = { sbp: _sbpSub, foreign: _frOk ? _frSub : undefined };
+    var s = _sheet(_isSub ? 'Подписка' : 'Способ оплаты',
+      _channelSheetSubtitle(_isSub, _info, _rails));
+    var _priceS = _info.price ? String(_info.price) : '';
+    var sbpLabel = 'СБП';
+    if (_sbpSub && _priceS) sbpLabel = 'СБП · ' + _priceS + ' ₽ / мес';
+    else if (_isSub && _priceS) sbpLabel = 'СБП · ' + _priceS + ' ₽';
+    var sbpBtn = s.mkBtn(sbpLabel, '', onSbp || function(){ paySbp(tariff); });
+    sbpBtn.style.background = '#c4f000'; sbpBtn.style.color = '#0b1208';
+    sbpBtn.style.borderColor = '#c4f000';
+    // Нет подписочного товара (409 lava_sub_missing) или цена разошлась
+    // (409 lava_price_mismatch) — кнопки инокарты на позиции НЕТ.
+    if (!_frErr) {
+      var _usdS = _frOk ? (_usd2(d.usd) || (d.prices && d.prices.USD ? _usd2(d.prices.USD) : '')) : '';
+      var frLabel = '🌍 Из другой страны', frNote = '';
+      if (_frSub) {
+        frLabel = '🌍 Карта другой страны' + (_usdS ? ' · ' + _usdS + ' / мес' : '');
+      } else if (_frOk && _usdS) {
+        // разовая инокарта: в подписочном окне — цена без рублёвого
+        // ориентира (владелец: никаких «примерно»), в разовом (пробный,
+        // паки) — прежний ориентир в рублях (_foreignOneOffNote)
+        frLabel = _isSub ? '🌍 Из другой страны · ' + _usdS : frLabel;
+        frNote = _isSub ? '' : _foreignOneOffNote(d);
+      }
+      s.mkBtn(frLabel, frNote,
+        function(){ chooseForeignMethod(tariff, onForeign, foreignGo, onSbp); });
+    }
+    var cancel = s.mkBtn('Отмена', '', null);
+    cancel.style.background = 'transparent'; cancel.style.borderColor = '#2c4636';
+    return s;
   });
+}
+/* v1074: лист согласия на подписку инокартой — когда окно выбора её не
+   назвало (сервер молчал), а /api/invoice вернул подписочный счёт. */
+function _confirmForeignSub(d, tariff){
+  var _info = { title: (PRESENT[tariff] || {}).name || '', price: LIVE_PRICES[tariff] || 0 };
+  var s = _sheet('Подписка', _channelSheetSubtitle(true, _info, { sheet: 'foreign' }));
+  var _usdS = _usd2(d.usd_s || d.usd);
+  s.mkBtn('🌍 Оформить' + (_usdS ? ' · ' + _usdS + ' / мес' : ''), '',
+    function(){ _SUB_ANNOUNCED[tariff] = true; tg.openLink(d.url); });
   var cancel = s.mkBtn('Отмена', '', null);
   cancel.style.background = 'transparent'; cancel.style.borderColor = '#2c4636';
 }
@@ -1004,12 +1082,17 @@ function fetchForeignMethods(tariff){
     .then(function(r){
       // v1061: 409 = цена в кабинете Lava разошлась с нашей — сервер
       // инокарту на этой позиции не даёт; кнопку прячем, а не ведём на
-      // счёт по чужой цене.
-      if (r.status === 409) return { error: 'lava_price_mismatch' };
+      // счёт по чужой цене. v1074: 409 lava_sub_missing — нет подписочного
+      // товара; для витрины оба значат одно: кнопки нет.
+      if (r.status === 409) {
+        return r.json().catch(function(){ return {}; }).then(function(e){
+          return { error: (e && e.error) || 'lava_price_mismatch' };
+        });
+      }
       return r.ok ? r.json() : null;
     })
     .then(function(d){
-      if (d && d.error === 'lava_price_mismatch') { _FOREIGN_CACHE[tariff] = d; return d; }
+      if (d && d.error) { _FOREIGN_CACHE[tariff] = d; return d; }
       if (d && d.ok && d.methods && d.methods.length) _FOREIGN_CACHE[tariff] = d;
       return _FOREIGN_CACHE[tariff] || null;
     })
@@ -1022,18 +1105,26 @@ function fetchForeignMethods(tariff){
 function chooseForeignMethod(tariff, onForeign, foreignGo, onSbp){
   var go = foreignGo || function(m, c){ payForeign(tariff, null, m, c); };
   fetchForeignMethods(tariff).then(function(d){
-    if (d && d.error === 'lava_price_mismatch') {
-      try { tg && tg.showAlert && tg.showAlert('Оплата из-за рубежа на этой позиции временно недоступна — оплати по СБП.'); } catch(e) {}
+    if (d && d.error) {
+      try { tg && tg.showAlert && tg.showAlert('Оплата из-за рубежа на этой позиции временно недоступна — оплатите по СБП.'); } catch(e) {}
       return;
     }
     if (!d) { (onForeign || function(){ payForeign(tariff); })(); return; }
-    var s = _sheet('Оплата из другой страны',
-      'Спишут в указанной валюте. Если валюта карты другая — банк ' +
-      'пересчитает по своему курсу.');
+    // v1074: подписочный рельс — лист называет подписку (сумма «/ мес»,
+    // период, где отключить); сервер уже отдал только оформляющие её рельсы.
+    var _isSub = !!d.sub;
+    if (_isSub) _SUB_ANNOUNCED[tariff] = true;
+    var _info = { title: (PRESENT[tariff] || {}).name || '', price: LIVE_PRICES[tariff] || 0 };
+    var s = _sheet(_isSub ? 'Подписка · карта другой страны' : 'Оплата из другой страны',
+      _isSub ? _channelSheetSubtitle(true, _info, { sheet: 'foreign' })
+             : 'Спишут в указанной валюте. Если валюта карты другая — банк ' +
+               'пересчитает по своему курсу.');
     d.methods.forEach(function(m){
       var label = FOREIGN_LABELS[m.id + '|' + m.cur];
       if (!label) return;
-      s.mkBtn(label, m.amount ? _money(m.amount, m.cur) : '',
+      var amt = m.amount ? (m.cur === 'RUB' ? _money(m.amount, m.cur)
+                                            : _curSign(m.cur) + Number(m.amount).toFixed(2)) : '';
+      s.mkBtn(label, amt ? amt + (_isSub ? ' / мес' : '') : '',
         function(){ go(m.id, m.cur); });
     });
     var back = s.mkBtn('← Назад', '', function(){
