@@ -191,7 +191,19 @@
   function fetchPackMethods(sku){
     if(_PACK_METHODS[sku]) return Promise.resolve(_PACK_METHODS[sku]);
     return fetch(API+'/api/pay_methods?'+_authQpack()+'&tariff='+encodeURIComponent(sku),{cache:'no-store'})
-      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(r){
+      // v1140: 400 «товара нет в кассе» — это ОТКАЗ, а не молчание сервера.
+      // Схлопывая его в null, мы рисовали кнопку инокарты и уводили человека
+      // в рублёвый путь. picker_off (рубильник владельца) — по-прежнему
+      // молчание: прежний прямой путь жив.
+      if (!r.ok) {
+        return r.json().catch(function(){ return {}; }).then(function(e){
+          var _e = (e && e.error) || '';
+          return (_e && _e !== 'picker_off') ? { error: _e } : null;
+        });
+      }
+      return r.json();
+    })
       .then(function(d){ if(d && d.ok && d.methods && d.methods.length) _PACK_METHODS[sku]=d; return _PACK_METHODS[sku]||null; })
       .catch(function(){ return null; });
   }

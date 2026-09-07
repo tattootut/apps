@@ -872,7 +872,13 @@ async function payForeign(tariff, fallback, method, cur){
     }
     // v1074: нет подписочного товара / цена разошлась — в СБП не падаем
     // молча (иностранцу это тупик), говорим честно.
-    if (d && (d.error === 'lava_sub_missing' || d.error === 'lava_price_mismatch')) {
+    // v1140: сюда же — «товара нет в кассе» (lava_off) и «Робокасса
+    // выключена» (rk_unavailable). Оба раньше проваливались в молчаливый
+    // откат на рублёвый рельс: человек жал «Иностранная карта», а получал
+    // лист СБП. Совет платить СБП тому, у кого его нет, — это не отказ, а
+    // издевательство; называем причину.
+    if (d && (d.error === 'lava_sub_missing' || d.error === 'lava_price_mismatch'
+              || d.error === 'lava_off' || d.error === 'rk_unavailable')) {
       try { tg.showAlert && tg.showAlert('Оплата из-за рубежа на этой позиции временно недоступна — оплатите по СБП.'); } catch(e){}
       return;
     }
@@ -1084,12 +1090,24 @@ function fetchForeignMethods(tariff){
       // инокарту на этой позиции не даёт; кнопку прячем, а не ведём на
       // счёт по чужой цене. v1074: 409 lava_sub_missing — нет подписочного
       // товара; для витрины оба значат одно: кнопки нет.
-      if (r.status === 409) {
+      // 🔴 v1140 (жалоба владельца 07.09: «нажимаю с другой стороны, и мне
+      // всё равно предлагается выбор — СБП это или не СБП»). Раньше тело
+      // читалось ТОЛЬКО для 409, а 400 схлопывался в null. Но 400
+      // `lava_off` — это «товара этой позиции в кассе нет», то есть ровно
+      // тот же отказ. null читался как «сервер промолчал» → кнопка
+      // рисовалась → тап уводил в рублёвый лист СБП/TPay. Из двенадцати
+      // паков витрины так вело восемь.
+      // Исключение одно: `picker_off` — владелец выключил выбор способов
+      // рубильником, сервер молчит НАМЕРЕННО, и прежний прямой путь жив.
+      if (!r.ok) {
         return r.json().catch(function(){ return {}; }).then(function(e){
-          return { error: (e && e.error) || 'lava_price_mismatch' };
+          var _e = (e && e.error) || '';
+          if (_e === 'picker_off') return null;
+          if (r.status === 409) return { error: _e || 'lava_price_mismatch' };
+          return _e ? { error: _e } : null;
         });
       }
-      return r.ok ? r.json() : null;
+      return r.json();
     })
     .then(function(d){
       if (d && d.error) { _FOREIGN_CACHE[tariff] = d; return d; }
