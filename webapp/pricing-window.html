@@ -1509,9 +1509,10 @@ document.body.addEventListener('click', e => {
     .tc-card.once button{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25)}`;
   document.head.appendChild(css);
 
-  function payOnce(key){
-    openPaidInvoice(key, '&once=1').then(ok => { if (!ok) openDeepLinkFallback('buy_' + key); });
-  }
+  /* v1086: кнопки «взять разово» здесь больше нет. Разовый месяц продаётся
+     ровно в одном месте — в винбэке ушедшему (решение владельца 06.09), и
+     цена у него своя (ONCE_MONTH_RUB). Вторая дверь с ценой тарифа сделала
+     бы два разных ценника на один товар. */
   function renderNudge(){
     document.body.classList.add('tc-mode','tc-nudge');
     const host = document.querySelector('.app') || document.body;
@@ -1524,20 +1525,28 @@ document.body.addEventListener('click', e => {
       .then(r => r.json())
       .then(d => {
         const n = (d && d.nudge) || {};
-        let html = '<div class="tc-banner">Понял. Тогда два честных варианта 👇</div>';
+        let html = '<div class="tc-banner">Понял, не тороплю.</div>';
         if (n.intro_available) {
           html += '<div class="tc-card"><div class="t">🔥 Про — первый месяц</div>'
             + '<div class="p">' + fmt(n.intro_price) + ' ₽<span class="old">' + fmt(n.pro_full) + ' ₽</span></div>'
             + '<div class="d">Дальше ' + fmt(n.pro_full) + ' ₽/мес, отменить — в любой момент в кабинете.</div>'
             + '<button data-tc="pro">Взять Про за ' + fmt(n.intro_price) + ' ₽</button></div>';
         }
-        html += '<div class="tc-card once"><div class="t">' + (n.once_title || 'Старт') + ' — один месяц</div>'
-          + '<div class="p">' + fmt(n.once_price || 0) + ' ₽</div>'
-          + '<div class="d">Разовая оплата — подписки нет, ничего не продлевается. Вернёшься, когда захочешь.</div>'
-          + '<button data-tc="once">Взять разово за ' + fmt(n.once_price || 0) + ' ₽</button></div>';
+        /* v1086: ответ на «пока не готов» — самая лёгкая ступень ПОДПИСКИ
+           полной ценой. Имя, цена и срок приходят с бэкенда (entry_*), то
+           есть из MASTER_TARIFFS: экран не может разъехаться с прайсом. */
+        if (n.entry_price) {
+          html += '<div class="tc-card"><div class="t">' + (n.entry_title || 'Старт') + '</div>'
+            + '<div class="p">' + fmt(n.entry_price) + ' ₽</div>'
+            /* v1064-инвариант: про подписку и её отключение говорит ТОЛЬКО
+               лист способов оплаты — вторая правда рядом с кабинетом
+               запрещена. Здесь — факт доступа и обещание не списать. */
+            + '<div class="d">Доступ на ' + (n.entry_days || 30) + ' дней. Ничего не спишем, пока сам не подтвердишь оплату.</div>'
+            + '<button data-tc="entry">Взять за ' + fmt(n.entry_price) + ' ₽</button></div>';
+        }
         box.innerHTML = html;
         box.querySelector('[data-tc="pro"]')?.addEventListener('click', () => paySbp('pro'));
-        box.querySelector('[data-tc="once"]')?.addEventListener('click', () => payOnce(n.once_key || 'solo'));
+        box.querySelector('[data-tc="entry"]')?.addEventListener('click', () => paySbp(n.entry_key || 'solo'));
       })
       .catch(() => { box.innerHTML = '<div class="tc-banner">Не дозвонился до сервера — открой ещё раз.</div>'; });
   }

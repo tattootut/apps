@@ -2155,7 +2155,13 @@
         const when = fmtChargeDate((sub && sub.next_charge_iso) || d.tariff_expires_at_iso);
         const parts = [];
         if (when) parts.push('Продлится ' + when);
-        if (price > 0) parts.push('спишется ' + price.toLocaleString('ru-RU') + ' ₽');
+        // v1111: сумму печатаем ГОТОВОЙ строкой с сервера — там валюта
+        // плательщика. Валютному подписчику Lava рублёвая цена прайса
+        // враньё: спишут доллары ($18.99), курс его банка нам неизвестен.
+        const priceStr = (sub && sub.next_amount_str)
+          ? String(sub.next_amount_str)
+          : (price > 0 ? price.toLocaleString('ru-RU') + ' ₽' : '');
+        if (priceStr) parts.push('спишется ' + priceStr);
         if (sub && sub.method) parts.push(sub.method);
         // 🔴 v1013: «напомним за сутки» УБРАНО. По решению владельца 28.08
         // (v1007) письмо накануне списания остаётся только на переходе
