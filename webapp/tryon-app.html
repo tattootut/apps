@@ -278,7 +278,12 @@
 
   function openTelegram() {
     if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.openTelegramLink('https://t.me/ta2_blockbot');
+      // 🔴 08.09.2026: тут была openTelegramLink на самого бота БЕЗ
+      // параметра. Telegram трактует открытие такой ссылки как команду
+      // /start ОТ ИМЕНИ пользователя: владелец видел в чате голый
+      // «/start», которого не отправлял, и второе приветствие следом.
+      // Возврат в чат = закрытие мини-аппа, без фантомной команды.
+      try { window.Telegram.WebApp.close(); return; } catch (e) {}
     } else {
       window.location.href = 'https://telegram.me/ta2_blockbot';
     }
