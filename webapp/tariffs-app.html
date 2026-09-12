@@ -996,6 +996,13 @@
 
 <div id="errorBanner" class="error-banner hidden"></div>
 
+<!-- ═══ v1166: НУЛЕВАЯ СТРАНИЦА (мастер без активного тарифа) ═══════════
+     Один блок на два случая: незарегистрированному он показывается вместо
+     редиректа на прайс, истёкшему — первой карточкой поверх его кабинета
+     (см. mountShowcase). Разметка рисуется из серверного showcase: цены,
+     состав и лимиты приходят из кода, в HTML их нет. -->
+<div id="showcaseView" class="hidden"></div>
+
 <!-- ═══ SIGNUP VIEW (новый юзер / не зарегистрирован) ═══ -->
 <div id="signupView" class="hidden">
 
@@ -1320,6 +1327,12 @@
   //     payload; при плановом флипе 299→399 фолбэк отстанет ровно на время
   //     недоступности сервера.
   // Расхождение с MASTER_TARIFFS ловит tests/test_v672_tariff_video_boost.py.
+  // 🔴 v1170: old_price в снимке = ТОЛЬКО то, что реально стоит в
+  // MASTER_TARIFFS (сегодня это один studio: 6990 после 9990). У solo/pro/
+  // atelier тут висели 1990/4990/5990 — прежних цен с такими числами не было,
+  // это была та же синтетика «×1.3», что в чат-карточке. Зачёркнутая цена,
+  // которой не существовало, — ст. 10 ЗоЗПП. Нет old_price → 0 → фронт не
+  // рисует страйк (его условие `old_price > price`).
   const FALLBACK_TARIFFS = [
     { key:'trial',   name:'Пробный',  price:499,  old_price:0,    days:7,  sketches:5,   stencils:5,   tryons:3,   extracts:3,   photo_retouch:3,  videos:0, clients_quota:25, animations:0,  demo_pool:25,   popular:false },
     { key:'solo',    name:'Старт',  price:1490, old_price:1990, days:30, sketches:12,  stencils:20,  tryons:5,   extracts:15,  photo_retouch:12, videos:1, clients_quota:5,  animations:1,  demo_pool:100,  popular:false },
@@ -1635,6 +1648,12 @@
   function showView(name) {
     $('signupView').classList.toggle('hidden', name !== 'signup');
     $('cabinetView').classList.toggle('hidden', name !== 'cabinet');
+    // v1166: нулевая страница — третий вид. Он же умеет жить ВНУТРИ кабинета
+    // (истёкший тариф), поэтому при name==='cabinet' его видимостью
+    // распоряжается mountShowcase, а не этот переключатель.
+    if (name !== 'cabinet') {
+      $('showcaseView').classList.toggle('hidden', name !== 'showcase');
+    }
     $('headerSub').textContent = (name === 'signup')
       ? 'Подключи тариф' : 'Кабинет мастера';
   }
@@ -1935,6 +1954,11 @@
     if (!$num) return;
     let total = 0;
     const rows = [];
+    // v1184: ОЖИВЛЕНИЯ здесь НЕТ СОЗНАТЕЛЬНО, а не по забывчивости (в
+    // соседнем renderMetrics его отсутствие было ошибкой и стоило денег).
+    // Этот блок считает СЭКОНОМЛЕННОЕ РУЧНОЕ ВРЕМЯ мастера. У оживления
+    // ручного аналога не существует — это не замена работы, а новая
+    // возможность. Любая минута здесь была бы выдумана.
     ['sketches', 'extracts', 'stencils', 'tryons', 'photo_retouch', 'videos'].forEach(function (op) {
       const used = (quotas[op] && quotas[op].used) || 0;
       const per = SAVED_MIN_PER_OP[op] || 0;
@@ -1966,9 +1990,24 @@
     // v383: добавлен sketches «Создание эскизов» — герой-фича, идёт первой
     // (жалоба мастера 11.06: «Нет лимитов на создание эскиза» — бэкенд отдавал
     // квоту с v342, фронт её не рендерил).
-    const order = ['sketches', 'stencils', 'tryons', 'extracts', 'photo_retouch', 'videos'];
+    // 🔴 v1184 (жалоба @milana1412v 12.09): ось ОЖИВЛЕНИЯ отсутствовала в
+    // этом списке — бэкенд отдавал `animations` в payload с v211, фронт её не
+    // рисовал НИКОГДА и ни на одном тарифе. Человек купил пакет оживлений,
+    // не увидел его в кабинете и заплатил ВТОРОЙ РАЗ. При этом оживление —
+    // 66 % всех докупок по деньгам (6 770 ₽ из 10 200 ₽ за три месяца):
+    // мы продавали то, что не умели показать.
+    // Это ПОВТОР находки 11.06 («Нет лимитов на создание эскиза» — бэкенд
+    // отдавал квоту с v342, фронт её не рендерил), тот же список, другая ось.
+    // Поэтому ниже список перестал быть единственным решающим: всё, что
+    // бэкенд прислал, но здесь не перечислено, дорисовывается в конце. Новая
+    // ось больше не может стать невидимой молча.
+    const order = ['sketches', 'stencils', 'tryons', 'extracts',
+                   'photo_retouch', 'videos', 'animations'];
+    const extras = Object.keys(quotas).filter(function (k) {
+      return order.indexOf(k) === -1 && quotas[k] && quotas[k].label;
+    });
     let nearFull = false;
-    order.forEach((key, i) => {
+    order.concat(extras).forEach((key, i) => {
       const q = quotas[key];
       if (!q) return;
       const box = renderMetricBox(q);
@@ -2342,6 +2381,126 @@
     } catch (e) {}
   }
 
+  /* ═══ v1166: НУЛЕВАЯ СТРАНИЦА КАБИНЕТА ══════════════════════════════
+     Владелец 10.09: «человек не видит, что мы экономим время, и боится
+     подписки, потому что не видит, где кнопка отписаться».
+
+     Весь текст и все числа приходят с сервера (payload.showcase): цена и
+     состав тарифа собираются из MASTER_TARIFFS, минуты — из TIME_SAVED_MIN
+     и таймеров операций. Во фронте не должно появиться НИ ОДНОГО своего
+     числа — рядом уже живёт SAVED_MIN_PER_OP, вторая копия минут, которая
+     разошлась с ботом; третью заводить нельзя. */
+  function _scEsc(s) {
+    var d = document.createElement('div');
+    d.textContent = (s === undefined || s === null) ? '' : String(s);
+    return d.innerHTML;
+  }
+
+  function renderShowcase(sc) {
+    if (!sc) return false;
+    var host = $('showcaseView');
+    if (!host) return false;
+    var head = sc.head || {}, sav = sc.savings || {},
+        lim = sc.limits || {}, can = sc.cancel || {}, cta = sc.cta || {};
+
+    var savRows = (sav.rows || []).map(function (r) {
+      return '<div style="display:flex;justify-content:space-between;gap:10px;'
+        + 'align-items:baseline;padding:9px 0;border-top:1px solid var(--color-border)">'
+        + '<span style="font-size:13.5px;color:var(--color-text)">' + _scEsc(r.label) + '</span>'
+        + '<span style="font-size:12.5px;color:var(--color-text-muted);text-align:right">'
+        + '<s style="color:var(--color-strike)">' + _scEsc(r.manual_text) + '</s>'
+        + ' → <b style="color:var(--color-accent)">' + _scEsc(r.bot_text) + '</b></span></div>';
+    }).join('');
+
+    var limRows = (lim.rows || []).map(function (r) {
+      var pct = r.limit > 0 ? Math.round(100 * r.used / r.limit) : 0;
+      return '<div style="padding:9px 0;border-top:1px solid var(--color-border)">'
+        + '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">'
+        + '<span>' + _scEsc(r.label) + '</span>'
+        + '<span style="color:var(--color-text-muted)">осталось ' + _scEsc(r.left)
+        + ' из ' + _scEsc(r.limit) + '</span></div>'
+        + '<div style="height:6px;border-radius:4px;background:var(--color-surface-2);overflow:hidden">'
+        + '<div style="height:100%;width:' + (100 - pct) + '%;background:var(--color-accent);opacity:.45"></div>'
+        + '</div></div>';
+    }).join('');
+
+    var steps = (can.steps || []).map(function (t) {
+      return '<li style="margin-bottom:8px;line-height:1.5">' + _scEsc(t) + '</li>';
+    }).join('');
+    var facts = (can.facts || []).map(function (t) {
+      return '<li style="margin-bottom:6px;line-height:1.5">' + _scEsc(t) + '</li>';
+    }).join('');
+
+    host.innerHTML =
+      '<div class="card" style="margin-bottom:14px">'
+      + '<div class="card-label">Кабинет</div>'
+      + '<div style="font-family:var(--font-display);font-weight:700;font-size:21px;'
+      + 'line-height:1.15;margin:4px 0 8px">' + _scEsc(head.title) + '</div>'
+      + '<div style="font-size:13.5px;color:var(--color-text-muted);line-height:1.55">'
+      + _scEsc(head.text) + '</div></div>'
+
+      + '<div class="card" style="margin-bottom:14px">'
+      + '<div class="card-label">' + _scEsc(sav.title) + '</div>'
+      + '<div style="font-size:14px;line-height:1.55;margin:6px 0 10px">'
+      + _scEsc(sav.headline) + '</div>' + savRows
+      + '<div style="font-size:11.5px;color:var(--color-text-muted);line-height:1.5;'
+      + 'margin-top:12px">' + _scEsc(sav.source) + '</div></div>'
+
+      + '<div class="card" id="showcaseLimits" style="margin-bottom:14px">'
+      + '<div class="card-label">' + _scEsc(lim.title)
+      + ' <span id="showcaseLimitsBadge" style="display:inline-block;margin-left:6px;'
+      + 'padding:2px 8px;border-radius:99px;border:1px solid var(--color-accent);'
+      + 'color:var(--color-accent);font-size:10.5px;letter-spacing:.06em">'
+      + _scEsc(lim.badge) + '</span></div>'
+      + '<div style="font-size:12.5px;color:var(--color-text-muted);line-height:1.5;'
+      + 'margin:6px 0 4px">' + _scEsc(lim.note) + '</div>' + limRows + '</div>'
+
+      + '<div class="card" style="margin-bottom:14px">'
+      + '<div class="card-label">' + _scEsc(can.title) + '</div>'
+      + '<ul style="margin:8px 0 0 18px;font-size:13.5px">' + steps + '</ul>'
+      + (facts ? '<ul style="margin:10px 0 0 18px;font-size:12.5px;'
+           + 'color:var(--color-text-muted)">' + facts + '</ul>' : '')
+      + '</div>'
+
+      + '<div class="card" style="margin-bottom:14px">'
+      + '<button class="hero-cta" id="showcaseCta" style="margin-top:0">'
+      + _scEsc(cta.label) + '</button>'
+      + '<div style="font-size:12.5px;color:var(--color-text-muted);line-height:1.5;'
+      + 'margin-top:10px;text-align:center">' + _scEsc(cta.note) + '</div></div>';
+
+    var btn = document.getElementById('showcaseCta');
+    if (btn) {
+      btn.onclick = function () {
+        // Касса живёт на витрине — своей второй кассы здесь не заводим.
+        window.location.assign('pricing-window.html?v=931&current='
+          + encodeURIComponent(cta.tariff_key || ''));
+      };
+    }
+    return true;
+  }
+
+  /* Истёкший тариф: кабинет у него рабочий и нужный (промо-ссылка, архив),
+     поэтому витрину не подменяем ею экран, а кладём ПЕРВОЙ карточкой. */
+  function mountShowcase(inCabinet) {
+    var host = $('showcaseView'), cab = $('cabinetView');
+    if (!host || !cab) return;
+    if (inCabinet) {
+      host.style.order = '0';
+      if (host.parentNode !== cab) cab.insertBefore(host, cab.firstChild);
+      host.classList.remove('hidden');
+    } else {
+      host.style.order = '';
+      if (host.parentNode === cab && cab.parentNode) {
+        cab.parentNode.insertBefore(host, cab);
+      }
+    }
+  }
+
+  function hideShowcase() {
+    var host = $('showcaseView');
+    if (host) { host.classList.add('hidden'); host.innerHTML = ''; }
+  }
+
   function applySignup(tariffs) {
     // v81 (24.05.2026): больше НЕ показываем signup view inline — редиректим
     // на отдельную страницу pricing-window.html (премиум-лендинг от Claude Design).
@@ -2495,6 +2654,21 @@
              (скрин Глинской 04.08: шапка, три кнопки, пустота). */
           showError('Кабинет не отрисовался (' + (e && e.message || e) + ')');
         }
+        /* v1166: истёкшему — нулевая страница первой карточкой. Сервер
+           присылает showcase только тому, у кого тариф не жив; платящему
+           поля нет, и витрина снимается с экрана. Отдельный try: упавшая
+           витрина не имеет права уронить рабочий кабинет. */
+        try {
+          if (data.showcase && renderShowcase(data.showcase)) mountShowcase(true);
+          else hideShowcase();
+        } catch (e) { hideShowcase(); }
+      }
+      /* v1166: незарегистрированный больше НЕ улетает молча на прайс — сперва
+         видит, как устроен кабинет, и где кнопка отписки. Если сервер витрину
+         не прислал (старый процесс) — прежнее поведение. */
+      else if (data.showcase && renderShowcase(data.showcase)) {
+        mountShowcase(false);
+        showView('showcase');
       }
       else applySignup(data.tariffs || FALLBACK_TARIFFS);
     } catch (e) {

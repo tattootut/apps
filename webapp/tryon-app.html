@@ -277,16 +277,16 @@
   });
 
   function openTelegram() {
+    // 🔴 08.09.2026: здесь стоял openTelegramLink('https://t.me/ta2_blockbot').
+    // Ссылка БЕЗ параметра — Telegram трактует её открытие как команду /start
+    // ОТ ИМЕНИ пользователя. Владелец видел в чате голый «/start», которого не
+    // отправлял, и второе приветствие следом. Возврат в чат делается закрытием
+    // мини-аппа: тот же результат, без фантомной команды.
     if (window.Telegram && window.Telegram.WebApp) {
-      // 🔴 08.09.2026: тут была openTelegramLink на самого бота БЕЗ
-      // параметра. Telegram трактует открытие такой ссылки как команду
-      // /start ОТ ИМЕНИ пользователя: владелец видел в чате голый
-      // «/start», которого не отправлял, и второе приветствие следом.
-      // Возврат в чат = закрытие мини-аппа, без фантомной команды.
       try { window.Telegram.WebApp.close(); return; } catch (e) {}
-    } else {
-      window.location.href = 'https://telegram.me/ta2_blockbot';
     }
+    // Вне Telegram (обычный браузер) команды не будет — там ссылка законна.
+    window.location.href = 'https://telegram.me/ta2_blockbot';
   }
 </script>
 

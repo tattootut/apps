@@ -1298,7 +1298,14 @@ const ORDER = ['trial','solo','pro','atelier','studio'];
 // Зачёркнутый «старый» ценник — маркетинговый якорь витрины, НЕ квота: сервер
 // считает его своей формулой (+30%), и подмена молча переписала бы обещание
 // «−40%» на «−23%». Поэтому якорь остаётся здесь, а живая цена — с сервера.
-const OLD_PRICE = { trial:0, solo:1990, pro:4990, atelier:5990, studio:9990 };
+// 🔴 v1170: РЕАЛЬНЫЕ прежние цены, и только они. Тут стояли solo:1990,
+// pro:4990, atelier:5990 — таких цен у нас не было никогда, это снимок той же
+// синтетики «×1.3», что жила в чат-карточке. Из этих чисел ещё и считался
+// бейдж «−N%», то есть врала не одна строка, а скидка целиком.
+// Единственная живая прежняя цена сегодня — Макс: 9990 → 6990 (v1006).
+// Живое значение приезжает с сервера (old_price в /api/cabinet.tariffs);
+// эта карта — снимок на случай «сервер не ответил».
+const OLD_PRICE = { trial:0, solo:0, pro:0, atelier:0, studio:9990 };
 
 // Снимок квот на случай «сервер не ответил». Синхронизирован с MASTER_TARIFFS.
 // Тарифов, скрытых из витрины (premium 14990, pro_intro), тут нет и быть не
@@ -1359,7 +1366,10 @@ function buildTariffs(quotas){
   return ORDER.filter(k => quotas[k]).map(key => {
     const p = PRESENT[key] || {};
     const q = quotas[key];
-    const old = OLD_PRICE[key] || 0;
+    // v1170: живой old_price с сервера главнее снимка. Сервер ставит 0, если
+    // реальной прежней цены нет — и тогда страйка не будет, а не «упадём на
+    // снимок и нарисуем».
+    const old = ('old_price' in q) ? (+q.old_price || 0) : (OLD_PRICE[key] || 0);
     // «≈ N ₽ / день» — производная от живой цены, не отдельное число.
     const perDay = (!p.trial && q.days) ? Math.round(q.price / q.days) : 0;
     return {
@@ -1390,11 +1400,17 @@ function row(t, i){
   // .warn) кладутся ВНУТРЬ .l в потоке column — НЕ трогаем flex .row/.r/.arrow.
   const isMine = CURRENT_TARIFF && t.key === CURRENT_TARIFF;
   const cls = ['row', t.star && 'hit', t.top && 'toptier', t.trial && 'trial', isMine && 'mine'].filter(Boolean).join(' ');
+  // 🔴 v1170-fix: процент — ТОЛЬКО когда есть реальная прежняя цена. Бейдж
+  // считался до проверки скидки и для star/top печатался безусловно: сняв
+  // выдуманную «старую цену» у Про, витрина стала печатать «⭐ Самый
+  // популярный · −0%» на центральной карточке — той самой, на которую придёт
+  // вся волна. Ранг тарифа и скидка — разные вещи, и склеивать их нельзя.
   const savePct = t.old > t.price ? Math.round((1 - t.price/t.old)*100) : 0;
-  const badge = t.star ? '<span class="badge">⭐ Самый популярный · −' + savePct + '%</span>'
-              : t.top ? '<span class="badge save">🎬 Максимум · −' + savePct + '%</span>'
-              : savePct ? '<span class="badge save">−' + savePct + '%</span>'
-              : '';
+  const rank = t.star ? '⭐ Самый популярный' : t.top ? '🎬 Максимум' : '';
+  const badgeCls = t.star ? 'badge' : 'badge save';
+  const badgeTx = savePct ? (rank ? rank + ' · −' + savePct + '%' : '−' + savePct + '%')
+                          : rank;
+  const badge = badgeTx ? '<span class="' + badgeCls + '">' + badgeTx + '</span>' : '';
   const priceEl = `<span class="new">${fmt(t.price)}<span class="cur">&nbsp;₽</span></span>`;
   const specs = (t.specs || []).map(s => {
     const c = s.wow ? 'spec wow' : s.lock ? 'spec lock' : 'spec';
@@ -1459,6 +1475,7 @@ const HYDRATED = (async function hydrateTariffs(){
       if (!PRESENT[t.key]) return;   // не витринный ключ — не рисуем
       live[t.key] = {
         price:+t.price || 0, days:+t.days || 0,
+        old_price:+t.old_price || 0,   // v1170: реальная прежняя цена или 0
         sketches:+t.sketches || 0, tryons:+t.tryons || 0,
         stencils:+t.stencils || 0, extracts:+t.extracts || 0,
         photo_retouch:+t.photo_retouch || 0,
