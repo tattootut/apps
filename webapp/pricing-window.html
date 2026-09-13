@@ -283,10 +283,19 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .row .minechip{border-color:var(--tier);color:var(--tier)}
 
 /* Тумблер режима оплаты. Открывается ВСЕГДА на «Подписка» (заказ владельца). */
-.pmode{display:none;gap:4px;margin:22px 4px 9px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:99px}
-.pmode.on{display:flex}
-.pmode button{flex:1;padding:11px 8px;border-radius:99px;font-family:Oswald,sans-serif;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);transition:var(--tap)}
+/* 🔴 v1197: тумблер живёт В ПРАВОМ ВЕРХНЕМ УГЛУ строки «Выбери тариф» —
+   компактная пилюля на два положения, а не широкая полоса над списком. */
+.label{align-items:center}
+.pmode{display:none;gap:3px;padding:3px;background:var(--surface);border:1px solid var(--border);border-radius:99px;align-self:center}
+.pmode.on{display:inline-flex}
+.pmode.on ~ .r{display:none}
+.pmode button{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;font-family:Oswald,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);transition:var(--tap);white-space:nowrap}
 .pmode button[aria-pressed="true"]{background:var(--accent);color:#0b1208}
+/* Скидка подписки — на самой кнопке, чтобы было видно ДО выбора. */
+.pm-save{font-size:9.5px;letter-spacing:.04em;padding:2px 5px;border-radius:99px;background:rgba(11,18,8,.22);color:inherit}
+.pmode button[aria-pressed="false"] .pm-save{background:rgba(196,240,0,.14);color:var(--accent)}
+.pm-save:empty{display:none}
+@media (max-width:400px){.pmode button{padding:6px 9px;font-size:10px;letter-spacing:.03em}}
 .pmode-note{display:none;margin:0 6px 13px;font-size:11.5px;line-height:1.45;color:var(--text-muted);letter-spacing:.01em}
 .pmode-note.on{display:block}
 
@@ -376,55 +385,46 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       <span class="mh-line">🎁 Пробный — <b><span class="js-trial-price">499</span> ₽</b> / 7 дней</span>
       <span class="mh-sub">Попробуй все функции за <span class="js-trial-price">499</span> ₽, потом выбери тариф.</span>
     </div>
+    <!-- 🔴 v1197 (владелец 13.09): блоки «клиент мерит и пишет хочу» и
+         «превращай сомнения клиента» сняты. Ссылку-примерку мы сознательно
+         понизили — функция непопулярная, а занимала она весь первый экран
+         ПРАЙСА, то есть отвечала не на тот вопрос. Человек, открывший цены,
+         думает про оплату: «спишется внезапно», «а если передумаю», «не хочу
+         подписку», «дорого». Здесь теперь закрыты ровно эти четыре. -->
     <div class="eyebrow">
       <svg><use href="#i-zap"/></svg>
-      Превращай сомнения клиента в запись
+      Оплата без сюрпризов
     </div>
     <h1>
-      <span class="small">Клиент мерит твою тату</span>
-      <span class="big">на себе</span>
-      <span class="end">— и пишет «хочу».</span>
+      <span class="small">По подписке дешевле.</span>
+      <span class="big">Отменить</span>
+      <span class="end">— один тап.</span>
     </h1>
-    <div class="calc fade-in" style="animation-delay:120ms">
-      <svg><use href="#i-zap"/></svg>
-      <div class="math">
-        <span>Высылаешь <b>ссылку</b> клиенту в личку или крепишь в сторис</span>
-        <span>бот примеряет твой эскиз на фото тела — клиент сам пишет «хочу»</span>
-      </div>
-      <span class="ratio">🔗&nbsp;твой&nbsp;канал&nbsp;заявок</span>
-    </div>
 
-    <!-- v206 (новая концепция «ссылка приводит клиентов»): путь теперь
-         заканчивается КЛИЕНТОМ, а не «примерь». Старый «4 шага НАЙДИ→
-         ИЗВЛЕКИ→ТРАНСФЕР→ПРИМЕРЬ» убран — в нём не было лидогенерации
-         (главного актива). Новый путь: создай ссылку → клиент мерит →
-         заявка тебе → закрыл на запись. -->
     <div class="flow fade-in" style="animation-delay:180ms">
-      <div class="flow-title">Как бот приводит тебе клиентов</div>
+      <div class="flow-title">Что обычно спрашивают про оплату</div>
       <div class="flow-steps">
         <div class="flow-step">
-          <div class="icon"><svg><use href="#i-image2"/></svg></div>
-          <span class="n">1</span>
-          <div class="t">Создай ссылку</div>
-          <div class="s">на свой эскиз — за 10 сек</div>
+          <div class="icon"><svg><use href="#i-zap"/></svg></div>
+          <div class="t">«Спишется внезапно?»</div>
+          <div class="s">нет — дата следующего списания видна в кабинете, чек приходит после оплаты</div>
         </div>
         <div class="flow-step">
-          <div class="icon"><svg><use href="#i-zap"/></svg></div>
-          <span class="n">2</span>
-          <div class="t">Раздай</div>
-          <div class="s">в личку, сторис, рекламу</div>
+          <div class="icon"><svg><use href="#i-image2"/></svg></div>
+          <div class="t">«А если передумаю?»</div>
+          <div class="s">отмена в один тап, оплаченный месяц дорабатывает до конца</div>
         </div>
         <div class="flow-step">
           <div class="icon"><svg><use href="#i-search"/></svg></div>
-          <span class="n">3</span>
-          <div class="t">Клиент мерит</div>
-          <div class="s">на фото своего тела</div>
+          <div class="t">«Не хочу подписку»</div>
+          <div class="s">возьми месяц разово — переключатель справа вверху</div>
         </div>
         <div class="flow-step">
           <div class="icon"><svg><use href="#i-printer2"/></svg></div>
-          <span class="n">4</span>
-          <div class="t">Заявка тебе</div>
-          <div class="s">«хочу такую» → запись</div>
+          <div class="t">«Сколько это в день?»</div>
+          <!-- Число ЖИВОЕ: самая дешёвая цена в день среди платных тарифов.
+               Литералом тут стоять не может — прайс уедет, обещание останется. -->
+          <div class="s">от <b class="js-min-perday">—</b> ₽ — цена в день написана на каждой карточке</div>
         </div>
       </div>
       <div class="flow-bonus">
@@ -441,15 +441,16 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
   <div class="label">
     <span>Выбери тариф</span>
-    <span class="r">Любой можно сменить</span>
-  </div>
-
-  <!-- v1194: тумблер «Подписка / Разовый месяц». Появляется ТОЛЬКО когда
-       сервер прислал разовые цены (once_price) — при PACKAGES_V2=0 или на
-       старом билде бэкенда его нет, и витрина прежняя до байта. -->
-  <div class="pmode" id="payMode" role="group" aria-label="Как платить">
-    <button type="button" data-pmode="sub" aria-pressed="true">Подписка</button>
-    <button type="button" data-pmode="once" aria-pressed="false">Разовый месяц</button>
+    <!-- 🔴 v1197 (владелец 13.09): тумблер переехал В ПРАВЫЙ ВЕРХНИЙ УГОЛ, на
+         место подписи «Любой можно сменить». Прайс открывается на ПОДПИСКЕ, и
+         на её кнопке висит РЕАЛЬНАЯ максимальная скидка, посчитанная из цен
+         (не литерал: владелец назвал «-30%», по факту максимум −25 % у Старта,
+         и обещать больше, чем даём, на денежном экране нельзя). -->
+    <div class="pmode" id="payMode" role="group" aria-label="Как платить">
+      <button type="button" data-pmode="sub" aria-pressed="true">Подписка<span class="pm-save" id="pmSave"></span></button>
+      <button type="button" data-pmode="once" aria-pressed="false">Разово</button>
+    </div>
+    <span class="r" id="payModeFallback">Любой можно сменить</span>
   </div>
   <div class="pmode-note" id="payModeNote"></div>
 
@@ -1707,6 +1708,20 @@ function applyModeChrome(hasOnce){
       b.setAttribute('aria-pressed', String(b.dataset.pmode === PAY_MODE));
     });
   }
+  // 🔴 v1197: «−N %» на кнопке подписки — МАКСИМАЛЬНАЯ РЕАЛЬНАЯ скидка среди
+  // каталожных тарифов, посчитанная из тех же цен, что в карточках. Литерал
+  // тут стоять не может: владелец назвал «-30%», по факту максимум −25 %, и
+  // обещать на денежном экране больше, чем даём, нельзя.
+  var save = document.getElementById('pmSave');
+  if (save){
+    var best = 0;
+    Object.keys(ONCE_PRICES || {}).forEach(function(k){
+      var once = +ONCE_PRICES[k] || 0;
+      var sub  = +((LAST_QUOTAS || {})[k] || {}).price || 0;
+      if (once > sub && sub > 0) best = Math.max(best, Math.round((1 - sub / once) * 100));
+    });
+    save.textContent = (hasOnce && best > 0) ? ('−' + best + '%') : '';
+  }
   if (note){
     note.classList.toggle('on', !!hasOnce);
     note.textContent = (PAY_MODE === 'once')
@@ -1727,12 +1742,26 @@ function renderStack(quotas){
   var hasOnce = false;
   built.forEach(function(t){ if (t.once){ hasOnce = true; ONCE_PRICES[t.key] = t.once; } });
   if (!hasOnce && PAY_MODE === 'once') PAY_MODE = 'sub';   // разового мира нет
-  document.getElementById('stack').innerHTML = built.map(row).join('');
+  // 🔴 v1197 (владелец 13.09): в режиме «Разово» показываем ТОЛЬКО пакеты от
+  // Старта до Макса. Пробный туда не входит: он и так разовый платёж, своей
+  // разовой цены у него нет, и рядом с дорогими разовыми ценами читался бы
+  // как «самый выгодный разовый» — то есть уводил бы из пакетов.
+  var shown = (PAY_MODE === 'once') ? built.filter(function(t){ return t.once > 0; })
+                                    : built;
+  document.getElementById('stack').innerHTML = shown.map(row).join('');
   applyModeChrome(hasOnce);
   // Баннер «цена запуска» — та же цена пробного, что в карточке и в кассе.
   const tp = (quotas.trial || {}).price;
   if (tp) document.querySelectorAll('.js-trial-price')
     .forEach(el => { el.textContent = fmt(tp); });
+  // v1197: «от N ₽ в день» в блоке возражений — минимум среди ПЛАТНЫХ карточек,
+  // тот же perDay, что напечатан на них. Своего числа у строки нет.
+  var minPd = 0;
+  built.forEach(function(t){
+    if (!t.trial && t.perDay > 0) minPd = minPd ? Math.min(minPd, t.perDay) : t.perDay;
+  });
+  if (minPd) document.querySelectorAll('.js-min-perday')
+    .forEach(function(el){ el.textContent = fmt(minPd); });
 }
 renderStack(FALLBACK_QUOTAS);
 
