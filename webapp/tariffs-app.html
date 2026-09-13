@@ -1479,6 +1479,20 @@
   // Теперь спрашиваем способ и открываем ссылку кассы напрямую: человек
   // уходит В СВОЙ БАНК и подтверждает там, реквизиты руками не вводит.
   // Владелец: «нужны СБП, SberPay и TPay, ЮMoney не нужен».
+  // 🔴 v1202 (найдено разбором заказа владельца 13.09): адрес витрины был
+  // прибит как `pricing-window.html?v=931` в ПЯТИ местах — ключ кеша
+  // полугодовой давности. Бот открывает кабинет как `tariffs-app.html?v=<билд>`,
+  // и уходить из него надо с ТЕМ ЖЕ свежим ключом, иначе браузер вправе
+  // отдать старую витрину: без разовых цен, без «без лимита», без тумблера.
+  function _pricingUrl(extra) {
+    var v = '';
+    try { v = new URLSearchParams(window.location.search).get('v') || ''; }
+    catch (_) {}
+    var q = v ? ('?v=' + encodeURIComponent(v)) : '';
+    if (extra) q += (q ? extra : '?' + String(extra).replace(/^&/, ''));
+    return 'pricing-window.html' + q;
+  }
+
   const PAY_METHODS = [
     { id: 'sbp',           label: '⚡️ СБП — любой банк' },
     { id: 'sberbank',      label: '💚 SberPay' },
@@ -2367,7 +2381,7 @@
   // него сейчас, и видел CTA «купить» на собственном тарифе).
   function goPricing() {
     try {
-      window.location.assign('pricing-window.html?v=931&current='
+      window.location.assign(_pricingUrl('&current=')
         + encodeURIComponent(CURRENT_TARIFF_KEY || ''));
     } catch (e) {}
   }
@@ -2378,7 +2392,7 @@
   // с ценой, вписанной в текст.
   function goAddons() {
     try {
-      window.location.assign('pricing-window.html?v=931&current='
+      window.location.assign(_pricingUrl('&current=')
         + encodeURIComponent(CURRENT_TARIFF_KEY || '') + '#addons');
     } catch (e) {}
   }
@@ -2672,7 +2686,7 @@
       if (document.getElementById('toPricingFallback')) return;
       var a = document.createElement('a');
       a.id = 'toPricingFallback';
-      a.href = 'pricing-window.html?v=931';
+      a.href = _pricingUrl();
       a.textContent = 'Посмотреть тарифы';
       a.style.cssText = 'display:block;text-align:center;margin:10px 0;'
         + 'padding:12px;border:1px solid rgba(255,255,255,.25);'
@@ -2716,6 +2730,16 @@
 
     var limRows = (lim.rows || []).map(function (r) {
       var pct = r.limit > 0 ? Math.round(100 * r.used / r.limit) : 0;
+      // 🔴 v1202: безлимитная ось в примере — СЛОВОМ. Без этой ветки она
+      // печаталась бы как «осталось 0 из 0» с пустой полосой, то есть ровно
+      // наоборот смыслу: главное преимущество читалось бы как «всё кончилось».
+      if (r.unlimited) {
+        return '<div style="padding:9px 0;border-top:1px solid var(--color-border)">'
+          + '<div style="display:flex;justify-content:space-between;font-size:13px">'
+          + '<span>' + _scEsc(r.label) + '</span>'
+          + '<span style="color:var(--color-accent);font-weight:600">∞ без лимита</span>'
+          + '</div></div>';
+      }
       return '<div style="padding:9px 0;border-top:1px solid var(--color-border)">'
         + '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">'
         + '<span>' + _scEsc(r.label) + '</span>'
@@ -2755,7 +2779,15 @@
       + 'color:var(--color-accent);font-size:10.5px;letter-spacing:.06em">'
       + _scEsc(lim.badge) + '</span></div>'
       + '<div style="font-size:12.5px;color:var(--color-text-muted);line-height:1.5;'
-      + 'margin:6px 0 4px">' + _scEsc(lim.note) + '</div>' + limRows + '</div>'
+      + 'margin:6px 0 4px">' + _scEsc(lim.note) + '</div>' + limRows
+      // v1202: одна строка про то, ЧТО открывается выше по лестнице —
+      // холодный иначе не узнаёт про безлимит из кабинета вовсе.
+      + (lim.unlimited_hint
+          ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid '
+            + 'var(--color-border);font-size:12.5px;line-height:1.5;'
+            + 'color:var(--color-accent)">' + _scEsc(lim.unlimited_hint) + '</div>'
+          : '')
+      + '</div>'
 
       + '<div class="card" style="margin-bottom:14px">'
       + '<div class="card-label">' + _scEsc(can.title) + '</div>'
@@ -2774,7 +2806,7 @@
     if (btn) {
       btn.onclick = function () {
         // Касса живёт на витрине — своей второй кассы здесь не заводим.
-        window.location.assign('pricing-window.html?v=931&current='
+        window.location.assign(_pricingUrl('&current=')
           + encodeURIComponent(cta.tariff_key || ''));
       };
     }
@@ -2810,7 +2842,7 @@
     // Это даёт двухстраничную архитектуру: Cabinet и Tariffs (лендинг).
     // v884: сюда попадают ТОЛЬКО незарегистрированные. Сбои — в offerPricingLink().
     try {
-      window.location.replace('pricing-window.html?v=931');
+      window.location.replace(_pricingUrl());
     } catch (e) {
       // Если редирект упал — fallback на inline signup view (старая логика).
       showView('signup');

@@ -75,6 +75,10 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
    и сам ужимает его на узких. */
 .hero h1 .big{font-size:clamp(46px,17.5vw,88px);font-weight:700;color:var(--accent);display:block;margin-top:4px;letter-spacing:.005em;text-shadow:0 0 60px rgba(196,240,0,.15)}
 .hero h1 .end{font-size:36px;font-weight:600;color:var(--text);display:block;margin-top:6px}
+/* v1202: строка способов оплаты под заголовком — мелко, в одну-две строки,
+   переносится сама на узких экранах. */
+.hero .paylist{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 8px}
+.hero .paylist span{font-size:11px;line-height:1.2;letter-spacing:.02em;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:5px 9px;white-space:nowrap}
 .hero .calc{margin-top:24px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;gap:14px}
 /* v84: блок «4 шага что делает бот» — визуальное объяснение функций
    перед карточками тарифов. Без перегруза, минималистично. */
@@ -408,6 +412,24 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       <span class="big">подписка</span>
       <span class="end">отменить можно в один тап.</span>
     </h1>
+    <!-- 🔴 v1202 (заказ владельца 13.09): показать, что платить можно
+         по-разному — «чтобы человек сразу видел, что мы можем принять разные
+         системы оплаты». Меньшим шрифтом под заголовком, как он и просил.
+         ИСТОЧНИК КАЖДОГО СПОСОБА (денежный экран — врать нельзя):
+         · СБП, SberPay, TPay — наш PAY_METHODS, рублёвый лист ЮKassa;
+         · Visa/Mastercard, Apple Pay, PayPal — касса Lava (LAVA_ENABLED в
+           бою True). Владелец 13.09 проверил лист оплаты Lava ЛИЧНО и
+           подтвердил, что Apple Pay и PayPal там есть. Наша собственная
+           кнопка в боте при этом подписана уже — «🌍 Иностранная карта
+           (Visa/MC)», то есть занижает; это отдельная правка.
+         Порядок — как просил владелец: сначала СБП, дальше карты. -->
+    <div class="paylist">
+      <span>⚡️ СБП — любой банк</span>
+      <span>💳 Visa / Mastercard</span>
+      <span>🍏 Apple&nbsp;Pay</span>
+      <span>🅿️ PayPal</span>
+      <span>и другие</span>
+    </div>
 
   </section>
 
@@ -706,7 +728,22 @@ try { if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor(
 // шапке Telegram остаётся только «✕», а это выход из мини-аппа целиком, с
 // потерей места. Кнопка ← стоит в шапке всегда и ведёт туда же, куда пилюля.
 function goCabinet() {
-  try { window.location.assign('tariffs-app.html?v=931'); } catch(_) {}
+  // 🔴 v1202 (найдено разбором заказа владельца 13.09): версия была прибита
+  // числом `?v=931` — снимок полугодовой давности. Бот открывает витрину
+  // как `pricing-window.html?v=<билд>`, а кнопка отсюда уводила в кабинет с
+  // чужим, давно протухшим ключом кеша: браузер имел полное право отдать
+  // СТАРЫЙ кабинет — без осей «без лимита», без разовых цен, без отмены
+  // подписки. Берём ключ из СВОЕГО адреса: он всегда свежий, потому что его
+  // ставит сам бот при открытии.
+  var v = '';
+  try {
+    v = new URLSearchParams(window.location.search).get('v') || '';
+  } catch (_) {}
+  // Телеграм-авторизация мини-аппа живёт в initData и переживает переход
+  // внутри одной сессии WebApp, поэтому её тащить в адрес не нужно.
+  try {
+    window.location.assign('tariffs-app.html' + (v ? '?v=' + encodeURIComponent(v) : ''));
+  } catch (_) {}
 }
 try {
   if (tg && tg.BackButton) {
@@ -1431,7 +1468,10 @@ const PRESENT = {
     // ЛИД-МАГНИТ воронки (не убирать! на нём стоит вся воронка).
     name:'ПРОБНЫЙ', period:'7 дней', trial:true,
     cap:q => '🎁 Попробуй всё за ' + fmt(q.price) + ' ₽',
-    hero:'🎁 Неделя полного доступа',
+    // 🔴 v1202 (владелец 13.09, глядя на свой же экран): «полного» — ложь.
+    // Ниже в том же пакете стоят два замка: «оживление — на СТАРТ» и
+    // «видео-примерка — на СТАРТ». Слово убрано, факт остался.
+    hero:'🎁 Неделя доступа',
     resultSub:'распробуй, потом выбери тариф',
   },
   solo: {
@@ -1708,9 +1748,14 @@ function row(t, i){
       <div class="r">
         ${anchor > t.price ? `<span class="old">${fmt(anchor)} ₽</span>` : ''}
         ${priceEl}
-        <span class="u">/ ${t.period}</span>
+        <span class="u">/ ${onceOn ? '30 дней' : t.period}</span>
         ${shownPd ? `<span class="ph">≈ ${shownPd}&nbsp;₽ / день</span>` : ''}
         ${onceOn ? `<span class="subhint">по подписке — <b>${fmt(t.price)}&nbsp;₽</b></span>` : ''}
+        ${/* 🔴 v1202: пробный стоит в обоих режимах, и в обоих обязан сказать
+              о себе правду — подпиской он не покупается, это один платёж.
+              Без этой строки в режиме «Подписка» он читался бы как ещё одна
+              подписка за 499 ₽. */ ''}
+        ${t.trial ? `<span class="subhint">разовый платёж — <b>не подписка</b></span>` : ''}
       </div>
       <div class="arrow"><svg><use href="#i-arrow"/></svg></div>
     </div>`;
@@ -1804,8 +1849,13 @@ function renderStack(quotas){
   // Старта до Макса. Пробный туда не входит: он и так разовый платёж, своей
   // разовой цены у него нет, и рядом с дорогими разовыми ценами читался бы
   // как «самый выгодный разовый» — то есть уводил бы из пакетов.
-  var shown = (PAY_MODE === 'once') ? built.filter(function(t){ return t.once > 0; })
-                                    : built;
+  // 🔴 v1202 (владелец 13.09, пересмотр собственного решения): пробный
+  // остаётся в ОБОИХ режимах. Довод его же: пробный и ЕСТЬ разовый платёж —
+  // подпиской его купить нельзя, цена в обоих режимах одна, и убрать его с
+  // витрины мы не можем. Прятать его в «Разово» значило прятать ровно там,
+  // где он по своей природе и живёт. Прежнее решение («в разовом пробного
+  // нет») отменено В ТОТ ЖЕ ДЕНЬ — записано, чтобы не вернуть по памяти.
+  var shown = built;
   document.getElementById('stack').innerHTML = shown.map(row).join('');
   applyModeChrome(hasOnce);
   // Баннер «цена запуска» — та же цена пробного, что в карточке и в кассе.
