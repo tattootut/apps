@@ -1254,7 +1254,9 @@
     <div class="link-pool-bar" id="linkPoolBar" style="margin:14px 0 4px">
       <div class="lp-row">
         <span class="lp-label">Бюджет примерок этого месяца</span>
-        <span class="lp-count"><span id="linkPoolUsed">0</span> / <span id="linkPoolTotal">250</span></span>
+        <span class="lp-count" id="linkPoolCount"><span id="linkPoolUsed">0</span> / <span id="linkPoolTotal">250</span></span>
+        <!-- v1198: безлимит пула — только по признаку demo_pool_unlimited с сервера -->
+        <span class="lp-count hidden" id="linkPoolUnlim"><b>без лимита ∞</b></span>
       </div>
       <div class="lp-track"><span class="lp-fill" id="linkPoolFill" style="width:0%"></span></div>
       <div class="lp-cta hidden" id="linkPoolCta"></div>
@@ -1848,7 +1850,10 @@
   function renderTariffCard(t, isCurrent) {
     const isFree = t.price === 0;
     const fmtPrice = (p) => p.toLocaleString('ru-RU');
-    const fmt = (n) => n >= 9999 ? '∞' : n.toString();
+    // 🔴 v1198: число печатается числом. Безлимит — признак с сервера
+    // (`unlimited_ops` для квот, `demo_pool_unlimited` для пула), а не 9999:
+    // большое число вместо признака владелец отверг.
+    const fmt = (n) => String(Number(n) || 0);
 
     // 🔴 v1194: зачёркнутое число = честная цена РАЗОВОГО месяца, когда она
     // пришла с сервера. Скидка перестала быть нарисованной: тумблер
@@ -1871,11 +1876,15 @@
          </div>`;
 
     // v267 (Task B): результат-строка сверху (клиенты по ссылке → заявки).
-    const pool = t.demo_pool || 0;
+    // 🔴 v1198: «без лимита» — только по признаку demo_pool_unlimited с
+    // сервера. Раньше сюда вёл `pool >= 9999`: большое число считалось
+    // бесконечностью, а в отчётах ехало настоящей квотой.
+    const pool = Number(t.demo_pool) || 0;
     const resultLine = `
       <div class="result-line">
-        🔗 ${pool >= 9999 ? '<b>клиенты без лимита</b> по ссылке'
-                          : 'до <b>' + fmt(pool) + ' клиентов</b> по ссылке в месяц'}
+        🔗 ${t.demo_pool_unlimited === true
+              ? 'клиенты по ссылке — <b>без лимита ∞</b>'
+              : 'до <b>' + fmt(pool) + ' клиентов</b> по ссылке в месяц'}
         <span class="res-sub">их «хочу такую» → заявки тебе на запись</span>
       </div>`;
 
@@ -2044,14 +2053,20 @@
     if (!t) return;
     // fmt/fmtPrice живут внутри renderTariffCard — здесь свои, тот же вид.
     const fmtPrice = (p) => Number(p || 0).toLocaleString('ru-RU');
-    const fmt = (n) => Number(n || 0) >= 9999 ? '∞' : String(Number(n || 0));
+    const fmt = (n) => String(Number(n) || 0);   // v1198: без 9999 → ∞
     document.querySelectorAll('.js-trial-price')
       .forEach(el => { el.textContent = fmtPrice(t.price); });
     const box = $('trialFeatures');
     if (!box) return;
     const rows = [];
-    if (t.clients_quota > 0)
-      rows.push('🔗 <b>до ' + fmt(t.clients_quota) + ' клиентов</b> примерят твою тату по ссылке → заявки тебе');
+    // 🔴 v1198: строка про ссылку читает ЖИВОЙ пул (demo_pool — по нему режет
+    // замок), а не clients_quota: это квота выключенного промокодного
+    // механизма (v1187), совпадала с пулом только на Пробном. Безлимит —
+    // признаком demo_pool_unlimited, не большим числом.
+    if (t.demo_pool_unlimited === true)
+      rows.push('🔗 клиенты по ссылке — <b>без лимита ∞</b>: примерят твою тату → заявки тебе');
+    else if (Number(t.demo_pool) > 0)
+      rows.push('🔗 <b>до ' + fmt(t.demo_pool) + ' клиентов</b> примерят твою тату по ссылке → заявки тебе');
     if (t.sketches > 0)  rows.push('<b>' + fmt(t.sketches) + '</b> эскизов с нуля — голосом или текстом');
     if (t.stencils > 0)  rows.push('<b>' + fmt(t.stencils) + ' трансферов</b> — стенсилы за 30 секунд из эскизов');
     if (t.extracts > 0 || t.photo_retouch > 0)
@@ -3336,12 +3351,21 @@
   // pct=used/total*100. ≥70% → 'warn' (мягкая CTA на Pro+). ≥90% → 'danger'
   // (горящая CTA «докупи примерки» → витрина, секция докупок; v1064). Юзер
   // видит как утекает бюджет → апселл срабатывает в момент максимальной боли.
-  function renderLinkPoolBar(pool, remaining) {
+  function renderLinkPoolBar(pool, remaining, unlimited) {
     const bar = $('linkPoolBar');
     if (!bar) return;
-    const total = Math.max(0, pool || 0);
+    // 🔴 v1198: безлимит пула — ТОЛЬКО признак с сервера (demo_pool_unlimited).
+    // Раньше «безлимитом» здесь считался total === 0, а на карточке — 9999:
+    // две разные заглушки-числа на один смысл. Пул 0 — это «пула нет».
+    const unlim = (unlimited === true);
+    const countEl = $('linkPoolCount');
+    const unlimEl = $('linkPoolUnlim');
+    if (countEl) countEl.classList.toggle('hidden', unlim);
+    if (unlimEl) unlimEl.classList.toggle('hidden', !unlim);
+    const total = unlim ? 0 : Math.max(0, pool || 0);
     const used = Math.max(0, total - (remaining || 0));
-    const pct = total > 0 ? Math.min(100, Math.round(used * 100 / total)) : 0;
+    const pct = unlim ? 100
+      : (total > 0 ? Math.min(100, Math.round(used * 100 / total)) : 0);
 
     $('linkPoolUsed').textContent = used;
     $('linkPoolTotal').textContent = total;
@@ -3353,7 +3377,7 @@
     cta.classList.add('hidden');
     cta.innerHTML = '';
 
-    if (total === 0) return;  // безлимит — без баннера
+    if (unlim || total === 0) return;  // безлимит — докупать нечего; пула нет — тоже
 
     if (pct >= 90) {
       bar.classList.add('danger');
@@ -3400,7 +3424,7 @@
     // (две формулировки одного числа рядом удешевляли блок).
     $('tlDemo').innerHTML = '';
     // v214: goal-gradient bar выше counts. Show overage CTA при ≥90%, warn при ≥70%.
-    renderLinkPoolBar(pool, remaining);
+    renderLinkPoolBar(pool, remaining, d.demo_pool_unlimited === true);
 
     const bot = d.bot || 'ta2_blockbot';
     const links = d.links || [];

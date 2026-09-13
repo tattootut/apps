@@ -1528,9 +1528,12 @@ function unlimFields(q){
 // тарифов задаётся там). Число не печатается НИКОГДА, знак ∞ стоит СЛЕВА как
 // значок, а не как количество.
 function unlimList(q){
-  return ((q && q.unlimited_ops) || [])
+  const out = ((q && q.unlimited_ops) || [])
     .map(op => UNLIM_LABEL_BY_OP[op])
     .filter(Boolean);
+  // v1198: пул клиентов по ссылке — не операция гейта, у него свой признак.
+  if (q && q.demo_pool_unlimited === true) out.push('Клиенты по ссылке');
+  return out;
 }
 
 function buildSpecs(key, quotas){
@@ -1561,7 +1564,10 @@ function buildSpecs(key, quotas){
   specs.push({n:q.stencils,      l:'трансферов', unlim:!!unl.stencils});
   specs.push({n:q.extracts,      l:'вытащить эскиз', unlim:!!unl.extracts});
   specs.push({n:q.photo_retouch, l:'улучшить фото', unlim:!!unl.photo_retouch});
-  specs.push({n:q.demo_pool,     l:'клиентов по ссылке'});
+  // 🔴 v1198: пул клиентов по ссылке — отдельным признаком с сервера
+  // (demo_pool_unlimited). Безлимит из числа не выводится никогда.
+  specs.push({n:q.demo_pool,     l:'клиентов по ссылке',
+              unlim: q.demo_pool_unlimited === true});
   // v1194: безлимитная ось уходит ИЗ сетки чисел наверх, в .unlims — там она
   // стоит первой и без числа. В сетке её быть не должно вовсе, иначе рядом с
   // «Трансферы — без лимита» человек прочитает ещё и «60 трансферов».
@@ -1804,6 +1810,8 @@ const HYDRATED = (async function hydrateTariffs(){
         photo_retouch:+t.photo_retouch || 0,
         videos:+t.videos || 0, animations:+t.animations || 0,
         demo_pool:+t.demo_pool || 0,
+        // v1198: безлимит пула — признаком с сервера, не числом.
+        demo_pool_unlimited: t.demo_pool_unlimited === true,
         // 🔴 v1194: разовая цена месяца и безлимитные оси — только с сервера.
         // Полей нет (старый билд бэкенда или PACKAGES_V2=0) → 0 и пустой
         // список, карточка рисуется прежней, тумблер не появляется.
