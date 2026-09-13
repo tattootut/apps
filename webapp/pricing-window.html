@@ -69,7 +69,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .hero .eyebrow svg{width:14px;height:14px;color:var(--accent)}
 .hero h1{margin:0;font-family:Oswald,sans-serif;font-weight:700;line-height:.95;text-transform:uppercase;letter-spacing:.01em}
 .hero h1 .small{font-size:36px;font-weight:600;color:var(--text-muted);display:block}
-.hero h1 .big{font-size:88px;font-weight:700;color:var(--accent);display:block;margin-top:4px;letter-spacing:.005em;text-shadow:0 0 60px rgba(196,240,0,.15)}
+/* 🔴 v1201: было 88px фиксом, и слово из восьми букв («ОТМЕНИТЬ»,
+   «ПОДПИСКА») требовало 387 px при ширине контейнера 343 — обрезалось на
+   любом телефоне уже 375 px. clamp держит кегль крупным на больших экранах
+   и сам ужимает его на узких. */
+.hero h1 .big{font-size:clamp(46px,17.5vw,88px);font-weight:700;color:var(--accent);display:block;margin-top:4px;letter-spacing:.005em;text-shadow:0 0 60px rgba(196,240,0,.15)}
 .hero h1 .end{font-size:36px;font-weight:600;color:var(--text);display:block;margin-top:6px}
 .hero .calc{margin-top:24px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;gap:14px}
 /* v84: блок «4 шага что делает бот» — визуальное объяснение функций
@@ -179,11 +183,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .stack > * { animation-delay: calc(var(--i,0) * 60ms + 200ms); }
 
 @media (min-width: 600px){
-  .hero h1 .big{font-size:108px}
+  .hero h1 .big{font-size:clamp(56px,9vw,108px)}
   .app{padding:28px 28px 40px}
 }
 @media (max-width: 360px){
-  .hero h1 .big{font-size:72px}
+  .hero h1 .big{font-size:clamp(40px,17vw,72px)}
   .row .r .new{font-size:30px}
 }
 
@@ -395,43 +399,16 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
       <svg><use href="#i-zap"/></svg>
       Оплата без сюрпризов
     </div>
+    <!-- 🔴 v1201 (заказ владельца 13.09): самое крупное слово первого экрана
+         обязано отвечать на вопрос «что тут открыто». Было «ОТМЕНИТЬ» —
+         странный герой для страницы ЦЕН. Стало «ПОДПИСКА», а рядом — что она
+         самая выгодная и что есть второй путь. -->
     <h1>
-      <span class="small">По подписке дешевле.</span>
-      <span class="big">Отменить</span>
-      <span class="end">— один тап.</span>
+      <span class="small">Открыт самый выгодный вариант —</span>
+      <span class="big">подписка</span>
+      <span class="end">отменить можно в один тап.</span>
     </h1>
 
-    <div class="flow fade-in" style="animation-delay:180ms">
-      <div class="flow-title">Что обычно спрашивают про оплату</div>
-      <div class="flow-steps">
-        <div class="flow-step">
-          <div class="icon"><svg><use href="#i-zap"/></svg></div>
-          <div class="t">«Спишется внезапно?»</div>
-          <div class="s">нет — дата следующего списания видна в кабинете, чек приходит после оплаты</div>
-        </div>
-        <div class="flow-step">
-          <div class="icon"><svg><use href="#i-image2"/></svg></div>
-          <div class="t">«А если передумаю?»</div>
-          <div class="s">отмена в один тап, оплаченный месяц дорабатывает до конца</div>
-        </div>
-        <div class="flow-step">
-          <div class="icon"><svg><use href="#i-search"/></svg></div>
-          <div class="t">«Не хочу подписку»</div>
-          <div class="s">возьми месяц разово — переключатель справа вверху</div>
-        </div>
-        <div class="flow-step">
-          <div class="icon"><svg><use href="#i-printer2"/></svg></div>
-          <div class="t">«Сколько это в день?»</div>
-          <!-- Число ЖИВОЕ: самая дешёвая цена в день среди платных тарифов.
-               Литералом тут стоять не может — прайс уедет, обещание останется. -->
-          <div class="s">от <b class="js-min-perday">—</b> ₽ — цена в день написана на каждой карточке</div>
-        </div>
-      </div>
-      <div class="flow-bonus">
-        <svg><use href="#i-magic"/></svg>
-        <span><b>+ В пакете:</b> примерка на фото, трансфер, эскиз из фото, фото как из студии</span>
-      </div>
-    </div>
   </section>
 
   <!-- v526 (решение Николая 25.06): ROI-плашка «окупается с одной татуировки»
@@ -471,6 +448,43 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
        Идёт ПОСЛЕ #stack как докуп поверх тарифа. Кнопки class="vid-pack" + data-sku →
        ловит существующий обработчик ниже (openPaidInvoice). Своего JS нет. Видео = 25, не 30. -->
   <div class="overage fade-in" style="--i:9;animation-delay:560ms">
+
+  <!-- 🔴 v1201 (приёмка 13.09): блок возражений уехал ПОД цены.
+       Он стоял над ними и отжимал тумблер с ценами на 813-й пиксель —
+       то есть за пределы первого экрана телефона. Человек, открывший
+       ПРАЙС, должен первым делом увидеть цены и переключатель, а
+       ответы на вопросы про оплату — сразу под ними. -->
+    <div class="flow fade-in" style="animation-delay:180ms">
+      <div class="flow-title">Что обычно спрашивают про оплату</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="icon"><svg><use href="#i-zap"/></svg></div>
+          <div class="t">«Спишется внезапно?»</div>
+          <div class="s">нет — дата следующего списания видна в кабинете, чек приходит после оплаты</div>
+        </div>
+        <div class="flow-step">
+          <div class="icon"><svg><use href="#i-image2"/></svg></div>
+          <div class="t">«А если передумаю?»</div>
+          <div class="s">отмена в один тап, оплаченный месяц дорабатывает до конца</div>
+        </div>
+        <div class="flow-step">
+          <div class="icon"><svg><use href="#i-search"/></svg></div>
+          <div class="t">«Не хочу подписку»</div>
+          <div class="s">возьми месяц разово — переключатель справа вверху</div>
+        </div>
+        <div class="flow-step">
+          <div class="icon"><svg><use href="#i-printer2"/></svg></div>
+          <div class="t">«Сколько это в день?»</div>
+          <!-- Число ЖИВОЕ: самая дешёвая цена в день среди платных тарифов.
+               Литералом тут стоять не может — прайс уедет, обещание останется. -->
+          <div class="s">от <b class="js-min-perday">—</b> ₽ — цена в день написана на каждой карточке</div>
+        </div>
+      </div>
+      <div class="flow-bonus">
+        <svg><use href="#i-magic"/></svg>
+        <span><b>+ В пакете:</b> примерка на фото, трансфер, эскиз из фото, фото как из студии</span>
+      </div>
+    </div>
 
     <div class="ov-label"><span>Докупить поверх тарифа</span><span class="ov-r">оплата по СБП</span></div>
 
@@ -1475,7 +1489,12 @@ const ORDER = ['trial','solo','pro','atelier','studio'];
 // Единственная живая прежняя цена сегодня — Макс: 9990 → 6990 (v1006).
 // Живое значение приезжает с сервера (old_price в /api/cabinet.tariffs);
 // эта карта — снимок на случай «сервер не ответил».
-const OLD_PRICE = { trial:0, solo:0, pro:0, atelier:0, studio:9990 };
+// 🔴 v1201 (приёмка живого мира 13.09): снимок обещал «выгода 3 000 ₽» у
+// Макса (9990 − 6990), а через полсекунды сервер присылал разовую цену 7990,
+// и то же место превращалось в «выгода 1 000 ₽». Денежное число, которое
+// меняется на глазах, читается как подмена. Пока сервер не ответил — выгоды
+// на экране нет вовсе: у нас нет честного якоря до его ответа.
+const OLD_PRICE = { trial:0, solo:0, pro:0, atelier:0, studio:0 };
 
 // Снимок квот на случай «сервер не ответил». Синхронизирован с MASTER_TARIFFS.
 // Тарифов, скрытых из витрины (premium 14990, pro_intro), тут нет и быть не
