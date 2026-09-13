@@ -1639,7 +1639,14 @@ function row(t, i){
   // уронила бы его ReferenceError'ом — и покраснел бы не тот код.
   const _mode   = (typeof PAY_MODE === 'undefined') ? 'sub' : PAY_MODE;
   const anchor  = (_mode === 'sub' && t.once) ? t.once : (_mode === 'sub' ? t.old : 0);
-  const savePct = anchor > t.price ? Math.round((1 - t.price/anchor)*100) : 0;
+  // 🔴 v1199 (находка владельца 13.09): «логика скидок идёт в обратном
+  // направлении — покупаешь больше, должна быть больше скидка». Он прав про
+  // восприятие и не прав про факт: в РУБЛЯХ лестница уже растущая
+  // (500 → 700 → 800 → 1000), падает только процент, потому что растёт база.
+  // Поэтому на карточке печатаем ВЫГОДУ В РУБЛЯХ, а не процент. Цены не
+  // тронуты: менять их пришлось бы так, что разовый Макс уехал бы на 9 320 ₽,
+  // а владелец сам держал его под восемью тысячами.
+  const saveRub = anchor > t.price ? (anchor - t.price) : 0;
   // 🔴 v1196 (владелец 13.09: «все тарифы выглядят одинаково»): два тарифа
   // подсвечены по-разному и названы по-разному. Про — «Популярный» (его и
   // берут чаще всех), Про+ — «Выгодный» (эскиз внутри него дешевле).
@@ -1647,8 +1654,8 @@ function row(t, i){
              : t.deal ? '💚 Выгодный'
              : t.top  ? '🎬 Максимум' : '';
   const badgeCls = t.star ? 'badge' : t.deal ? 'badge deal' : 'badge save';
-  const badgeTx = savePct ? (rank ? rank + ' · −' + savePct + '%' : '−' + savePct + '%')
-                          : rank;
+  const saveTx = saveRub ? ('выгода ' + fmt(saveRub) + ' ₽') : '';
+  const badgeTx = saveTx ? (rank ? rank + ' · ' + saveTx : saveTx) : rank;
   const badge = badgeTx ? '<span class="' + badgeCls + '">' + badgeTx + '</span>' : '';
   // Какая цена живая в этом режиме: подписка — price, разовый месяц — once.
   const onceOn  = (_mode === 'once' && t.once > 0);
@@ -1724,9 +1731,11 @@ function applyModeChrome(hasOnce){
     Object.keys(ONCE_PRICES || {}).forEach(function(k){
       var once = +ONCE_PRICES[k] || 0;
       var sub  = +((LAST_QUOTAS || {})[k] || {}).price || 0;
-      if (once > sub && sub > 0) best = Math.max(best, Math.round((1 - sub / once) * 100));
+      if (once > sub && sub > 0) best = Math.max(best, once - sub);
     });
-    save.textContent = (hasOnce && best > 0) ? ('−' + best + '%') : '';
+    // v1199: максимальная выгода В РУБЛЯХ — она у САМОГО ДОРОГОГО тарифа,
+    // то есть лестница читается «больше берёшь — больше экономишь».
+    save.textContent = (hasOnce && best > 0) ? ('до ' + fmt(best) + ' ₽') : '';
   }
   if (note){
     note.classList.toggle('on', !!hasOnce);

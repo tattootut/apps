@@ -2115,18 +2115,23 @@
       box.classList.add('unavailable');
       val.innerHTML = '<span style="color:var(--color-text-muted)">Pro и выше</span>';
     } else if (q.unlimited) {
-      // 🔴 v1193-fix: ось БЕЗ СЧЁТА на тарифе (бэкенд ставит q.unlimited).
+      // 🔴 v1193-fix: ось без лимита на тарифе (бэкенд ставит q.unlimited).
       // Без этой ветки кабинет печатал «80 / 80», красил полосу как
       // исчерпанную и запускал апсейл «квоты кончаются» — то есть продавал
-      // докуп на оси, где счёта нет. Большого числа (9999) в quotas нет и не
+      // докуп на оси, где лимита нет. Большого числа (9999) в quotas нет и не
       // будет: безлимит — признак, а не цифра.
+      // 🔴 v1199 (найдено обходом всех поверхностей 13.09): здесь печаталось
+      // запрещённое владельцем слово. На одном экране выходило два имени
+      // одного и того же: в квадрате остатка одно, в карточке тарифа рядом —
+      // «∞ Трансферы — БЕЗ ЛИМИТА». Слово одно на весь продукт, сторож K23.
       box.classList.add('unlimited');
-      val.innerHTML = `<span class="unlim-tag">Без счёта</span><span class="unlim-used">использовано ${used}</span>`;
+      val.innerHTML = `<span class="unlim-tag">∞ Без лимита</span><span class="unlim-used">использовано ${used}</span>`;
       pct = 100;
     } else if (baseLimit >= 9999) {
-      // Безлимит (Премиум/owner): «Безлимит» + «использовано N» + полная полоска.
+      // Наследие Премиум/owner: та же формулировка, что и выше — иначе на
+      // соседних квадратах одного экрана стояли бы разные слова.
       box.classList.add('unlimited');
-      val.innerHTML = `<span class="unlim-tag">Безлимит</span><span class="unlim-used">использовано ${used}</span>`;
+      val.innerHTML = `<span class="unlim-tag">∞ Без лимита</span><span class="unlim-used">использовано ${used}</span>`;
       pct = 100;
     } else {
       val.innerHTML = `${used}<span class="total"> / ${total}</span>`;
