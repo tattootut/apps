@@ -130,18 +130,28 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* v267 (Task B): карточка ВЕДЁТ РЕЗУЛЬТАТОМ (клиенты по ссылке → заявки),
    инструменты — читаемым вторичным грид-блоком «в пакете». Владелец: «карточки
    продают счётчиками — это побочка; дизайн нечитаем». */
-.row .l .result{font-size:14px;line-height:1.35;color:var(--text);letter-spacing:.01em}
-.row .l .result b{color:var(--accent);font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:.02em}
-.row .l .result .res-sub{display:block;color:var(--text-muted);font-size:11.5px;line-height:1.35;margin-top:3px;letter-spacing:.01em}
-.row .l .specs{margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
+/* 🔴 v1196 (владелец 13.09): «сократить место под пакет примерно на 15 % —
+   сейчас информация растянута». Ужаты межстрочные, отступы и паузы между
+   блоками; кегль читаемости не тронут. */
+.row .l .hero{font-size:13.5px;line-height:1.3;color:var(--text);letter-spacing:.01em;font-family:Oswald,sans-serif;font-weight:600}
+.row .l .res-sub{display:block;color:var(--text-muted);font-size:11px;line-height:1.28;margin-top:2px;letter-spacing:.01em}
+.row .l .specs{margin-top:7px;padding-top:7px;border-top:1px dashed var(--border);display:grid;grid-template-columns:1fr 1fr;gap:3px 10px}
 .row.hit .l .specs{border-top-color:var(--border-2)}
 .row .l .specs .specs-label{grid-column:1 / -1;font-family:Oswald,sans-serif;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1px}
-.row .l .specs .spec{display:flex;align-items:baseline;gap:5px;font-size:11.5px;color:var(--text-muted);line-height:1.3;letter-spacing:.01em}
+.row .l .specs .spec{display:flex;align-items:baseline;gap:5px;font-size:11.5px;color:var(--text-muted);line-height:1.18;letter-spacing:.01em}
 .row .l .specs .spec b{color:var(--text);font-family:Oswald,sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.01em}
 @media (max-width:360px){.row .l .specs{grid-template-columns:1fr}}
 .row .l .badge{display:inline-flex;align-items:center;gap:5px;margin-top:2px;padding:3px 8px;border-radius:99px;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;width:fit-content}
 .row.hit .l .badge{background:var(--accent);color:#0b1208}
 .row .l .badge.save{background:rgba(196,240,0,.1);color:var(--accent);border:1px solid rgba(196,240,0,.4)}
+/* 🔴 v1196: две подсветки, чтобы карточки перестали выглядеть одинаково.
+   Про — яркая зелёная рамка (наш акцент), Про+ — бежевая (контраст к нему).
+   Владелец 13.09: «обвести рамкой яркой зелёный и бежевый второй из тарифов,
+   которым мы хотим привлечь больше внимания». */
+.row .l .badge.deal{background:rgba(233,227,206,.13);color:#E9E3CE;border:1px solid rgba(233,227,206,.45)}
+.row.pick-a{border-color:var(--accent);box-shadow:0 0 0 1px rgba(196,240,0,.35),0 10px 28px rgba(196,240,0,.1)}
+.row.pick-b{border-color:#E9E3CE;box-shadow:0 0 0 1px rgba(233,227,206,.3),0 10px 28px rgba(233,227,206,.07)}
+.row.pick-b .l .name{color:#E9E3CE}
 
 .row .r{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;z-index:1}
 .row .r .old{font-family:Oswald,sans-serif;font-weight:600;font-size:13px;color:var(--strike);text-decoration:line-through;text-decoration-thickness:1.5px;letter-spacing:.02em}
@@ -231,6 +241,86 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .b2b .b2b-t{font-family:Oswald,sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text)}
 .b2b .b2b-s{font-size:11.5px;color:var(--text-muted);margin-top:4px}
 .b2b a{color:var(--accent);border-bottom:1px dashed var(--accent-2)}
+
+/* ═══ v1194 «Пакеты v2» — переупаковка витрины (решение владельца 13.09) ══
+   Что здесь новое и ПОЧЕМУ именно так:
+   1) Тумблер «Подписка / Разовый месяц» — зачёркнутое число перестаёт быть
+      выдуманной «старой ценой» и становится честной ценой разового месяца.
+      Человек может ткнуть во второй режим и увидеть её живой — это и делает
+      скидку настоящей, а не нарисованной.
+   2) Лестница цвета Старт→Макс (жёлтый→оранжевый→красный) введена ТОЛЬКО
+      как акцент внутри тёмной палитры: фон, типографика и лайм-хром страницы
+      не тронуты. Цвет живёт в переменной --tier на .row, поэтому ни одно
+      правило ниже не знает конкретного тарифа.
+   3) Безлимитные оси — СЛОВОМ и первыми, числа на них не печатаются нигде
+      (канон UNLIMITED_WORD в bot.py). */
+.row{--tier:var(--accent);--tier-a12:rgba(196,240,0,.12);--tier-a35:rgba(196,240,0,.35);--tier-a55:rgba(196,240,0,.55);--tier-ink:#0b1208}
+.row[data-tier="solo"]   {--tier:#8FA83C;--tier-a12:rgba(143,168,60,.13);--tier-a35:rgba(143,168,60,.38);--tier-a55:rgba(143,168,60,.58);--tier-ink:#12170a}
+.row[data-tier="pro"]    {--tier:#A9C71B;--tier-a12:rgba(169,199,27,.13);--tier-a35:rgba(169,199,27,.38);--tier-a55:rgba(169,199,27,.58);--tier-ink:#101505}
+.row[data-tier="atelier"]{--tier:#BCE00C;--tier-a12:rgba(188,224,12,.13);--tier-a35:rgba(188,224,12,.38);--tier-a55:rgba(188,224,12,.58);--tier-ink:#0e1502}
+.row[data-tier="studio"] {--tier:#C4F000;--tier-a12:rgba(196,240,0,.13);--tier-a35:rgba(196,240,0,.38);--tier-a55:rgba(196,240,0,.58);--tier-ink:#0b1208}
+.row[data-tier="trial"]  {--tier:#7C8A7F;--tier-a12:rgba(124,138,127,.13);--tier-a35:rgba(124,138,127,.38);--tier-a55:rgba(124,138,127,.58);--tier-ink:#0b1208}
+/* Корешок слева — сама лестница: видна даже боковым зрением при скролле */
+.row::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;background:var(--tier);opacity:.45;border-radius:3px 0 0 3px}
+.row.trial::before{opacity:.2}
+.row.hit::before,.row.toptier::before{opacity:1}
+.row.hit{border-color:var(--tier-a55);background:linear-gradient(180deg,#172d20 0%,#16291f 60%)}
+.row.hit::after{background:var(--tier)}
+@keyframes hit-glow{0%,100%{box-shadow:0 0 0 1px var(--tier-a12),0 18px 40px rgba(0,0,0,.22)}50%{box-shadow:0 0 0 1.5px var(--tier-a55),0 18px 52px var(--tier-a12)}}
+.row.toptier{border-color:var(--tier-a35)}
+.row .l .name{color:var(--tier)}
+.row .l .result b{color:var(--tier)}
+.row.hit .l .cap,.row.toptier .l .cap{color:var(--tier)}
+.row .l .specs .spec.wow,.row .l .specs .spec.wow b{color:var(--tier)}
+.row.hit .l .badge{background:var(--tier);color:var(--tier-ink)}
+.row .l .badge.save{background:var(--tier-a12);color:var(--tier);border:1px solid var(--tier-a35)}
+.row .r .ph{color:var(--tier);background:var(--tier-a12)}
+.row.hit .arrow{background:var(--tier);color:var(--tier-ink)}
+.row .l .flagblock .fb-tx b{color:var(--tier)}
+.row.hit .l .flagblock,.row.toptier .l .flagblock{background:var(--tier-a12);border-color:var(--tier-a35)}
+.row .l .flagblock .fb-excl{background:var(--tier);color:var(--tier-ink)}
+.row.mine{border-color:var(--tier-a55)}
+.row .minechip{border-color:var(--tier);color:var(--tier)}
+
+/* Тумблер режима оплаты. Открывается ВСЕГДА на «Подписка» (заказ владельца). */
+.pmode{display:none;gap:4px;margin:22px 4px 9px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:99px}
+.pmode.on{display:flex}
+.pmode button{flex:1;padding:11px 8px;border-radius:99px;font-family:Oswald,sans-serif;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);transition:var(--tap)}
+.pmode button[aria-pressed="true"]{background:var(--accent);color:#0b1208}
+.pmode-note{display:none;margin:0 6px 13px;font-size:11.5px;line-height:1.45;color:var(--text-muted);letter-spacing:.01em}
+.pmode-note.on{display:block}
+
+/* «Отменить можно в любой момент» — ОДИН раз, под списком, крупно. */
+.cancel-note{display:none;margin:14px 4px 0;padding:14px 16px;border-radius:var(--radius);background:rgba(196,240,0,.07);border:1px solid rgba(196,240,0,.34);text-align:center}
+.cancel-note.on{display:block}
+.cancel-note b{display:block;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:.03em;color:var(--accent);text-transform:uppercase}
+.cancel-note span{display:block;margin-top:6px;font-size:12px;line-height:1.45;color:var(--text-muted)}
+
+/* Безлимитные оси — над числами, словом, со знаком ∞.
+   Блоками, а не пилюлями в ряд: колонка .l на телефоне ~165 px, и пилюля с
+   центрированием рвала фразу «Трансферы — без лимита» пополам. Блок переносит
+   строку как обычный текст, слева направо, и читается на 360 px. */
+.row .l .unlims{margin-top:6px}
+.row .l .unlims .u{display:block;padding:6px 10px;margin-bottom:5px;border-radius:12px;background:var(--tier-a12);border:1px solid var(--tier-a35);font-size:11.5px;line-height:1.35;color:var(--text);letter-spacing:.01em}
+.row .l .unlims .u:last-child{margin-bottom:0}
+.row .l .unlims .u i{font-style:normal;font-family:Oswald,sans-serif;font-weight:700;font-size:15px;line-height:1;color:var(--tier);margin-right:6px;vertical-align:-1px}
+.row .l .unlims .u b{font-family:Oswald,sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tier);white-space:nowrap}
+
+/* Колонка цены не ужимается: раньше «₽» и «/ день» наползали на стрелку,
+   когда слева становилось длиннее. Узкая колонка — .l (у неё min-width:0). */
+.row .r{flex:0 0 auto}
+.row .r .new,.row .r .u,.row .r .ph{white-space:nowrap}
+/* Бейдж ранга теперь несёт ещё и честный процент — на 360-390 px он обязан
+   уложиться, поэтому буквы плотнее. */
+.row .l .badge{font-size:9.5px;letter-spacing:.1em;line-height:1.3;text-align:center}
+
+/* Цена: «≈ N ₽ / день» уже жила в .ph; тут — подсказка второго режима. */
+.row .r .subhint{margin-top:6px;max-width:100px;font-size:10.5px;line-height:1.35;color:var(--text-muted);letter-spacing:.01em;text-align:right}
+.row .r .subhint b{font-family:Oswald,sans-serif;font-weight:600;color:var(--text)}
+@media (max-width:360px){
+  .row .r .subhint{max-width:104px}
+  .pmode button{font-size:11px;letter-spacing:.06em;padding:10px 4px}
+}
 </style>
 </head>
 <body>
@@ -354,7 +444,24 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     <span class="r">Любой можно сменить</span>
   </div>
 
+  <!-- v1194: тумблер «Подписка / Разовый месяц». Появляется ТОЛЬКО когда
+       сервер прислал разовые цены (once_price) — при PACKAGES_V2=0 или на
+       старом билде бэкенда его нет, и витрина прежняя до байта. -->
+  <div class="pmode" id="payMode" role="group" aria-label="Как платить">
+    <button type="button" data-pmode="sub" aria-pressed="true">Подписка</button>
+    <button type="button" data-pmode="once" aria-pressed="false">Разовый месяц</button>
+  </div>
+  <div class="pmode-note" id="payModeNote"></div>
+
   <div class="stack" id="stack"></div>
+
+  <!-- v1194: «Отменить можно в любой момент» — один раз под списком цен,
+       только в режиме подписки. Прячется, если сервер сказал sub_on=false:
+       обещать отмену подписки там, где подписки нет, нельзя. -->
+  <div class="cancel-note" id="cancelNote">
+    <b>Отменить можно в любой момент</b>
+    <span>Один тап в Кабинете — оплаченный месяц дорабатывает до конца.</span>
+  </div>
 
   <!-- v525: B2B-строка убрана по решению Николая (контакт не нужен) -->
 
@@ -768,6 +875,15 @@ async function openPaidInvoice(tariffKey, extraQ){
     try { tg.showAlert && tg.showAlert('⏰ Тариф истёк. Сначала продли тариф — потом докупай пакеты. Кнопки тарифов выше 👆'); } catch(e){}
     return true;  // НЕ уходим в deep-link fallback
   }
+  // v1194: отказы разового месяца сервер объясняет сам («подписка уже
+  // подключена», «разово оформляется только …»). Показываем ЕГО слова —
+  // иначе человек молча уезжал бы в чат покупать подписку, то есть не то,
+  // на что нажал.
+  if (data && (data.error === 'once_not_needed'
+               || data.error === 'once_not_for_tariff')) {
+    try { tg.showAlert && tg.showAlert(data.message || 'Разовый месяц сейчас недоступен.'); } catch(e){}
+    return true;
+  }
   if (!resp.ok){ console.error('[pricing] /api/invoice HTTP ' + resp.status); return false; }
   if (!data || !data.url){ console.error('[pricing] no url', data); return false; }
   console.log('[pricing] method=' + (data.method||'?') + ' url=' + data.url);
@@ -833,6 +949,45 @@ function paySbp(tariff){
     console.error('[pricing] openPaidInvoice rejected', e);
     openDeepLinkFallback('buy_' + tariff);
   });
+}
+
+/* 🔴 v1194 — РАЗОВЫЙ МЕСЯЦ.
+   Контракт НЕ выдуман: ровно тот же, что у кнопки `buy_once:<key>` в чате —
+   /api/invoice с `once=1`. Бэкенд по этому флагу берёт цену из
+   PACKAGES_V2_ONCE_RUB и не сохраняет способ оплаты (подписки не будет).
+   Инокарты тут нет СОЗНАТЕЛЬНО: Lava-рельс умеет только подписочный товар,
+   и его счёт ушёл бы по цене подписки — человек прочитал бы одну цену, а
+   списалось бы другое. Ограничение названо в листе словами, а не спрятано. */
+function payOnce(tariff){
+  openPaidInvoice(tariff, '&once=1').then(function(ok){
+    if (!ok) {
+      // В deep-link `buy_<tariff>` НЕ падаем: в чате это подписка, то есть
+      // другой товар и другая цена. Молчаливая подмена товара недопустима.
+      tg?.showAlert?.('Не получилось открыть разовую оплату. Попробуй ещё раз '
+        + 'или напиши в поддержку @tatututbot — оформим.');
+    }
+  }).catch(function(e){
+    console.error('[pricing] payOnce rejected', e);
+    tg?.showAlert?.('Не получилось открыть разовую оплату. Попробуй ещё раз '
+      + 'или напиши в поддержку @tatututbot — оформим.');
+  });
+}
+function payOnceFlow(tariff){
+  var name = (PRESENT[tariff] || {}).name || '';
+  var price = ONCE_PRICES[tariff] || 0;
+  var sub = LIVE_PRICES[tariff] || 0;
+  var s = _sheet('Разовый месяц',
+    'Один месяц без подписки' + (name ? ' — ' + name : '') + ': '
+    + (price ? price + ' ₽ за 30 дней, ' : '')
+    + 'списание одно, дальше продлеваешь сам. '
+    + (sub ? 'По подписке этот же месяц — ' + sub + ' ₽. ' : '')
+    + 'Разовый месяц оформляется по СБП.');
+  var b = s.mkBtn('СБП' + (price ? ' · ' + price + ' ₽' : ''), '',
+                  function(){ payOnce(tariff); });
+  b.style.background = '#c4f000'; b.style.color = '#0b1208';
+  b.style.borderColor = '#c4f000';
+  var cancel = s.mkBtn('Отмена', '', null);
+  cancel.style.background = 'transparent'; cancel.style.borderColor = '#2c4636';
 }
 
 /* v928: query-хвост авторизации — один на все ручки мини-аппа. */
@@ -1261,17 +1416,23 @@ const PRESENT = {
     // ЛИД-МАГНИТ воронки (не убирать! на нём стоит вся воронка).
     name:'ПРОБНЫЙ', period:'7 дней', trial:true,
     cap:q => '🎁 Попробуй всё за ' + fmt(q.price) + ' ₽',
-    resultSub:'распробуй функции, потом выбери тариф',
+    hero:'🎁 Неделя полного доступа',
+    resultSub:'распробуй, потом выбери тариф',
   },
   solo: {
     name:'СТАРТ', period:'мес',
     cap:'📸 Статика',
-    resultSub:'их «хочу» → заявки тебе в личку',
+    // 🔴 v1196 (владелец 13.09): строка «до N клиентов померит твою ссылку»
+    // ушла с главного места — функция непопулярная, и число там кричало
+    // громче всего остального. Само число живёт в сетке квот, скромно.
+    // На освободившееся место идёт то, за что человек платит.
+    hero:'📦 Все восемь инструментов',
+    resultSub:'войти и попробовать в работе',
   },
   pro: {
     name:'ПРО', period:'мес', star:true, resultIcon:'🔥',
     cap:'🪄 Тату оживает',
-    resultSub:'поток заявок на запись',
+    resultSub:'печатай переводилки, не считая',
     // flagAxis: по этой оси решается, честно ли писать «эксклюзив».
     flagAxis:'animations',
     flag:{ic:'🪄',tx:'<b>Оживление тату</b> — рисунок двигается: дым, дракон, пламя. Вирусный хук для Reels.'},
@@ -1279,16 +1440,19 @@ const PRESENT = {
   atelier: {
     // v1006: средняя верхняя ступень. Не выдумана — 9 мастеров уже платили
     // 3 200-3 700 ₽/мес, перекупая тариф руками. Для этих денег не было кнопки.
-    name:'ПРО+', period:'мес', resultIcon:'💼',   /* v1014: «Студия» → «Про+» (владелец 30.08) */
-    cap:'💼 Поток без потолка',
-    resultSub:'когда клиентов больше, чем влезает в Про',
+    name:'ПРО+', period:'мес', resultIcon:'💼', deal:true,   /* v1014: «Студия» → «Про+» (владелец 30.08) */
+    // 🔴 v1196: «Поток без потолка» снято владельцем — фраза больше не про
+    // то, чем тариф отличается, и вводила в заблуждение рядом с настоящим
+    // словом «без лимита».
+    cap:'✍️ Эскизов вдвое больше',
+    resultSub:'эскиз выходит дешевле, чем в Про',
     flagAxis:'sketches',
     flag:{ic:'✍️',tx:'<b>100 эскизов в месяц</b> — эскиз выходит дешевле, чем в Про, и не надо считать остаток.'},
   },
   studio: {
     name:'МАКС', period:'мес', top:true, resultIcon:'🔥',
     cap:'🎬 Клиент оживает',
-    resultSub:'для салонов и кто гонит трафик из Reels',
+    resultSub:'для салонов и трафика из Reels',
     flagAxis:'videos',
     flag:{ic:'🎬',tx:'<b>Видео-примерка</b> — оживает сам клиент: тату на нём в движении. Живое видео для Reels.',warn:'⚠️ Оживление = двигается рисунок · Видео-примерка = двигается клиент (тату статична)'},
   },
@@ -1331,11 +1495,44 @@ function upsellFor(quotas, field){
   return null;
 }
 
+// 🔴 v1193-fix: ось БЕЗ СЧЁТА называется словом и здесь тоже. Сервер отдаёт
+// `unlimited_ops` (имена ОПЕРАЦИЙ гейта), поля витрины зовутся иначе — карта
+// живёт в одном месте. Пока флаг выключен, поля в ответе нет и витрина
+// прежняя до байта.
+const UNLIM_FIELD_BY_OP = {stencil:'stencils', sketch:'sketches',
+                           extract:'extracts', tryon:'tryons',
+                           retouch:'photo_retouch', video:'videos',
+                           animate:'animations'};
+// 🔴 v1194: как ось зовётся В ИМЕНИТЕЛЬНОМ, когда рядом НЕТ числа. Зеркало
+// `_UNLIMITED_AXIS_NAME` из bot.py: сервер отдаёт только имена операций, слов
+// не присылает. Расходиться этим двум картам нельзя — правятся вместе.
+// Падежи разные не случайно: «60 трансферов» (родительный при числе) против
+// «Трансферы — без лимита» (именительный, числа нет и не будет).
+const UNLIM_LABEL_BY_OP = {stencil:'Трансферы', sketch:'Эскизы',
+                           extract:'Эскизы из фото', tryon:'Примерки',
+                           retouch:'Улучшения фото', video:'Видео-примерки',
+                           animate:'Оживления тату'};
+function unlimFields(q){
+  const ops = (q && q.unlimited_ops) || [];
+  const out = {};
+  ops.forEach(op => { const f = UNLIM_FIELD_BY_OP[op]; if (f) out[f] = true; });
+  return out;
+}
+// Безлимитные оси карточки — словом, в порядке прихода с сервера (лестница
+// тарифов задаётся там). Число не печатается НИКОГДА, знак ∞ стоит СЛЕВА как
+// значок, а не как количество.
+function unlimList(q){
+  return ((q && q.unlimited_ops) || [])
+    .map(op => UNLIM_LABEL_BY_OP[op])
+    .filter(Boolean);
+}
+
 function buildSpecs(key, quotas){
   const q = quotas[key] || {};
+  const unl = unlimFields(q);
   const specs = [
-    {n:q.sketches, l:'эскизов или правок'},   // v1065: единица = создание или правка (честное имя)
-    {n:q.tryons,   l:'фото-примерок'},
+    {n:q.sketches, l:'эскизов или правок', unlim:!!unl.sketches},
+    {n:q.tryons,   l:'фото-примерок', unlim:!!unl.tryons},
   ];
   // Оживление и видео-примерка — флагман-оси: есть → цифра с вау-стилем,
   // нет → замок с адресом, где открывается.
@@ -1355,11 +1552,14 @@ function buildSpecs(key, quotas){
     const up = upsellFor(quotas, f);
     if (up) specs.push({n:'🔒', l:locked + ' — на ' + up, lock:true});
   });
-  specs.push({n:q.stencils,      l:'трансферов'});
-  specs.push({n:q.extracts,      l:'вытащить эскиз'});
-  specs.push({n:q.photo_retouch, l:'улучшить фото'});
+  specs.push({n:q.stencils,      l:'трансферов', unlim:!!unl.stencils});
+  specs.push({n:q.extracts,      l:'вытащить эскиз', unlim:!!unl.extracts});
+  specs.push({n:q.photo_retouch, l:'улучшить фото', unlim:!!unl.photo_retouch});
   specs.push({n:q.demo_pool,     l:'клиентов по ссылке'});
-  return specs.filter(s => s.lock || s.n > 0);
+  // v1194: безлимитная ось уходит ИЗ сетки чисел наверх, в .unlims — там она
+  // стоит первой и без числа. В сетке её быть не должно вовсе, иначе рядом с
+  // «Трансферы — без лимита» человек прочитает ещё и «60 трансферов».
+  return specs.filter(s => !s.unlim).filter(s => s.lock || s.n > 0);
 }
 
 function buildTariffs(quotas){
@@ -1372,16 +1572,25 @@ function buildTariffs(quotas){
     const old = ('old_price' in q) ? (+q.old_price || 0) : (OLD_PRICE[key] || 0);
     // «≈ N ₽ / день» — производная от живой цены, не отдельное число.
     const perDay = (!p.trial && q.days) ? Math.round(q.price / q.days) : 0;
+    // 🔴 v1194: цена РАЗОВОГО месяца приходит с сервера (once_price). Своего
+    // числа тут нет и быть не может: разойдись фронт с кассой — человек
+    // прочитает одну цену, а спишется другая.
+    const once = (!p.trial && +q.once_price > +q.price) ? +q.once_price : 0;
+    const oncePerDay = (once && q.days) ? Math.round(once / q.days) : 0;
     return {
-      key, price:q.price, old, period:p.period, perDay,
+      key, price:q.price, old, period:p.period, perDay, once, oncePerDay,
+      unlims:unlimList(q),
       name:p.name, trial:!!p.trial, star:!!p.star, top:!!p.top,
       cap: typeof p.cap === 'function' ? p.cap(q) : p.cap,
       // «эксклюзив» пишем, только если ось и правда есть ТОЛЬКО здесь.
       // Под рычагом видео/оживление появляются и в младших тарифах — плашка
       // осталась бы висеть и врать прямо рядом с цифрой в соседней карточке.
       flagExcl: !!p.flagAxis && upsellFor(quotas, p.flagAxis) === p.name,
-      result:(p.resultIcon || '🔗') + ' до <b>' + fmt(q.demo_pool)
-              + ' клиентов</b> примерят твою тату',
+      // 🔴 v1196 (владелец 13.09): на главной строке карточки стоит то, за
+      // что человек платит. Есть безлимит — он; нет — короткая особенность
+      // тарифа (`hero`). Число клиентов по ссылке уехало в сетку квот: ту
+      // функцию мы сознательно понизили, она непопулярна.
+      hero:p.hero || '', deal:!!p.deal,
       resultSub:p.resultSub, flag:p.flag,
       specs:buildSpecs(key, quotas),
       action:'buy_master',
@@ -1405,13 +1614,37 @@ function row(t, i){
   // выдуманную «старую цену» у Про, витрина стала печатать «⭐ Самый
   // популярный · −0%» на центральной карточке — той самой, на которую придёт
   // вся волна. Ранг тарифа и скидка — разные вещи, и склеивать их нельзя.
-  const savePct = t.old > t.price ? Math.round((1 - t.price/t.old)*100) : 0;
-  const rank = t.star ? '⭐ Самый популярный' : t.top ? '🎬 Максимум' : '';
-  const badgeCls = t.star ? 'badge' : 'badge save';
+  // 🔴 v1194: ЗАЧЁРКНУТОЕ ЧИСЛО — это цена РАЗОВОГО МЕСЯЦА, когда сервер её
+  // прислал. Скидка настоящая и её видно проверить: переключи тумблер на
+  // «Разовый месяц» — и зачёркнутое станет живой ценой. Прежней ценой
+  // (old_price, реальная история вроде Макс 9990→6990) зачёркиваем только
+  // там, где разового месяца нет. Двух якорей на одной карточке не бывает.
+  // `_mode` через typeof: сторож v1170-P7 гоняет ЭТУ функцию отдельным
+  // процессом (node -e), без окружения страницы. Свободная глобальная тут
+  // уронила бы его ReferenceError'ом — и покраснел бы не тот код.
+  const _mode   = (typeof PAY_MODE === 'undefined') ? 'sub' : PAY_MODE;
+  const anchor  = (_mode === 'sub' && t.once) ? t.once : (_mode === 'sub' ? t.old : 0);
+  const savePct = anchor > t.price ? Math.round((1 - t.price/anchor)*100) : 0;
+  // 🔴 v1196 (владелец 13.09: «все тарифы выглядят одинаково»): два тарифа
+  // подсвечены по-разному и названы по-разному. Про — «Популярный» (его и
+  // берут чаще всех), Про+ — «Выгодный» (эскиз внутри него дешевле).
+  const rank = t.star ? '⭐ Популярный'
+             : t.deal ? '💚 Выгодный'
+             : t.top  ? '🎬 Максимум' : '';
+  const badgeCls = t.star ? 'badge' : t.deal ? 'badge deal' : 'badge save';
   const badgeTx = savePct ? (rank ? rank + ' · −' + savePct + '%' : '−' + savePct + '%')
                           : rank;
   const badge = badgeTx ? '<span class="' + badgeCls + '">' + badgeTx + '</span>' : '';
-  const priceEl = `<span class="new">${fmt(t.price)}<span class="cur">&nbsp;₽</span></span>`;
+  // Какая цена живая в этом режиме: подписка — price, разовый месяц — once.
+  const onceOn  = (_mode === 'once' && t.once > 0);
+  const shownP  = onceOn ? t.once : t.price;
+  const shownPd = onceOn ? t.oncePerDay : t.perDay;
+  const priceEl = `<span class="new">${fmt(shownP)}<span class="cur">&nbsp;₽</span></span>`;
+  // v1194: безлимитные оси — ПЕРВЫМИ и словом, над сеткой чисел.
+  const unlims = (t.unlims || []).length
+    ? `<div class="unlims">${(t.unlims || []).map(n =>
+        `<span class="u"><i>∞</i>${n} — <b>без лимита</b></span>`).join('')}</div>`
+    : '';
   const specs = (t.specs || []).map(s => {
     const c = s.wow ? 'spec wow' : s.lock ? 'spec lock' : 'spec';
     return `<span class="${c}"><b>${s.n}</b> ${s.l}</span>`;
@@ -1421,20 +1654,22 @@ function row(t, i){
       + (t.flag.warn ? `<div class="warn">${t.flag.warn}</div>` : '')
     : '';
   return `
-    <div class="${cls} fade-in" style="--i:${i}" data-action="${t.action}" data-tariff="${t.key}">
+    <div class="${cls}${t.star ? ' pick-a' : t.deal ? ' pick-b' : ''} fade-in" style="--i:${i}" data-action="${t.action}" data-tariff="${t.key}" data-tier="${t.key}" data-once="${t.once || 0}">
       <div class="l">
         <div class="name">${t.name}</div>
         <div class="cap">${t.cap}</div>
-        <div class="result">${t.result}${t.resultSub ? `<span class="res-sub">${t.resultSub}</span>` : ''}</div>
+        ${unlims || (t.hero ? `<div class="hero">${t.hero}</div>` : '')}
+        ${t.resultSub ? `<div class="res-sub">${t.resultSub}</div>` : ''}
         ${flag}
         ${specs ? `<div class="specs"><span class="specs-label">В пакете</span>${specs}</div>` : ''}
         ${isMine ? '<span class="minechip">✓ Твой тариф</span>' : ''}${badge}
       </div>
       <div class="r">
-        ${t.old > t.price ? `<span class="old">${fmt(t.old)} ₽</span>` : ''}
+        ${anchor > t.price ? `<span class="old">${fmt(anchor)} ₽</span>` : ''}
         ${priceEl}
         <span class="u">/ ${t.period}</span>
-        ${t.perDay ? `<span class="ph">≈ ${t.perDay}&nbsp;₽ / день</span>` : ''}
+        ${shownPd ? `<span class="ph">≈ ${shownPd}&nbsp;₽ / день</span>` : ''}
+        ${onceOn ? `<span class="subhint">по подписке — <b>${fmt(t.price)}&nbsp;₽</b></span>` : ''}
       </div>
       <div class="arrow"><svg><use href="#i-arrow"/></svg></div>
     </div>`;
@@ -1443,15 +1678,65 @@ function row(t, i){
 // v672: первый кадр — на снимке (страница не должна ждать сеть), затем
 // молча перерисовываемся живыми числами сервера. Если сервер недоступен,
 // человек видит снимок — но снимок больше не единственный источник.
+// 🔴 v1194: режим оплаты. Открывается ВСЕГДА на «Подписка» — это дефолт
+// продукта, и владелец просил именно так. Второй режим существует, только
+// если сервер прислал разовые цены; иначе тумблера на экране нет вовсе.
+var PAY_MODE = 'sub';
+var LAST_QUOTAS = null;
+var ONCE_PRICES = {};
+// Про подписку сервер отвечает не сразу: до ответа это НЕ «подписки нет»,
+// а «не знаем». Три состояния вместо двух — иначе первый кадр прячет строку
+// отмены у всех, включая тех, у кого подписка включена.
+var SUB_ON_KNOWN = false;
+
+function applyModeChrome(hasOnce){
+  var box = document.getElementById('payMode');
+  var note = document.getElementById('payModeNote');
+  var cancel = document.getElementById('cancelNote');
+  if (box){
+    box.classList.toggle('on', !!hasOnce);
+    Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', String(b.dataset.pmode === PAY_MODE));
+    });
+  }
+  if (note){
+    note.classList.toggle('on', !!hasOnce);
+    note.textContent = (PAY_MODE === 'once')
+      ? 'Один месяц без подписки: платишь один раз, доступ на 30 дней, дальше продлеваешь сам.'
+      : 'Цена за месяц по подписке — списывается раз в 30 дней. Так дешевле, чем брать месяц разово.';
+  }
+  // Про отмену пишем только там, где подписка и правда есть: сервер молчит
+  // (первый кадр) — показываем, sub_on=false — прячем. Обещание отмены
+  // подписки тому, у кого подписки нет, — такое же враньё, как цена мимо.
+  if (cancel) cancel.classList.toggle('on',
+    PAY_MODE === 'sub' && (!SUB_ON_KNOWN || SUB_OFFER));
+}
+
 function renderStack(quotas){
-  document.getElementById('stack').innerHTML =
-    buildTariffs(quotas).map(row).join('');
+  LAST_QUOTAS = quotas;
+  var built = buildTariffs(quotas);
+  ONCE_PRICES = {};
+  var hasOnce = false;
+  built.forEach(function(t){ if (t.once){ hasOnce = true; ONCE_PRICES[t.key] = t.once; } });
+  if (!hasOnce && PAY_MODE === 'once') PAY_MODE = 'sub';   // разового мира нет
+  document.getElementById('stack').innerHTML = built.map(row).join('');
+  applyModeChrome(hasOnce);
   // Баннер «цена запуска» — та же цена пробного, что в карточке и в кассе.
   const tp = (quotas.trial || {}).price;
   if (tp) document.querySelectorAll('.js-trial-price')
     .forEach(el => { el.textContent = fmt(tp); });
 }
 renderStack(FALLBACK_QUOTAS);
+
+document.addEventListener('click', function(e){
+  var b = e.target.closest && e.target.closest('[data-pmode]');
+  if (!b) return;
+  e.preventDefault();
+  if (b.dataset.pmode === PAY_MODE) return;
+  PAY_MODE = b.dataset.pmode;
+  try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch(_){}
+  if (LAST_QUOTAS) renderStack(LAST_QUOTAS);
+});
 
 // Живые квоты приходят полем `tariffs` в /api/cabinet (_public_tariffs_payload).
 // Ключи, скрытые из витрины на бэкенде (premium, pro_intro, pmu_*), сюда не
@@ -1467,6 +1752,7 @@ const HYDRATED = (async function hydrateTariffs(){
     // v1051: подписка при покупке — по правде с сервера; живые цены — для
     // подзаголовка листа способов (сумма и период).
     SUB_OFFER = !!(d && d.sub_on);
+    SUB_ON_KNOWN = true;
     if (d && Array.isArray(d.sub_methods) && d.sub_methods.length) SUB_METHODS = d.sub_methods.map(String);
     list.forEach(t => { if (t && t.key) LIVE_PRICES[t.key] = +t.price || 0; });
     if (!list.length) return;
@@ -1481,6 +1767,11 @@ const HYDRATED = (async function hydrateTariffs(){
         photo_retouch:+t.photo_retouch || 0,
         videos:+t.videos || 0, animations:+t.animations || 0,
         demo_pool:+t.demo_pool || 0,
+        // 🔴 v1194: разовая цена месяца и безлимитные оси — только с сервера.
+        // Полей нет (старый билд бэкенда или PACKAGES_V2=0) → 0 и пустой
+        // список, карточка рисуется прежней, тумблер не появляется.
+        once_price:+t.once_price || 0,
+        unlimited_ops:Array.isArray(t.unlimited_ops) ? t.unlimited_ops.map(String) : [],
       };
     });
     // Пустой/битый payload не должен стирать витрину — рисуем только если
@@ -1499,6 +1790,13 @@ document.body.addEventListener('click', e => {
   // v84: «← В кабинет» — внутренняя навигация Mini App. Без sendData.
   if (action === 'back_to_cabinet') {
     goCabinet();          // v1021: один путь назад для пилюли и кнопки ←
+    return;
+  }
+  // v1194: в режиме «Разовый месяц» тап по карточке ведёт в разовую кассу —
+  // ТОТ ЖЕ контракт, что у кнопки `buy_once:` в чате (/api/invoice&once=1).
+  if (action === 'buy_master' && PAY_MODE === 'once'
+      && +(t.dataset.once || 0) > 0) {
+    payOnceFlow(tariff);
     return;
   }
   send(action, tariff ? { tariff } : {});

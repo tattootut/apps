@@ -979,6 +979,107 @@
     margin-bottom: 14px;
     line-height: 1.5;
   }
+
+  /* ═══ v1194 «Пакеты v2» ════════════════════════════════════════════════
+     Тумблер «Подписка / Разовый месяц», лестница цвета Старт→Макс, цена за
+     день на каждой карточке, безлимитные оси словом и первыми.
+     Тема не тронута: фон, шрифты и лайм-хром прежние, цвет тарифа живёт
+     в переменной --tier и нигде не зашит в правила по имени тарифа. */
+  .tariff-card { --tier: var(--color-accent); --tier-ink: #0E1A14;
+                 --tier-a12: rgba(196,240,0,.12); --tier-a38: rgba(196,240,0,.38); }
+  .tariff-card[data-tier="solo"] { --tier:#8FA83C; --tier-ink:#12170a; --tier-a12:rgba(143,168,60,.13); --tier-a38:rgba(143,168,60,.38) }
+  .tariff-card[data-tier="pro"] { --tier:#A9C71B; --tier-ink:#101505; --tier-a12:rgba(169,199,27,.13); --tier-a38:rgba(169,199,27,.38) }
+  .tariff-card[data-tier="atelier"] { --tier:#BCE00C; --tier-ink:#0e1502; --tier-a12:rgba(188,224,12,.13); --tier-a38:rgba(188,224,12,.38) }
+  .tariff-card[data-tier="studio"] { --tier:#C4F000; --tier-ink:#0b1208; --tier-a12:rgba(196,240,0,.13); --tier-a38:rgba(196,240,0,.38) }
+  .tariff-card[data-tier="trial"] { --tier:#7C8A7F; --tier-ink:#0b1208; --tier-a12:rgba(124,138,127,.13); --tier-a38:rgba(124,138,127,.38) }
+  .tariff-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; background: var(--tier); opacity: .5;
+  }
+  .tariff-card[data-tier="trial"]::before { opacity: .22 }
+  .tariff-card.popular::before { opacity: 1 }
+  .tariff-card .name { color: var(--tier) }
+  .tariff-card.popular {
+    border-color: var(--tier);
+    box-shadow: 0 0 0 1px var(--tier) inset, 0 6px 26px var(--tier-a12);
+  }
+  .tariff-badge { background: var(--tier); color: var(--tier-ink) }
+  .tariff-card.popular .btn-buy {
+    background: var(--tier); color: var(--tier-ink); border-color: var(--tier);
+  }
+  .tariff-card.popular .btn-buy:hover { filter: brightness(.92) }
+  .tariff-card .result-line b { color: var(--tier) }
+
+  /* Цена за день — на КАЖДОЙ карточке, производная от живой цены */
+  .tariff-card .price-row { flex-wrap: wrap; row-gap: 6px }
+  .tariff-card .per-day {
+    font-family: var(--font-display); font-weight: 600; font-size: 12px;
+    letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--tier); background: var(--tier-a12);
+    padding: 4px 9px; border-radius: 7px; white-space: nowrap;
+  }
+  .tariff-card .sub-hint {
+    flex-basis: 100%; font-size: 11.5px; color: var(--color-text-muted);
+    margin-top: 2px;
+  }
+  .tariff-card .sub-hint b { color: var(--color-text); font-weight: 600 }
+
+  /* Безлимитные оси — ПЕРВЫМИ, над числами, словом «без лимита» */
+  .tariff-card .unlims { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px }
+  .tariff-card .unlims .u {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 11px 6px 9px; border-radius: 99px;
+    background: var(--tier-a12); border: 1px solid var(--tier-a38);
+    font-size: 12px; line-height: 1.2; color: var(--color-text);
+  }
+  .tariff-card .unlims .u i {
+    font-style: normal; font-family: var(--font-display); font-weight: 700;
+    font-size: 17px; line-height: 1; color: var(--tier);
+  }
+  .tariff-card .unlims .u b {
+    font-family: var(--font-display); font-weight: 700; font-size: 11px;
+    letter-spacing: 0.8px; text-transform: uppercase; color: var(--tier);
+  }
+
+  /* Тумблер «Подписка / Разовый месяц». Всегда открывается на «Подписка». */
+  .pmode {
+    display: flex; gap: 4px; margin: 2px 0 9px; padding: 4px;
+    background: var(--color-bg); border: 1px solid var(--color-border);
+    border-radius: 99px;
+  }
+  .pmode button {
+    flex: 1; padding: 11px 8px; border: 0; border-radius: 99px;
+    background: transparent; color: var(--color-text-muted);
+    font-family: var(--font-display); font-weight: 600; font-size: 12px;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  .pmode button[aria-pressed="true"] {
+    background: var(--color-accent); color: var(--color-bg);
+  }
+  .pmode-note {
+    font-size: 11.5px; line-height: 1.45; color: var(--color-text-muted);
+    margin: 0 4px 14px;
+  }
+
+  /* «Отменить можно в любой момент» — ОДИН раз, под списком цен */
+  .cancel-note {
+    margin-top: 4px; padding: 14px 16px; border-radius: var(--radius-md);
+    background: rgba(196,240,0,0.07); border: 1px solid rgba(196,240,0,0.34);
+    text-align: center;
+  }
+  .cancel-note b {
+    display: block; font-family: var(--font-display); font-weight: 700;
+    font-size: 16px; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .cancel-note span {
+    display: block; margin-top: 6px; font-size: 12px; line-height: 1.45;
+    color: var(--color-text-muted);
+  }
+  @media (max-width: 360px) {
+    .pmode button { font-size: 11px; letter-spacing: .4px; padding: 10px 4px }
+  }
 </style>
 </head>
 <body>
@@ -1451,7 +1552,10 @@
     });
   }
 
-  async function openPaidInvoice(tariffKey) {
+  // v1194: extraQ — необязательный хвост запроса кассы. Единственный живой
+  // случай сегодня — '&once=1' (разовый месяц), тот же флаг, что у кнопки
+  // `buy_once:` в чате. Без аргумента поведение прежнее до байта.
+  async function openPaidInvoice(tariffKey, extraQ) {
     if (!tg) return false;
     const initData = tg.initData || '';
     if (!initData) {
@@ -1473,12 +1577,15 @@
         if (_ct) { _subInfo.price = +_ct.price || 0; _subInfo.title = _ct.title || _ct.name || ''; }
       }
     } catch (e) { console.warn('[tariffs] sub info fetch failed', e); }
-    const _isSub = _subInfo.on && tariffKey !== 'trial';
+    // v1194: разовый месяц подпиской не является — лист способов не должен
+    // обещать автопродление там, где его по определению нет.
+    const _once = /once=1/.test(extraQ || '');
+    const _isSub = _subInfo.on && tariffKey !== 'trial' && !_once;
     const method = await askPayMethod(_isSub, _subInfo);
     if (!method) return true;          // закрыл выбор — это не ошибка
     const apiUrl = BOT_API_BASE + '/api/invoice?initData='
       + encodeURIComponent(initData) + '&tariff=' + encodeURIComponent(tariffKey)
-      + '&m=' + encodeURIComponent(method);
+      + '&m=' + encodeURIComponent(method) + (extraQ || '');
     let resp;
     try {
       resp = await fetch(apiUrl, { method: 'GET' });
@@ -1494,6 +1601,14 @@
     if (data && data.error === 'trial_used') {
       showError('Пробный период уже использован — выбери тариф.');
       return true;  // НЕ уходим в deep-link fallback (он покажет то же в чате)
+    }
+    // v1194: отказы разового месяца сервер объясняет своими словами
+    // («подписка уже подключена», «разово оформляется только …»). Показываем
+    // их, а не уезжаем молча в чат покупать подписку — это другой товар.
+    if (data && (data.error === 'once_not_needed'
+                 || data.error === 'once_not_for_tariff')) {
+      showError(data.message || 'Разовый месяц сейчас недоступен.', false);
+      return true;
     }
     if (!resp.ok) {
       console.error('[tariffs] /api/invoice HTTP ' + resp.status);
@@ -1607,6 +1722,21 @@
     }
   }
 
+  /* 🔴 v1194 — РАЗОВЫЙ МЕСЯЦ. Контракт не выдуман: /api/invoice с `once=1`,
+     тот же флаг, по которому работает кнопка `buy_once:<key>` в чате.
+     В deep-link `buy_<tariff>` при сбое НЕ падаем: в чате это подписка, то
+     есть другой товар и другая цена — молчаливая подмена недопустима. */
+  function buyOnce(tariff) {
+    if (window.posthog) posthog.capture('buy_once', { tariff: tariff });
+    try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('medium'); } catch (e) {}
+    openPaidInvoice(tariff, '&once=1').then(function (ok) {
+      if (!ok) showError('Не получилось открыть разовую оплату — попробуй ещё раз.');
+    }).catch(function (e) {
+      console.error('[tariffs] buyOnce rejected:', e);
+      showError('Не получилось открыть разовую оплату — попробуй ещё раз.');
+    });
+  }
+
   function send(action, extra = {}) {
     const payload = { action, ...extra };
     if (window.posthog) posthog.capture(action, extra);
@@ -1674,17 +1804,70 @@
   }
   function hideError() { $('errorBanner').classList.add('hidden'); }
 
+  /* ═══ v1194 «Пакеты v2» (решение владельца 13.09) ══════════════════════
+     Режим оплаты витрины. Открывается ВСЕГДА на «Подписка».
+     Второй режим («Разовый месяц») существует, только если сервер прислал
+     `once_price` — при PACKAGES_V2=0 или на старом билде бэкенда поля нет,
+     тумблера нет, и карточка рисуется ровно как до этой правки. */
+  var PAY_MODE = 'sub';           // 'sub' | 'once'
+  var SUB_ON = false, SUB_ON_KNOWN = false;   // sub_on с сервера, три состояния
+  var _listState = {};            // id контейнера → последние данные списка
+
+  // 🔴 Зеркало `_UNLIMITED_AXIS_NAME` из bot.py: сервер отдаёт имена ОПЕРАЦИЙ
+  // (`unlimited_ops`), слов не присылает. Именительный падеж — потому что
+  // числа рядом не будет никогда. Правится вместе с картой в боте.
+  var UNLIM_LABEL_BY_OP = {
+    stencil: 'Трансферы', sketch: 'Эскизы', extract: 'Эскизы из фото',
+    tryon: 'Примерки', retouch: 'Улучшения фото',
+    video: 'Видео-примерки', animate: 'Оживления тату',
+  };
+  // Имя поля квоты по имени операции — чтобы НЕ напечатать число там, где
+  // ось безлимитна («60 трансферов» рядом с «Трансферы — без лимита»).
+  var UNLIM_FIELD_BY_OP = {
+    stencil: 'stencils', sketch: 'sketches', extract: 'extracts',
+    tryon: 'tryons', retouch: 'photo_retouch', video: 'videos',
+    animate: 'animations',
+  };
+  function unlimOps(t) {
+    return (t && Array.isArray(t.unlimited_ops) ? t.unlimited_ops : []).map(String);
+  }
+  function unlimFieldSet(t) {
+    var out = {};
+    unlimOps(t).forEach(function (op) {
+      var f = UNLIM_FIELD_BY_OP[op]; if (f) out[f] = true;
+    });
+    return out;
+  }
+  // Разовая цена месяца — ТОЛЬКО с сервера и только если она выше подписки.
+  function oncePriceOf(t) {
+    var o = +(t && t.once_price) || 0;
+    return (o > +(t && t.price || 0)) ? o : 0;
+  }
+
   // ─── TARIFF CARD (full-width c зачёркнутой ценой) ───
   function renderTariffCard(t, isCurrent) {
     const isFree = t.price === 0;
     const fmtPrice = (p) => p.toLocaleString('ru-RU');
     const fmt = (n) => n >= 9999 ? '∞' : n.toString();
 
+    // 🔴 v1194: зачёркнутое число = честная цена РАЗОВОГО месяца, когда она
+    // пришла с сервера. Скидка перестала быть нарисованной: тумблер
+    // «Разовый месяц» показывает то же число живым. Нет разовой цены —
+    // зачёркиваем прежнюю (old_price), как и раньше.
+    const once = oncePriceOf(t);
+    const onceOn = (PAY_MODE === 'once' && once > 0);
+    const shownPrice = onceOn ? once : t.price;
+    const anchor = onceOn ? 0 : (once || t.old_price || 0);
+    // «≈ N ₽ / день» — производная от живой цены, своего числа тут нет.
+    const perDay = (!isFree && t.days > 0) ? Math.round(shownPrice / t.days) : 0;
+
     const priceBlock = isFree
       ? `<div class="price-row"><span class="price">0<span class="price-unit"> ₽ / 7 дней</span></span></div>`
       : `<div class="price-row">
-           ${t.old_price > t.price ? `<span class="old-price">${fmtPrice(t.old_price)} ₽</span>` : ''}
-           <span class="price">${fmtPrice(t.price)}<span class="price-unit"> ₽ / ${t.days} дней</span></span>
+           ${anchor > t.price ? `<span class="old-price">${fmtPrice(anchor)} ₽</span>` : ''}
+           <span class="price">${fmtPrice(shownPrice)}<span class="price-unit"> ₽ / ${t.days} дней</span></span>
+           ${perDay ? `<span class="per-day">≈ ${perDay} ₽ / день</span>` : ''}
+           ${onceOn ? `<span class="sub-hint">по подписке этот же месяц — <b>${fmtPrice(t.price)} ₽</b></span>` : ''}
          </div>`;
 
     // v267 (Task B): результат-строка сверху (клиенты по ссылке → заявки).
@@ -1697,26 +1880,45 @@
       </div>`;
 
     // v267: оживления добавлены в грид (если есть); инструменты = вторичный блок.
-    const animCell = (t.animations > 0)
+    // 🔴 v1194: безлимитные оси идут ПЕРВЫМИ, над числами, и только словом.
+    // Число на такой оси не печатается нигде и никогда: «∞» здесь — значок
+    // слева, а не количество (канон UNLIMITED_WORD / UNLIMITED_SIGN в bot.py).
+    const unl = unlimFieldSet(t);
+    const unlimRow = unlimOps(t).length
+      ? `<div class="unlims">${unlimOps(t).map(function (op) {
+            var n = UNLIM_LABEL_BY_OP[op];
+            return n ? `<span class="u"><i>∞</i>${n} — <b>без лимита</b></span>` : '';
+          }).join('')}</div>`
+      : '';
+
+    const animCell = (t.animations > 0 && !unl.animations)
       ? `<div><span class="f-num">${fmt(t.animations)}</span><span class="f-lab">Оживления тату</span></div>`
       : '';
     // v672: «Создание эскизов» и «Улучшение фото» сервер отдавал всегда, но
     // карточка их не рисовала. Эскизы — САМАЯ большая ось платных тарифов
     // (120 у Про, 250 у Макс): человек выбирал пакет, не видя главного, что в
     // нём есть. Ячейки условные — тариф без оси (ПМ) не покажет пустую.
-    const sketchCell = (t.sketches > 0)
+    const sketchCell = (t.sketches > 0 && !unl.sketches)
       ? `<div><span class="f-num">${fmt(t.sketches)}</span><span class="f-lab">Эскизы и правки</span></div>`
       : '';
-    const retouchCell = (t.photo_retouch > 0)
+    const retouchCell = (t.photo_retouch > 0 && !unl.photo_retouch)
       ? `<div><span class="f-num">${fmt(t.photo_retouch)}</span><span class="f-lab">Улучшение фото</span></div>`
       : '';
+    const stencilCell = unl.stencils ? ''
+      : `<div><span class="f-num">${fmt(t.stencils)}</span><span class="f-lab">Трансферы</span></div>`;
+    const tryonCell = unl.tryons ? ''
+      : `<div><span class="f-num">${fmt(t.tryons)}</span><span class="f-lab">Примерки</span></div>`;
+    const extractCell = unl.extracts ? ''
+      : `<div><span class="f-num">${fmt(t.extracts)}</span><span class="f-lab">Эскизы из тату</span></div>`;
+    const videoCell = unl.videos ? ''
+      : `<div><span class="f-num ${t.videos === 0 ? 'muted' : ''}">${t.videos === 0 ? '—' : fmt(t.videos)}</span><span class="f-lab">Видео-примерки</span></div>`;
     const features = `
       ${sketchCell}
-      <div><span class="f-num">${fmt(t.stencils)}</span><span class="f-lab">Трансферы</span></div>
-      <div><span class="f-num">${fmt(t.tryons)}</span><span class="f-lab">Примерки</span></div>
-      <div><span class="f-num">${fmt(t.extracts)}</span><span class="f-lab">Эскизы из тату</span></div>
+      ${stencilCell}
+      ${tryonCell}
+      ${extractCell}
       ${retouchCell}
-      <div><span class="f-num ${t.videos === 0 ? 'muted' : ''}">${t.videos === 0 ? '—' : fmt(t.videos)}</span><span class="f-lab">Видео-примерки</span></div>
+      ${videoCell}
       ${animCell}
       <!-- 🔴 v1187: здесь стояла строка «N Клиентов по промо» из
            promo_clients_quota — числа ПРОМОКОДНОГО механизма, который в бою
@@ -1741,7 +1943,9 @@
     if (isCurrent) {
       badgeHtml = '<div class="tariff-badge current">Активен</div>';
     } else if (t.popular) {
-      badgeHtml = '<div class="tariff-badge">Хит</div>';
+      // v1194: рекомендованный тариф назван словом, а не жаргоном «Хит» —
+      // владелец просил подсветить именно «что советуем».
+      badgeHtml = '<div class="tariff-badge">⭐ Рекомендуем</div>';
     }
 
     let btnHtml;
@@ -1753,16 +1957,21 @@
       // v217: цена триала из payload (sync с MASTER_TARIFFS["trial"]["price"]).
       // Жёсткий «1 ₽» был bait-and-switch (ЗоЗПП ст.16) — теперь динамика.
       trialNote = '<div class="trial-note">Разовая проба за <b>' + fmtPrice(t.price) + ' ₽</b> через СБП — <b>без подписки</b>.<br>Через 7 дней доступ закроется, дальше — любой платный тариф.</div>';
+    } else if (onceOn) {
+      // v1194: тот же контракт, что у кнопки `buy_once:` в чате — разовый
+      // счёт открывается через /api/invoice&once=1, второй кассы нет.
+      btnHtml = `<button class="btn-buy" data-tariff="${t.key}" data-action="buy_once">Оплатить месяц за ${fmtPrice(once)} ₽</button>`;
     } else {
       btnHtml = `<button class="btn-buy" data-tariff="${t.key}" data-action="buy">Оформить за ${fmtPrice(t.price)} ₽</button>`;
     }
 
     return `
-      <div class="${cls.join(' ')}">
+      <div class="${cls.join(' ')}" data-tier="${t.key}">
         ${badgeHtml}
         <div class="name">${t.name}</div>
         ${resultLine}
         ${priceBlock}
+        ${unlimRow}
         <div class="features">${features}</div>
         ${btnHtml}
         ${trialNote}
@@ -1775,7 +1984,54 @@
       b.onclick = () => {
         const tariff = b.getAttribute('data-tariff');
         const action = b.getAttribute('data-action');
+        if (action === 'buy_once') { buyOnce(tariff); return; }
         send(action === 'trial' ? 'activate_trial' : 'buy_master', { tariff });
+      };
+    });
+  }
+
+  /* ── v1194: обвязка списка — тумблер сверху, строка отмены снизу ─────── */
+  function paymodeHtml() {
+    var on = function (m) { return String(PAY_MODE === m); };
+    var note = (PAY_MODE === 'once')
+      ? 'Один месяц без подписки: платишь один раз, доступ на 30 дней, дальше продлеваешь сам.'
+      : 'Цена за месяц по подписке — списывается раз в 30 дней. Так дешевле, чем брать месяц разово.';
+    return '<div class="pmode" role="group" aria-label="Как платить">'
+      + '<button type="button" data-pmode="sub" aria-pressed="' + on('sub') + '">Подписка</button>'
+      + '<button type="button" data-pmode="once" aria-pressed="' + on('once') + '">Разовый месяц</button>'
+      + '</div><div class="pmode-note">' + note + '</div>';
+  }
+  function cancelNoteHtml() {
+    return '<div class="cancel-note"><b>Отменить можно в любой момент</b>'
+      + '<span>Один тап в Кабинете — оплаченный месяц дорабатывает до конца.</span></div>';
+  }
+
+  /* Один рендер на оба списка (регистрация и кабинет): тумблер, карточки и
+     строка отмены обязаны жить вместе, иначе один экран скажет про подписку,
+     а соседний — нет. */
+  function renderTariffList(hostId, tariffs, currentKey) {
+    var host = $(hostId);
+    if (!host) return;
+    _listState[hostId] = { tariffs: tariffs, currentKey: currentKey };
+    var hasOnce = (tariffs || []).some(function (t) { return oncePriceOf(t) > 0; });
+    if (!hasOnce && PAY_MODE === 'once') PAY_MODE = 'sub';   // разового мира нет
+    var cards = tariffs.map(function (t) {
+      return renderTariffCard(t, !!currentKey && t.key === currentKey);
+    }).join('');
+    // Про отмену подписки пишем только там, где подписка есть: сервер ещё не
+    // ответил — показываем, ответил sub_on=false — прячем.
+    var cancel = (PAY_MODE === 'sub' && (!SUB_ON_KNOWN || SUB_ON))
+      ? cancelNoteHtml() : '';
+    host.innerHTML = (hasOnce ? paymodeHtml() : '') + cards + cancel;
+    bindTariffButtons(host);
+    host.querySelectorAll('button[data-pmode]').forEach(function (b) {
+      b.onclick = function () {
+        var m = b.getAttribute('data-pmode');
+        if (m === PAY_MODE) return;
+        PAY_MODE = m;
+        try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {}
+        var st = _listState[hostId];
+        renderTariffList(hostId, st.tariffs, st.currentKey);
       };
     });
   }
@@ -1810,17 +2066,13 @@
     if (!Array.isArray(tariffs) || !tariffs.length) tariffs = FALLBACK_TARIFFS;
     rememberTariffs(tariffs);
     applyTrialHero(tariffs);
-    const html = tariffs.map(t => renderTariffCard(t, false)).join('');
-    $('signupTariffsList').innerHTML = html;
-    bindTariffButtons($('signupTariffsList'));
+    renderTariffList('signupTariffsList', tariffs, '');
   }
 
   function renderCabinetTariffs(tariffs, currentKey) {
     if (!Array.isArray(tariffs) || !tariffs.length) return;
     rememberTariffs(tariffs);
-    const html = tariffs.map(t => renderTariffCard(t, t.key === currentKey)).join('');
-    $('cabinetTariffsList').innerHTML = html;
-    bindTariffButtons($('cabinetTariffsList'));
+    renderTariffList('cabinetTariffsList', tariffs, currentKey);
   }
 
   // ─── METRIC BOX (квадрат 2×2) ───
@@ -1847,6 +2099,15 @@
       // операция недоступна на тарифе (и не докуплена оверажем)
       box.classList.add('unavailable');
       val.innerHTML = '<span style="color:var(--color-text-muted)">Pro и выше</span>';
+    } else if (q.unlimited) {
+      // 🔴 v1193-fix: ось БЕЗ СЧЁТА на тарифе (бэкенд ставит q.unlimited).
+      // Без этой ветки кабинет печатал «80 / 80», красил полосу как
+      // исчерпанную и запускал апсейл «квоты кончаются» — то есть продавал
+      // докуп на оси, где счёта нет. Большого числа (9999) в quotas нет и не
+      // будет: безлимит — признак, а не цифра.
+      box.classList.add('unlimited');
+      val.innerHTML = `<span class="unlim-tag">Без счёта</span><span class="unlim-used">использовано ${used}</span>`;
+      pct = 100;
     } else if (baseLimit >= 9999) {
       // Безлимит (Премиум/owner): «Безлимит» + «использовано N» + полная полоска.
       box.classList.add('unlimited');
@@ -2036,6 +2297,9 @@
       // апсейл по нему сработал бы у триальщика в первый же день. Дневные оси
       // в детект не берём: их лечит завтрашнее утро, а не тариф.
       if (q.daily) return;
+      // v1193-fix: безлимитная ось в детект «квота кончается» не входит —
+      // иначе апсейл звал бы доплатить за то, что уже без лимита.
+      if (q.unlimited) return;
       if (total > 0 && total < 9999 && used / total >= 0.8) nearFull = true;
     });
     // v385: апсейл-воронка — квоты кончаются → кнопка к прайсу.
@@ -2168,6 +2432,12 @@
   function applyCabinet(d) {
     showView('cabinet');
     startLiveRefresh();  // v388: автообновление лимитов раз в 25с пока кабинет открыт
+    // v1194: подписка есть у этого человека или нет — правда сервера (sub_on),
+    // та же, по которой касса решает сохранять способ оплаты. От неё зависит,
+    // имеем ли мы право писать «Отменить можно в любой момент».
+    if (d && typeof d.sub_on !== 'undefined') {
+      SUB_ON = !!d.sub_on; SUB_ON_KNOWN = true;
+    }
     $('tariffName').textContent = d.tariff_name || 'Trial';
     // v207: полоса тарифа компактна — только «осталось N дн».
     // Процент периода переехал в свёрнутый блок «Лимиты периода».

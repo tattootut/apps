@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Деньги ТАТУ ТУТ</title>
+<link rel="icon" type="image/svg+xml" href="assets/logo/tatu-tut-mark-dark.svg">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Палитра и типографика — из кабинета (webapp/tariffs-app.html), чтобы
+     панель читалась как та же система, а не как третье приложение.
+     Новое здесь ровно одно: моноширинный «бухгалтерский» шрифт для цифр
+     и ОТДЕЛЬНЫЕ семантические цвета — лайм занят выручкой, поэтому расход
+     и тревога обязаны иметь свои. Тема одна, тёмная: канон проекта —
+     сайт светлый, апп тёмный. */
+  :root {
+    --color-bg:         #0E1A14;
+    --color-surface:    #16291F;
+    --color-surface-2:  #1d3328;
+    --color-accent:     #C4F000;
+    --color-text:       #F4F4F0;
+    --color-text-muted: #8A938E;
+    --color-text-dim:   #66716B;
+    --color-border:     #243a30;
+
+    --data-revenue:     #C4F000;
+    --data-cost:        #6F9BD1;
+    --data-grid:        #22362b;
+    --alarm:            #F2545B;
+    --alarm-bg:         rgba(242,84,91,0.10);
+
+    --font-display: 'Oswald', 'Helvetica Neue', sans-serif;
+    --font-text:    'Inter', -apple-system, 'Segoe UI', sans-serif;
+    --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--color-bg); }
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-text);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 18px 16px calc(30px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ── ШАПКА ───────────────────────────────────────────────────────────── */
+  .topbar {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; padding-bottom: 2px;
+  }
+  .topbar h1 {
+    font-family: var(--font-display);
+    font-weight: 600; font-size: 19px; letter-spacing: 0.7px;
+    text-transform: uppercase; line-height: 1;
+  }
+  .freshness {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--color-text-dim);
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .pulse {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--color-accent); flex: 0 0 6px;
+    transition: opacity .45s ease;
+  }
+  .pulse.busy { opacity: .25; }
+
+  /* ── КАРТОЧКИ ────────────────────────────────────────────────────────── */
+  .card {
+    background:
+      radial-gradient(135% 90% at 100% 0%, rgba(196,240,0,0.055), transparent 58%),
+      var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  /* Главный экран — график. Он не «ещё одна карточка»: своя рамка почти
+     не видна, зато он занимает верх и дышит. */
+  .card.chart-card { padding: 16px 14px 14px; gap: 12px; }
+
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .sec-label {
+    font-family: var(--font-display);
+    font-weight: 500; text-transform: uppercase;
+    letter-spacing: 1.3px; font-size: 11px;
+    color: var(--color-text-muted);
+  }
+  .sec-note {
+    font-size: 10.5px; color: var(--color-text-dim);
+    text-align: right; line-height: 1.35;
+  }
+
+  /* ── ГРАФИК ──────────────────────────────────────────────────────────── */
+  .chart-wrap { width: 100%; overflow-x: auto; }
+  svg.chart { display: block; width: 100%; height: auto; }
+  .legend {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    font-size: 11px; color: var(--color-text-muted);
+  }
+  .legend i {
+    display: inline-block; width: 18px; height: 3px; border-radius: 2px;
+    margin-right: 6px; vertical-align: middle;
+  }
+  .src-line {
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--color-text-dim); line-height: 1.4;
+    margin-top: -4px;
+  }
+  /* Три подписи под графиком — итог месяца. Разница выделена: это то число,
+     ради которого владелец сюда заходит. */
+  .totals {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; border-top: 1px solid var(--color-border); padding-top: 12px;
+  }
+  .totals .fig-val { font-size: 17px; }
+  .totals > div:last-child .fig-val { color: var(--color-accent); }
+
+  /* ── ЧИСЛА ───────────────────────────────────────────────────────────── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 10px; }
+
+  .fig { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .fig-cap {
+    font-size: 10.5px; letter-spacing: 0.4px;
+    color: var(--color-text-muted); text-transform: uppercase;
+  }
+  .fig-val {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500; font-size: 20px; line-height: 1.2;
+    letter-spacing: -0.3px;
+    overflow-wrap: anywhere;
+  }
+  .fig-val.nodata {
+    font-family: var(--font-text); font-size: 13px; font-weight: 400;
+    color: var(--color-text-dim); font-style: italic; letter-spacing: 0;
+  }
+  .fig-win {
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--color-text-dim); line-height: 1.35;
+  }
+  .fig-sub { font-size: 10.5px; color: var(--color-text-dim); line-height: 1.35; }
+
+  /* Тревога: пока ноль — обычная строка, ничего не кричит. Стала не нулём —
+     число краснеет и слева зажигается полоса. Форма, а не только цвет.
+     Отступ под полосу держат ВСЕ числа блока, иначе спокойные и тревожные
+     стоят по разным левым краям и колонка «скачет» при каждом обновлении. */
+  #alerts .fig { position: relative; padding-left: 9px; }
+  #alerts .fig::before {
+    content: ''; position: absolute; left: 0; top: 2px; bottom: 2px;
+    width: 3px; border-radius: 2px; background: transparent;
+  }
+  .fig.hot::before { background: var(--alarm); }
+  .fig.hot .fig-val { color: var(--alarm); }
+  .card.alerts-hot { border-color: rgba(242,84,91,0.45); background: var(--alarm-bg), var(--color-surface); }
+
+  /* ── СОСТОЯНИЯ ───────────────────────────────────────────────────────── */
+  .notice {
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--alarm);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    padding: 14px 16px; font-size: 13.5px; color: var(--color-text);
+  }
+  .notice b { display: block; font-family: var(--font-display); font-weight: 600;
+              letter-spacing: .6px; text-transform: uppercase; font-size: 12px;
+              margin-bottom: 6px; color: var(--alarm); }
+  .footnote {
+    font-size: 10.5px; color: var(--color-text-dim); line-height: 1.5;
+    padding: 0 4px;
+  }
+  .footnote code {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--color-text-muted);
+  }
+  [hidden] { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse { transition: none; }
+  }
+  @media (max-width: 360px) {
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .fig-val { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Деньги</h1>
+  <div class="freshness"><span class="pulse" id="pulse"></span><span id="fresh">загружаю…</span></div>
+</div>
+
+<div class="notice" id="err" hidden>
+  <b id="err-title">Панель закрыта</b>
+  <span id="err-text"></span>
+</div>
+
+<!-- ГЛАВНЫЙ ЭКРАН: выручка по дням + линия расхода на ИИ -->
+<section class="card chart-card" id="card-chart">
+  <div class="sec-head">
+    <div class="sec-label">Выручка по дням</div>
+    <div class="sec-note" id="chart-win">30 дней</div>
+  </div>
+  <div class="chart-wrap"><svg class="chart" id="chart" viewBox="0 0 560 220" role="img"
+       aria-label="Выручка по дням за 30 дней и линия расхода на ИИ"></svg></div>
+  <div class="legend">
+    <span><i style="background:var(--data-revenue)"></i>выручка за день</span>
+    <span><i style="background:var(--data-cost)"></i>расход на ИИ</span>
+  </div>
+  <div class="src-line" id="chart-src">источник подгружается</div>
+  <div class="totals" id="totals"></div>
+</section>
+
+<section class="card">
+  <div class="sec-head"><div class="sec-label">Деньги сегодня</div></div>
+  <div class="grid-2" id="today"></div>
+</section>
+
+<section class="card" id="card-subs">
+  <div class="sec-head"><div class="sec-label">Подписка</div></div>
+  <div class="grid-2" id="subs"></div>
+</section>
+
+<section class="card" id="card-alerts">
+  <div class="sec-head">
+    <div class="sec-label">Тревоги</div>
+    <div class="sec-note" id="alerts-note">сверка сухая — доступ отсюда не выдаётся</div>
+  </div>
+  <div class="grid-3" id="alerts"></div>
+</section>
+
+<section class="card">
+  <div class="sec-head"><div class="sec-label">Воронка</div></div>
+  <div class="grid-2" id="funnel"></div>
+</section>
+
+<p class="footnote" id="foot">
+  Каждое число подписано окном и источником. «Нет данных» означает, что источник
+  молчит, — это не ноль.
+</p>
+
+<script>
+(function () {
+  "use strict";
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
+
+  var API = location.origin + "/api/money";
+  var POLL_MS = 30000;
+  var lastOk = 0, timer = null, tick = null;
+
+  var NBSP = " ";
+
+  function fmtInt(v) {
+    var n = Math.round(Math.abs(v));
+    var s = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
+    return (v < 0 ? "−" : "") + s;
+  }
+  function rub(v) { return fmtInt(v) + NBSP + "₽"; }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  // Одна отрисовка одного числа. Вид «нет данных» — отдельный, а не ноль
+  // серым: страница печатает то, что сказал сервер, и не догадывается.
+  function figure(caption, num, format, opts) {
+    opts = opts || {};
+    var box = el("div", "fig");
+    box.appendChild(el("div", "fig-cap", caption));
+    var hot = false;
+    if (!num || num.status !== "ok" || num.value === null || num.value === undefined) {
+      box.appendChild(el("div", "fig-val nodata", "нет данных"));
+    } else {
+      hot = !!opts.alarm && Number(num.value) > 0;
+      box.appendChild(el("div", "fig-val", format(num.value)));
+    }
+    if (num && num.window) box.appendChild(el("div", "fig-win", num.window));
+    if (num && num.note) box.appendChild(el("div", "fig-sub", num.note));
+    if (hot) box.classList.add("hot");
+    return { node: box, hot: hot };
+  }
+
+  function fill(hostId, rows) {
+    var host = document.getElementById(hostId);
+    host.textContent = "";
+    var anyHot = false;
+    rows.forEach(function (r) {
+      var f = figure(r[0], r[1], r[2], r[3]);
+      anyHot = anyHot || f.hot;
+      host.appendChild(f.node);
+    });
+    return anyHot;
+  }
+
+  // ── ГРАФИК ────────────────────────────────────────────────────────────
+  // Рисуем сами, без библиотеки: тридцать столбцов и одна ломаная не стоят
+  // 90 КБ чужого кода, а подписи обязаны быть настоящим текстом в наших
+  // цветах. Шкала ОДНА на выручку и на расход — две шкалы в одном кадре
+  // всегда врут про соотношение, а здесь смотрят именно на зазор.
+  var NS = "http://www.w3.org/2000/svg";
+  function mk(tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function niceTop(v) {
+    if (v <= 0) return 1000;
+    var pow = Math.pow(10, Math.floor(Math.log10(v)));
+    var steps = [1, 1.5, 2, 2.5, 3, 4, 5, 7.5, 10];
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i] * pow >= v) return steps[i] * pow;
+    }
+    return 10 * pow;
+  }
+
+  function drawChart(days) {
+    var svg = document.getElementById("chart");
+    svg.textContent = "";
+    var W = 560, H = 220, padL = 46, padR = 8, padT = 12, padB = 26;
+    var iw = W - padL - padR, ih = H - padT - padB;
+
+    var maxV = 0;
+    days.forEach(function (d) {
+      maxV = Math.max(maxV, d.revenue || 0, d.ai_rub || 0);
+    });
+    var top = niceTop(maxV);
+    var y = function (v) { return padT + ih - (v / top) * ih; };
+
+    // Сетка и подписи шкалы: каждая названа значением, которого график достигает.
+    [0, 0.5, 1].forEach(function (f) {
+      var yy = padT + ih - f * ih;
+      svg.appendChild(mk("line", {
+        x1: padL, x2: W - padR, y1: yy, y2: yy,
+        stroke: "var(--data-grid)", "stroke-width": 1
+      }));
+      var t = mk("text", {
+        x: padL - 7, y: yy + 3.5, "text-anchor": "end",
+        fill: "var(--color-text-dim)", "font-size": 10,
+        "font-family": "var(--font-mono)"
+      });
+      t.textContent = f === 0 ? "0" : fmtInt(top * f);
+      svg.appendChild(t);
+    });
+
+    var n = days.length || 1;
+    var slot = iw / n, bw = Math.max(3, Math.min(12, slot * 0.62));
+
+    days.forEach(function (d, i) {
+      var cx = padL + slot * i + slot / 2;
+      var v = d.revenue || 0;
+      if (v > 0) {
+        var h = Math.max(2, padT + ih - y(v));
+        svg.appendChild(mk("rect", {
+          x: cx - bw / 2, y: padT + ih - h, width: bw, height: h,
+          rx: 2, fill: "var(--data-revenue)", "fill-opacity": d.fx_suspect ? 0.42 : 0.9
+        }));
+      }
+      // Метка «до починки курса» — точка под столбцом, а не догадка по календарю.
+      if (d.fx_suspect) {
+        svg.appendChild(mk("circle", {
+          cx: cx, cy: padT + ih + 6, r: 1.8, fill: "var(--data-revenue)", "fill-opacity": 0.6
+        }));
+      }
+    });
+
+    // Линия расхода на ИИ — поверх столбцов, по той же шкале.
+    var pts = days.map(function (d, i) {
+      return (padL + slot * i + slot / 2).toFixed(1) + "," + y(d.ai_rub || 0).toFixed(1);
+    }).join(" ");
+    svg.appendChild(mk("polyline", {
+      points: pts, fill: "none", stroke: "var(--data-cost)",
+      "stroke-width": 1.8, "stroke-linejoin": "round", "stroke-linecap": "round"
+    }));
+
+    // Ось дат: первый, середина, последний — больше на телефоне не читается.
+    function dayLabel(iso) {
+      var p = iso.split("-");
+      return p[2] + "." + p[1];
+    }
+    [0, Math.floor(n / 2), n - 1].forEach(function (i, k) {
+      if (!days[i]) return;
+      var t = mk("text", {
+        x: padL + slot * i + slot / 2, y: H - 8,
+        "text-anchor": k === 0 ? "start" : (k === 2 ? "end" : "middle"),
+        fill: "var(--color-text-dim)", "font-size": 10,
+        "font-family": "var(--font-mono)"
+      });
+      t.textContent = dayLabel(days[i].date);
+      svg.appendChild(t);
+    });
+  }
+
+  // ── ОТРИСОВКА ОТВЕТА ──────────────────────────────────────────────────
+  function render(d) {
+    document.getElementById("err").hidden = true;
+
+    var ch = d.chart || {};
+    drawChart(ch.days || []);
+    document.getElementById("chart-win").textContent = ch.window || "30 дней";
+    document.getElementById("chart-src").textContent =
+      "источник: " + (ch.source || "—") + " · " + (ch.freshness || "");
+
+    var totals = document.getElementById("totals");
+    totals.textContent = "";
+    [["Выручка", ch.revenue_30d], ["Расход на ИИ", ch.ai_30d], ["Разница", ch.diff_30d]]
+      .forEach(function (r) { totals.appendChild(figure(r[0], r[1], rub).node); });
+
+    var t = d.today || {};
+    fill("today", [
+      ["Выручка", t.revenue, rub],
+      ["Оплат", t.payments, fmtInt],
+      ["Расход на ИИ", t.ai_cost, rub],
+      ["Средний чек", t.avg_check_7d, rub]
+    ]);
+
+    var s = d.subscription || {};
+    fill("subs", [
+      ["Оплаченных доступов", s.active_paid, fmtInt],
+      ["С автопродлением", s.auto_renew, fmtInt],
+      ["Истекает за 30 дней", s.expiring_30d, fmtInt]
+    ]);
+    var sumFig = figure("На сумму по прайсу", s.expiring_sum, rub);
+    document.getElementById("subs").appendChild(sumFig.node);
+
+    var a = d.alerts || {};
+    var hot = fill("alerts", [
+      ["Оплачено, доступа нет", a.paid_not_granted, fmtInt, { alarm: true }],
+      ["Счетов открыто", a.open_invoices, fmtInt, { alarm: true }],
+      ["Касса не ответила", a.kassa_errors, fmtInt, { alarm: true }]
+    ]);
+    document.getElementById("card-alerts").classList.toggle("alerts-hot", hot);
+
+    var f = d.funnel || {};
+    fill("funnel", [
+      ["Новых сегодня", f.new_today, fmtInt],
+      ["Новых за 7 дней", f.new_7d, fmtInt],
+      ["Оплат на 100 новых", f.pay_per_100_new_7d, function (v) { return String(v); }],
+      ["Доля 👎", f.negative_share_7d, function (v) { return v + "%"; }]
+    ]);
+
+    var foot = "Каждое число подписано окном и источником. «Нет данных» означает, " +
+               "что источник молчит, — это не ноль. Курс: " + d.usd_rub_rate +
+               " ₽/$ (" + d.rate_source + ").";
+    if ((ch.fx_suspect_days || []).length) {
+      foot += " Дни с точкой под столбцом — " + ch.fx_note + ".";
+    }
+    document.getElementById("foot").textContent = foot;
+
+    lastOk = Date.now();
+    paintFreshness();
+  }
+
+  function showError(title, text) {
+    var box = document.getElementById("err");
+    document.getElementById("err-title").textContent = title;
+    document.getElementById("err-text").textContent = text;
+    box.hidden = false;
+  }
+
+  function paintFreshness() {
+    var f = document.getElementById("fresh");
+    if (!lastOk) { f.textContent = "загружаю…"; return; }
+    var sec = Math.round((Date.now() - lastOk) / 1000);
+    f.textContent = sec < 5 ? "обновлено только что"
+                            : "обновлено " + sec + " сек назад";
+  }
+
+  function load() {
+    var init = (tg && tg.initData) || "";
+    if (!init) {
+      showError("Открой панель из Telegram",
+                "Страница подписывается данными Telegram. В обычном браузере " +
+                "подписи нет — открой панель кнопкой в чате бота: /money.");
+      return;
+    }
+    var pulse = document.getElementById("pulse");
+    pulse.classList.add("busy");
+    fetch(API + "?initData=" + encodeURIComponent(init), { cache: "no-store" })
+      .then(function (r) {
+        if (r.status === 403) {
+          throw new Error("stale");
+        }
+        if (!r.ok) throw new Error("http " + r.status);
+        return r.json();
+      })
+      .then(render)
+      .catch(function (e) {
+        if (String(e.message) === "stale") {
+          // Подпись Telegram живёт сутки. Панель, забытая открытой на ночь,
+          // начнёт получать 403 — говорим это прямо, а не молчим «нет данных».
+          showError("Панель пора открыть заново",
+                    "Подпись Telegram действует сутки и истекла. Закрой окно " +
+                    "и открой панель снова — кнопкой в чате бота.");
+        } else {
+          showError("Не дотянулся до сервера",
+                    "Последние показанные числа могли устареть. Пробую снова " +
+                    "через 30 секунд. (" + e.message + ")");
+        }
+      })
+      .then(function () { pulse.classList.remove("busy"); });
+  }
+
+  load();
+  timer = setInterval(load, POLL_MS);
+  tick = setInterval(paintFreshness, 1000);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) load();
+  });
+})();
+</script>
+</body>
+</html>
