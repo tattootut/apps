@@ -399,16 +399,14 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
          ПРАЙСА, то есть отвечала не на тот вопрос. Человек, открывший цены,
          думает про оплату: «спишется внезапно», «а если передумаю», «не хочу
          подписку», «дорого». Здесь теперь закрыты ровно эти четыре. -->
-    <div class="eyebrow">
-      <svg><use href="#i-zap"/></svg>
-      Оплата без сюрпризов
-    </div>
     <!-- 🔴 v1201 (заказ владельца 13.09): самое крупное слово первого экрана
          обязано отвечать на вопрос «что тут открыто». Было «ОТМЕНИТЬ» —
          странный герой для страницы ЦЕН. Стало «ПОДПИСКА», а рядом — что она
          самая выгодная и что есть второй путь. -->
+    <!-- 🔴 v1205 (владелец 15.09): «много текста». Герой — два слова:
+         что открыто и что это не ловушка. Подстрока про «самый выгодный»
+         и eyebrow «Оплата без сюрпризов» сняты. -->
     <h1>
-      <span class="small">Открыт самый выгодный вариант —</span>
       <span class="big">подписка</span>
       <span class="end">отменить можно в один тап.</span>
     </h1>
@@ -458,10 +456,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   <!-- v1194: «Отменить можно в любой момент» — один раз под списком цен,
        только в режиме подписки. Прячется, если сервер сказал sub_on=false:
        обещать отмену подписки там, где подписки нет, нельзя. -->
-  <div class="cancel-note" id="cancelNote">
-    <b>Отменить можно в любой момент</b>
-    <span>Один тап в Кабинете — оплаченный месяц дорабатывает до конца.</span>
-  </div>
+  <!-- v1205: блок «Отменить можно в любой момент» снят — то же сказано в
+       герое и в ответах про оплату ниже; третий раз подряд — это шум. -->
 
   <!-- v525: B2B-строка убрана по решению Николая (контакт не нужен) -->
 
@@ -494,20 +490,16 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
           <div class="t">«Не хочу подписку»</div>
           <div class="s">возьми месяц разово — переключатель справа вверху</div>
         </div>
-        <div class="flow-step">
-          <div class="icon"><svg><use href="#i-printer2"/></svg></div>
-          <div class="t">«Сколько это в день?»</div>
-          <!-- Число ЖИВОЕ: самая дешёвая цена в день среди платных тарифов.
-               Литералом тут стоять не может — прайс уедет, обещание останется. -->
-          <div class="s">от <b class="js-min-perday">—</b> ₽ — цена в день написана на каждой карточке</div>
-        </div>
       </div>
-      <div class="flow-bonus">
-        <svg><use href="#i-magic"/></svg>
-        <span><b>+ В пакете:</b> примерка на фото, трансфер, эскиз из фото, фото как из студии</span>
-      </div>
+      <!-- v1205: «Сколько это в день» и «+ В пакете» сняты — цена в день и
+           состав стоят на каждой карточке. -->
     </div>
 
+    <!-- 🔴 v1205 (владелец 15.09): докупки холодному не показываем — у него
+         нет тарифа, поверх которого докупать, а лишние кнопки отвлекают от
+         пакетов. Зона открывается по tariff_active с сервера или по
+         ?current=<платный ключ> из кабинета (_showOverageIfPaid). -->
+    <div id="overageZone" hidden>
     <div class="ov-label"><span>Докупить поверх тарифа</span><span class="ov-r">оплата по СБП</span></div>
 
     <!-- v494: ОДИН блок «Видео из тату» (владелец слил оживление+видео, цена ~230₽/шт).
@@ -650,6 +642,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
         </button>
       </div>
     </section>
+    </div><!-- /#overageZone -->
 
   </div>
   <script>
@@ -1467,12 +1460,14 @@ const PRESENT = {
   trial: {
     // ЛИД-МАГНИТ воронки (не убирать! на нём стоит вся воронка).
     name:'ПРОБНЫЙ', period:'7 дней', trial:true,
-    cap:q => '🎁 Попробуй всё за ' + fmt(q.price) + ' ₽',
+    // v1205 (владелец 15.09): карточка пробного — одна строка, без трёх
+    // повторов одной мысли (cap + hero + resultSub говорили одно и то же).
+    cap:'🎁 7 дней · все функции',
     // 🔴 v1202 (владелец 13.09, глядя на свой же экран): «полного» — ложь.
     // Ниже в том же пакете стоят два замка: «оживление — на СТАРТ» и
     // «видео-примерка — на СТАРТ». Слово убрано, факт остался.
-    hero:'🎁 Неделя доступа',
-    resultSub:'распробуй, потом выбери тариф',
+    hero:'',
+    resultSub:'',
   },
   solo: {
     name:'СТАРТ', period:'мес',
@@ -1676,6 +1671,16 @@ function buildTariffs(quotas){
 // Помечаем карточку «✓ Твой тариф», чтобы юзер видел свой план среди прочих.
 const CURRENT_TARIFF = (new URLSearchParams(location.search).get('current') || '').trim();
 
+// v1205: докупки — только платящему. Правда с сервера (tariff_active) либо
+// переход из кабинета с платным ключом (?current=), где сервер уже знал.
+function _showOverageIfPaid(fromServer){
+  var z = document.getElementById('overageZone');
+  if (!z) return;
+  var paidKey = CURRENT_TARIFF && CURRENT_TARIFF !== 'trial' && CURRENT_TARIFF !== 'promo';
+  if (fromServer || paidKey) z.hidden = false;
+}
+_showOverageIfPaid(false);
+
 function row(t, i){
   // v524: ОДИН сильный бейдж (⭐ Самый популярный) на ПРО (.hit = центр-якорь).
   // МАКС = нейтральный «🎬 Максимум» (.save-обводка, не перебивает центр).
@@ -1705,7 +1710,9 @@ function row(t, i){
   // Поэтому на карточке печатаем ВЫГОДУ В РУБЛЯХ, а не процент. Цены не
   // тронуты: менять их пришлось бы так, что разовый Макс уехал бы на 9 320 ₽,
   // а владелец сам держал его под восемью тысячами.
-  const saveRub = anchor > t.price ? (anchor - t.price) : 0;
+  // 🔴 v1205 (владелец 15.09): «выгода N ₽» внизу каждой карточки читалась
+  // как непонятная приписка. Бейдж — только ранг; честная прежняя цена
+  // остаётся зачёркнутой рядом с ценой (v1170), этого достаточно.
   // 🔴 v1196 (владелец 13.09: «все тарифы выглядят одинаково»): два тарифа
   // подсвечены по-разному и названы по-разному. Про — «Популярный» (его и
   // берут чаще всех), Про+ — «Выгодный» (эскиз внутри него дешевле).
@@ -1713,9 +1720,7 @@ function row(t, i){
              : t.deal ? '💚 Выгодный'
              : t.top  ? '🎬 Максимум' : '';
   const badgeCls = t.star ? 'badge' : t.deal ? 'badge deal' : 'badge save';
-  const saveTx = saveRub ? ('выгода ' + fmt(saveRub) + ' ₽') : '';
-  const badgeTx = saveTx ? (rank ? rank + ' · ' + saveTx : saveTx) : rank;
-  const badge = badgeTx ? '<span class="' + badgeCls + '">' + badgeTx + '</span>' : '';
+  const badge = rank ? '<span class="' + badgeCls + '">' + rank + '</span>' : '';
   // Какая цена живая в этом режиме: подписка — price, разовый месяц — once.
   const onceOn  = (_mode === 'once' && t.once > 0);
   const shownP  = onceOn ? t.once : t.price;
@@ -1778,7 +1783,6 @@ var SUB_ON_KNOWN = false;
 function applyModeChrome(hasOnce){
   var box = document.getElementById('payMode');
   var note = document.getElementById('payModeNote');
-  var cancel = document.getElementById('cancelNote');
   if (box){
     box.classList.toggle('on', !!hasOnce);
     Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){
@@ -1812,30 +1816,16 @@ function applyModeChrome(hasOnce){
     // выгоду говорила вскользь, в конце. Теперь первым словом — что открыто
     // и почему это дешевле, вторым — что есть второй путь и где он.
     // Вилка выгоды считается из живых цен, литералов нет.
-    var _lo = 0, _hi = 0;
-    Object.keys(ONCE_PRICES || {}).forEach(function(k){
-      var o = +ONCE_PRICES[k] || 0;
-      var sb = +((LAST_QUOTAS || {})[k] || {}).price || 0;
-      if (o > sb && sb > 0){
-        var d = o - sb;
-        _lo = _lo ? Math.min(_lo, d) : d;
-        _hi = Math.max(_hi, d);
-      }
-    });
-    var _gain = _hi ? (_lo && _lo !== _hi ? fmt(_lo) + '–' + fmt(_hi) : fmt(_hi)) : '';
+    // v1205 (владелец 15.09): подпись — одна короткая фраза на режим.
+    // Вилка выгоды в рублях отсюда снята: зачёркнутая цена на карточке
+    // говорит то же самое без слов.
     note.innerHTML = (PAY_MODE === 'once')
-      ? 'Один месяц без подписки: платишь один раз, доступ на 30 дней, дальше '
-        + 'продлеваешь сам. <b>По подписке дешевле</b> — вернись на «Подписка».'
-      : ('<b>Открыт самый выгодный вариант — подписка.</b> '
-         + (_gain ? 'Дешевле разовой оплаты на ' + _gain + ' ₽ ' : 'Дешевле разовой оплаты ')
-         + 'и списывается раз в 30 дней. Нужен один месяц без подписки — '
-         + 'переключи на «Разово» справа.');
+      ? 'Один платёж, доступ на 30 дней, продлеваешь сам. <b>По подписке дешевле.</b>'
+      : 'Списание раз в 30 дней, отмена в один тап. Нужен один месяц — <b>«Разово»</b> справа.';
   }
   // Про отмену пишем только там, где подписка и правда есть: сервер молчит
   // (первый кадр) — показываем, sub_on=false — прячем. Обещание отмены
   // подписки тому, у кого подписки нет, — такое же враньё, как цена мимо.
-  if (cancel) cancel.classList.toggle('on',
-    PAY_MODE === 'sub' && (!SUB_ON_KNOWN || SUB_OFFER));
 }
 
 function renderStack(quotas){
@@ -1889,8 +1879,11 @@ document.addEventListener('click', function(e){
 const HYDRATED = (async function hydrateTariffs(){
   if (!tg || !tg.initData) return;
   try {
+    // v1204: src=pricing — сервер пишет pricing_open; from — какая дверь привела
     const r = await fetch(BOT_API_BASE + '/api/cabinet?initData='
-      + encodeURIComponent(tg.initData), { method:'GET', cache:'no-store' });
+      + encodeURIComponent(tg.initData) + '&src=pricing&from='
+      + encodeURIComponent((new URLSearchParams(location.search).get('from') || '').slice(0, 32)),
+      { method:'GET', cache:'no-store' });
     if (!r.ok) return;
     const d = await r.json();
     const list = (d && d.tariffs) || [];
@@ -1898,6 +1891,7 @@ const HYDRATED = (async function hydrateTariffs(){
     // подзаголовка листа способов (сумма и период).
     SUB_OFFER = !!(d && d.sub_on);
     SUB_ON_KNOWN = true;
+    _showOverageIfPaid(!!(d && d.tariff_active));   // v1205
     if (d && Array.isArray(d.sub_methods) && d.sub_methods.length) SUB_METHODS = d.sub_methods.map(String);
     list.forEach(t => { if (t && t.key) LIVE_PRICES[t.key] = +t.price || 0; });
     if (!list.length) return;
