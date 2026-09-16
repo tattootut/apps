@@ -1673,6 +1673,24 @@ function buildTariffs(quotas){
 // Помечаем карточку «✓ Твой тариф», чтобы юзер видел свой план среди прочих.
 const CURRENT_TARIFF = (new URLSearchParams(location.search).get('current') || '').trim();
 
+// v1210 (A/B «разово против подписки»): сервер сказал sub_on=false —
+// витрина не имеет права говорить «подписка»: герой становится про тарифы
+// и месяц без автосписаний, блок вопросов про подписку прячется.
+function _applySubWorld(subOn){
+  var big = document.querySelector('.hero h1 .big');
+  var end = document.querySelector('.hero h1 .end');
+  var flow = document.querySelector('.flow');
+  if (subOn){
+    if (big) big.textContent = 'подписка';
+    if (end) end.textContent = 'отменить можно в один тап.';
+    if (flow) flow.hidden = false;
+    return;
+  }
+  if (big) big.textContent = 'тарифы';
+  if (end) end.textContent = 'оплата за месяц, без автосписаний.';
+  if (flow) flow.hidden = true;
+}
+
 // v1205: докупки — только платящему. Правда с сервера (tariff_active) либо
 // переход из кабинета с платным ключом (?current=), где сервер уже знал.
 function _showOverageIfPaid(fromServer){
@@ -1894,6 +1912,7 @@ const HYDRATED = (async function hydrateTariffs(){
     SUB_OFFER = !!(d && d.sub_on);
     SUB_ON_KNOWN = true;
     _showOverageIfPaid(!!(d && d.tariff_active));   // v1205
+    _applySubWorld(SUB_OFFER);                       // v1210
     if (d && Array.isArray(d.sub_methods) && d.sub_methods.length) SUB_METHODS = d.sub_methods.map(String);
     list.forEach(t => { if (t && t.key) LIVE_PRICES[t.key] = +t.price || 0; });
     if (!list.length) return;
