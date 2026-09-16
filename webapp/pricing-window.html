@@ -310,6 +310,10 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .pmode-note.on{display:block}
 
 /* «Отменить можно в любой момент» — ОДИН раз, под списком, крупно. */
+.row .cta{display:none;margin-top:8px;font-family:Oswald,sans-serif;font-weight:700;font-size:13px;letter-spacing:.03em;color:#0b1208;background:var(--accent);border-radius:9px;padding:6px 10px;text-align:center;white-space:nowrap}
+body.once-world .row .cta{display:block}
+.foreign-link{margin:10px 6px 0;font-size:12.5px;color:var(--text-muted)}
+.foreign-link a{color:var(--accent)}
 .cancel-note{display:none;margin:14px 4px 0;padding:14px 16px;border-radius:var(--radius);background:rgba(196,240,0,.07);border:1px solid rgba(196,240,0,.34);text-align:center}
 .cancel-note.on{display:block}
 .cancel-note b{display:block;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:.03em;color:var(--accent);text-transform:uppercase}
@@ -454,6 +458,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   <div class="pmode-note" id="payModeNote"></div>
 
   <div class="stack" id="stack"></div>
+  <!-- v1213: в разовом мире иностранная карта — своей ссылкой: у Lava нет
+       разового товара, её условия (подписка) называются на своём листе. -->
+  <div class="foreign-link" id="foreignLink" hidden>
+    🌍 Оплата картой другой страны — <a href="#" id="foreignLinkA">выбрать тариф</a>
+  </div>
 
   <!-- v1194: «Отменить можно в любой момент» — один раз под списком цен,
        только в режиме подписки. Прячется, если сервер сказал sub_on=false:
@@ -987,7 +996,10 @@ function openDeepLinkFallback(startParam){
   catch(e){ tg?.showAlert?.('Не получилось открыть оплату. Напиши боту /tariffs — оплата откроется в чате.'); }
 }
 
+var _PAY_BUSY = false;
 function paySbp(tariff){
+  if (_PAY_BUSY) return;            // v1213: двойной тап — один счёт
+  _PAY_BUSY = true; setTimeout(function(){ _PAY_BUSY = false; }, 4000);
   openPaidInvoice(tariff).then(ok => {
     if (!ok){
       console.warn('[pricing] openPaidInvoice failed → deep-link fallback');
@@ -1467,6 +1479,14 @@ function send(action, payload={}){
   // БЕЗ QR-картинки, БЕЗ запроса телефона. Если /api/invoice не отдал
   // ссылку — fallback на deep-link в чат (там QR как запасной вариант).
   if (action === 'buy_master' && payload.tariff){
+    // v1213 (Астра В3): в разовом мире тап по карточке — сразу счёт СБП,
+    // без листа способов; иностранная карта — своей ссылкой под списком.
+    if (_onceWorld() && payload.tariff !== 'trial' && !_FOREIGN_MODE){
+      _newAttempt();
+      _sendUi('pay_method_selected', payload.tariff, 'sbp');
+      paySbp(payload.tariff);
+      return;
+    }
     // v754: владелец — «сразу на платёж удобно, но выбора канала нет».
     // Двухкнопочный попап Телеграма: СБП (как было) / ин.карта (Робокасса).
     // Где showPopup недоступен (старые клиенты) — прежний путь без выбора.
@@ -1731,19 +1751,26 @@ const CURRENT_TARIFF = (new URLSearchParams(location.search).get('current') || '
 // v1210 (A/B «разово против подписки»): сервер сказал sub_on=false —
 // витрина не имеет права говорить «подписка»: герой становится про тарифы
 // и месяц без автосписаний, блок вопросов про подписку прячется.
+var _FOREIGN_MODE = false;   // v1213: ссылка «картой другой страны» включает старый лист
+function _onceWorld(){ return SUB_ON_KNOWN && !SUB_OFFER; }
 function _applySubWorld(subOn){
   var big = document.querySelector('.hero h1 .big');
   var end = document.querySelector('.hero h1 .end');
   var flow = document.querySelector('.flow');
+  var fl = document.getElementById('foreignLink');
+  try { document.body.classList.toggle('once-world', !subOn); } catch(e) {}
   if (subOn){
     if (big) big.textContent = 'подписка';
     if (end) end.textContent = 'отменить можно в один тап.';
     if (flow) flow.hidden = false;
+    if (fl) fl.hidden = true;
     return;
   }
-  if (big) big.textContent = 'тарифы';
-  if (end) end.textContent = 'оплата за месяц, без автосписаний.';
+  // v1213 (Астра В3): разовый первый месяц — слова из её конфигурации
+  if (big) big.textContent = 'Доступ на 30 дней';
+  if (end) end.textContent = 'Один платёж. Продлеваешь сам.';
   if (flow) flow.hidden = true;
+  if (fl) fl.hidden = false;
 }
 
 // v1205: докупки — только платящему. Правда с сервера (tariff_active) либо
@@ -1830,6 +1857,7 @@ function row(t, i){
         ${priceEl}
         <span class="u">/ ${onceOn ? '30 дней' : t.period}</span>
         ${shownPd ? `<span class="ph">≈ ${shownPd}&nbsp;₽ / день</span>` : ''}
+        ${(typeof _onceWorld === 'function' && _onceWorld() && !t.trial) ? `<span class="cta">Купить на 30 дней · ${fmt(shownP)} ₽</span>` : ''}
         ${onceOn ? `<span class="subhint">по подписке — <b>${fmt(t.price)}&nbsp;₽</b></span>` : ''}
         ${/* 🔴 v1202: пробный стоит в обоих режимах, и в обоих обязан сказать
               о себе правду — подпиской он не покупается, это один платёж.
@@ -1998,6 +2026,12 @@ const HYDRATED = (async function hydrateTariffs(){
   } catch(_){}
 })();
 
+document.getElementById('foreignLinkA')?.addEventListener('click', function(e){
+  e.preventDefault();
+  _FOREIGN_MODE = true;
+  var fl = document.getElementById('foreignLink');
+  if (fl) fl.textContent = '🌍 Тап по тарифу откроет оплату картой другой страны';
+});
 document.body.addEventListener('click', e => {
   const t = e.target.closest('[data-action]');
   if (!t) return;
