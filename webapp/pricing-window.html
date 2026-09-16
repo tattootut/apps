@@ -871,9 +871,10 @@ async function openPaidInvoice(tariffKey, extraQ){
   const initData = tg.initData || '';
   const _auth757 = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
   if (!initData && !_auth757) { console.warn('[pricing] no initData/auth'); return false; }
-  const _q757 = initData
+  const _q757 = (initData
     ? 'initData=' + encodeURIComponent(initData)
-    : 'auth=' + encodeURIComponent(_auth757);
+    : 'auth=' + encodeURIComponent(_auth757))
+    + ((typeof _ATTEMPT === 'string' && _ATTEMPT) ? '&attempt=' + encodeURIComponent(_ATTEMPT) : '');   // v1212
   // 🔴 v1032: спрашиваем способ и просим у бэкенда ПРЯМУЮ ссылку кассы.
   // Раньше прайс открывал QR-СТРОКУ (qr.nspk.ru / sub.nspk.ru) как ссылку —
   // и человек на телефоне попадал на страницу «отсканируйте QR в мобильном
@@ -1038,6 +1039,19 @@ function payOnceFlow(tariff){
 }
 
 /* v928: query-хвост авторизации — один на все ручки мини-аппа. */
+// v1212 (разбор Астры 16.09): одна ПОПЫТКА оплаты = один id; он едет в
+// /api/pay_methods и /api/invoice, чтобы сервер считал людей, а не запросы.
+// _sendUi — факты интерфейса (лист показан / способ выбран / закрыт).
+var _ATTEMPT = '';
+function _newAttempt(){ _ATTEMPT = Math.random().toString(36).slice(2, 10); return _ATTEMPT; }
+function _sendUi(ev, tariff, method){
+  try {
+    fetch(BOT_API_BASE + '/api/ui_event?' + _authQ() + '&ev=' + encodeURIComponent(ev)
+      + '&tariff=' + encodeURIComponent(tariff || '') + '&attempt=' + encodeURIComponent(_ATTEMPT)
+      + (method ? '&method=' + encodeURIComponent(method) : ''), {cache:'no-store', keepalive:true})
+      .catch(function(){});
+  } catch(e) {}
+}
 function _authQ(){
   const _au = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
   return (tg && tg.initData)
@@ -1173,7 +1187,22 @@ function _sheet(titleHtml, subHtml){
     sheet.appendChild(b);
     return b;
   }
-  return {ov: ov, sheet: sheet, mkBtn: mkBtn};
+  // v1212: обновление заголовка/подписи и подписи кнопки БЕЗ пересоздания
+  // окна (второй кадр по ответу кассы). В браузере — точечно по узлам;
+  // в node-стороже (нет querySelectorAll) — строкой шапки.
+  function setHead(titleHtml2, subHtml2){
+    var ds = sheet.querySelectorAll ? sheet.querySelectorAll(':scope > div') : null;
+    if (ds && ds.length >= 2) { ds[0].innerHTML = titleHtml2; ds[1].innerHTML = subHtml2; return; }
+    sheet.innerHTML =
+      '<div style="font-weight:700;margin-bottom:4px">' + titleHtml2 + '</div>' +
+      '<div style="font-size:12.5px;opacity:.7;margin-bottom:12px">' + subHtml2 + '</div>';
+  }
+  function setLabel(btn, label){
+    if (btn.children && btn.children[0] && typeof btn.children[0].textContent === 'string') {
+      try { btn.children[0].textContent = label; } catch(e) {}
+    }
+  }
+  return {ov: ov, sheet: sheet, mkBtn: mkBtn, setHead: setHead, setLabel: setLabel};
 }
 
 /* ЭКРАН 1 — СБП или заграница.
@@ -1183,6 +1212,7 @@ function _sheet(titleHtml, subHtml){
    и он плавает по курсу Lava. «+9%» было бы неправдой на всех позициях,
    кроме одной. У СБП слово «дешевле» не пишем — прайс уже рублёвый. */
 function chooseChannelAndPay(tariff, onSbp, onForeign, foreignGo){
+  _newAttempt();   // v1212: каждый тап по тарифу — новая попытка
   /* v758: onSbp/onForeign — переопределение потоков для overage-паков
      (свои фоллбеки). Без аргументов — прежнее поведение тарифов.
      v1065 (владелец 03.09): подписка объясняется ЗДЕСЬ — там, где человек
@@ -1229,45 +1259,69 @@ function _renderChannelSheet(tariff, onSbp, onForeign, foreignGo){
   // соврать ни одному рельсу (оферта 4.A.1: согласие — на экране оплаты).
   // Сервер молчит дольше 4 с — рисуем без инокарты-подписки, payForeign
   // покажет лист согласия сам, если счёт окажется подписочным.
-  var _wait = Promise.race([fetchForeignMethods(tariff),
-    new Promise(function(r){ setTimeout(function(){ r(null); }, 4000); })]);
-  return _wait.catch(function(){ return null; }).then(function(d){
+  // 🔴 v1212 (разбор Астры 16.09): лист рисуется СРАЗУ по правде СБП (она
+  // известна с гидрации), инокарта дорисовывается по ответу кассы — раньше
+  // человек после тапа ждал до 4 с тишины. Заголовок обновляется, если
+  // инокарта окажется подписочной (оферта 4.A.1: согласие — на экране).
+  // сторожа рендерят окно в node без остальной страницы — факты интерфейса
+  // шлём, только если почтальон определён
+  var _ui = (typeof _sendUi === 'function') ? _sendUi : function(){};
+  var _priceS = _info.price ? String(_info.price) : '';
+  // 🔴 v1212 (разбор Астры 16.09): окно рисуется СРАЗУ по правде СБП, а
+  // инокарта и полный заголовок дорисовываются ТЕМ ЖЕ окном по ответу
+  // /api/pay_methods — раньше человек после тапа ждал до 4 с тишины.
+  var s = _sheet(_sbpSub ? 'Подписка' : 'Способ оплаты',
+    _channelSheetSubtitle(_sbpSub, _info, { sbp: _sbpSub, foreign: undefined }));
+  var sbpLabel = 'СБП';
+  if (_sbpSub && _priceS) sbpLabel = 'СБП · ' + _priceS + ' ₽ / мес';
+  var sbpBtn = s.mkBtn(sbpLabel, '',
+    function(){
+      _ui('pay_method_selected', tariff, 'sbp');
+      (onSbp || function(){ paySbp(tariff); })();
+    });
+  sbpBtn.style.background = '#c4f000'; sbpBtn.style.color = '#0b1208';
+  sbpBtn.style.borderColor = '#c4f000';
+  var cancel = s.mkBtn('Отмена', '', function(){ _ui('pay_sheet_closed', tariff); });
+  cancel.style.background = 'transparent'; cancel.style.borderColor = '#2c4636';
+  _ui('pay_sheet_shown', tariff);
+  function addForeign(d){
     var _frOk = !!(d && d.ok);
     var _frErr = !!(d && d.error);
+    // Нет подписочного товара (409), цена разошлась (409), режим когорты
+    // (403 foreign_closed) — кнопки НЕТ. Сервер молчит намеренно
+    // (picker_off → null) — прежний прямой путь жив.
+    if (_frErr) return;
     var _frSub = _frOk && !!d.sub;
     var _isSub = _sbpSub || _frSub;
     if (_frSub) _SUB_ANNOUNCED[tariff] = true;
-    var _rails = { sbp: _sbpSub, foreign: _frOk ? _frSub : undefined };
-    var s = _sheet(_isSub ? 'Подписка' : 'Способ оплаты',
-      _channelSheetSubtitle(_isSub, _info, _rails));
-    var _priceS = _info.price ? String(_info.price) : '';
-    var sbpLabel = 'СБП';
-    if (_sbpSub && _priceS) sbpLabel = 'СБП · ' + _priceS + ' ₽ / мес';
-    else if (_isSub && _priceS) sbpLabel = 'СБП · ' + _priceS + ' ₽';
-    var sbpBtn = s.mkBtn(sbpLabel, '', onSbp || function(){ paySbp(tariff); });
-    sbpBtn.style.background = '#c4f000'; sbpBtn.style.color = '#0b1208';
-    sbpBtn.style.borderColor = '#c4f000';
-    // Нет подписочного товара (409 lava_sub_missing) или цена разошлась
-    // (409 lava_price_mismatch) — кнопки инокарты на позиции НЕТ.
-    if (!_frErr) {
-      var _usdS = _frOk ? (_usd2(d.usd) || (d.prices && d.prices.USD ? _usd2(d.prices.USD) : '')) : '';
-      var frLabel = '🌍 Из другой страны', frNote = '';
-      if (_frSub) {
-        frLabel = '🌍 Карта другой страны' + (_usdS ? ' · ' + _usdS + ' / мес' : '');
-      } else if (_frOk && _usdS) {
-        // разовая инокарта: в подписочном окне — цена без рублёвого
-        // ориентира (владелец: никаких «примерно»), в разовом (пробный,
-        // паки) — прежний ориентир в рублях (_foreignOneOffNote)
-        frLabel = _isSub ? '🌍 Из другой страны · ' + _usdS : frLabel;
-        frNote = _isSub ? '' : _foreignOneOffNote(d);
-      }
-      s.mkBtn(frLabel, frNote,
-        function(){ chooseForeignMethod(tariff, onForeign, foreignGo, onSbp); });
+    if (_isSub && !_sbpSub) {
+      // инокарта подписочная, СБП — нет: заголовок и абзац обязаны сказать это
+      s.setHead('Подписка', _channelSheetSubtitle(true, _info, { sbp: _sbpSub, foreign: _frSub }));
+      if (_priceS) s.setLabel(sbpBtn, 'СБП · ' + _priceS + ' ₽');
+    } else if (_frOk) {
+      s.setHead(_isSub ? 'Подписка' : 'Способ оплаты',
+        _channelSheetSubtitle(_isSub, _info, { sbp: _sbpSub, foreign: _frSub }));
     }
-    var cancel = s.mkBtn('Отмена', '', null);
-    cancel.style.background = 'transparent'; cancel.style.borderColor = '#2c4636';
+    var _usdS = _frOk ? (_usd2(d.usd) || (d.prices && d.prices.USD ? _usd2(d.prices.USD) : '')) : '';
+    var frLabel = '🌍 Из другой страны', frNote = '';
+    if (_frSub) {
+      frLabel = '🌍 Карта другой страны' + (_usdS ? ' · ' + _usdS + ' / мес' : '');
+    } else if (_frOk && _usdS) {
+      frLabel = _isSub ? '🌍 Из другой страны · ' + _usdS : frLabel;
+      frNote = _isSub ? '' : _foreignOneOffNote(d);
+    }
+    var fb = s.mkBtn(frLabel, frNote, function(){
+      _ui('pay_method_selected', tariff, 'foreign');
+      chooseForeignMethod(tariff, onForeign, foreignGo, onSbp);
+    });
+    if (cancel.parentNode && cancel.parentNode.insertBefore) cancel.parentNode.insertBefore(fb, cancel);
+  }
+  // Окно уже на экране; обещание резолвится, когда дорисован второй кадр
+  // (сторожа ждут именно его), человек ничего не ждёт.
+  return fetchForeignMethods(tariff).then(function(d){
+    addForeign(d === undefined ? null : d);   // второй кадр: ok / отказ / молчание
     return s;
-  });
+  }).catch(function(){ return s; });
 }
 /* v1074: лист согласия на подписку инокартой — когда окно выбора её не
    назвало (сервер молчал), а /api/invoice вернул подписочный счёт. */
@@ -1286,7 +1340,8 @@ var _FOREIGN_CACHE = {};
 function fetchForeignMethods(tariff){
   if (_FOREIGN_CACHE[tariff]) return Promise.resolve(_FOREIGN_CACHE[tariff]);
   return fetch(BOT_API_BASE + '/api/pay_methods?' + _authQ()
-      + '&tariff=' + encodeURIComponent(tariff), {cache:'no-store'})
+      + '&tariff=' + encodeURIComponent(tariff)
+      + '&attempt=' + encodeURIComponent(typeof _ATTEMPT === 'string' ? _ATTEMPT : ''), {cache:'no-store'})
     .then(function(r){
       // v1061: 409 = цена в кабинете Lava разошлась с нашей — сервер
       // инокарту на этой позиции не даёт; кнопку прячем, а не ведём на
