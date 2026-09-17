@@ -117,7 +117,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 /* ─── Price stack ──────────────────────────────────────────────── */
 .stack{display:flex;flex-direction:column;gap:10px}
-.row{position:relative;display:flex;align-items:center;gap:14px;padding:18px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:var(--tap);overflow:hidden}
+.row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:18px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:var(--tap);overflow:hidden}
 .row:active{transform:scale(.992);background:var(--surface-2)}
 .row.hit{border-color:rgba(196,240,0,.55);background:linear-gradient(180deg,#172d20 0%,#16291f 60%);box-shadow:0 0 0 1px rgba(196,240,0,.2),0 18px 40px rgba(196,240,0,.07);animation:hit-glow 3.6s ease-in-out infinite}
 @keyframes hit-glow{0%,100%{box-shadow:0 0 0 1px rgba(196,240,0,.2),0 18px 40px rgba(196,240,0,.07)}50%{box-shadow:0 0 0 1.5px rgba(196,240,0,.45),0 18px 52px rgba(196,240,0,.18)}}
@@ -240,13 +240,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .row .l .specs .spec.wow{color:var(--accent)}
 .row .l .specs .spec.wow b{color:var(--accent)}
 .row .l .specs .spec.lock{opacity:.42}
-.row .l .flagblock{margin-top:10px;padding:11px 12px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:12px;display:flex;align-items:flex-start;gap:9px}
-.row.hit .l .flagblock,.row.toptier .l .flagblock{background:rgba(196,240,0,.08);border-color:rgba(196,240,0,.40)}
-.row .l .flagblock .fb-ic{font-size:19px;line-height:1.1;flex:0 0 auto}
-.row .l .flagblock .fb-tx{font-size:11.5px;line-height:1.4;color:var(--text)}
-.row .l .flagblock .fb-tx b{color:var(--accent);font-family:Oswald,sans-serif;font-weight:600;letter-spacing:.02em}
-.row .l .flagblock .fb-excl{display:inline-block;margin-left:5px;font-family:Oswald,sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.1em;color:#0b1208;background:var(--accent);padding:1px 6px;border-radius:5px;vertical-align:1px;text-transform:uppercase}
-.row .l .warn{margin-top:8px;font-size:10px;line-height:1.4;color:var(--text-dim);letter-spacing:.01em}
+.row .flagblock{flex:0 0 100%;margin-top:2px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:12px;display:flex;align-items:flex-start;gap:9px}
+.row.hit .flagblock,.row.toptier .flagblock{background:rgba(196,240,0,.08);border-color:rgba(196,240,0,.40)}
+.row .flagblock .fb-ic{font-size:19px;line-height:1.1;flex:0 0 auto}
+.row .flagblock .fb-tx{font-size:11.5px;line-height:1.4;color:var(--text)}
+.row .flagblock .fb-tx b{color:var(--accent);font-family:Oswald,sans-serif;font-weight:600;letter-spacing:.02em}
+.row .flagblock .fb-excl{display:inline-block;margin-left:5px;font-family:Oswald,sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.1em;color:#0b1208;background:var(--accent);padding:1px 6px;border-radius:5px;vertical-align:1px;text-transform:uppercase}
+.row .warn{flex:0 0 100%;margin-top:-4px;font-size:10px;line-height:1.4;color:var(--text-dim);letter-spacing:.01em}
 .b2b{margin:16px 4px 0;padding:14px 15px;background:var(--surface);border:1px dashed var(--border-2);border-radius:var(--radius);text-align:center;line-height:1.5}
 .b2b .b2b-t{font-family:Oswald,sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text)}
 .b2b .b2b-s{font-size:11.5px;color:var(--text-muted);margin-top:4px}
@@ -286,9 +286,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .row .l .badge.save{background:var(--tier-a12);color:var(--tier);border:1px solid var(--tier-a35)}
 .row .r .ph{color:var(--tier);background:var(--tier-a12)}
 .row.hit .arrow{background:var(--tier);color:var(--tier-ink)}
-.row .l .flagblock .fb-tx b{color:var(--tier)}
-.row.hit .l .flagblock,.row.toptier .l .flagblock{background:var(--tier-a12);border-color:var(--tier-a35)}
-.row .l .flagblock .fb-excl{background:var(--tier);color:var(--tier-ink)}
+.row .flagblock .fb-tx b{color:var(--tier)}
+.row.hit .flagblock,.row.toptier .flagblock{background:var(--tier-a12);border-color:var(--tier-a35)}
+.row .flagblock .fb-excl{background:var(--tier);color:var(--tier-ink)}
 .row.mine{border-color:var(--tier-a55)}
 .row .minechip{border-color:var(--tier);color:var(--tier)}
 
@@ -302,16 +302,12 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .pmode button{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;font-family:Oswald,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);transition:var(--tap);white-space:nowrap}
 .pmode button[aria-pressed="true"]{background:var(--accent);color:#0b1208}
 /* Скидка подписки — на самой кнопке, чтобы было видно ДО выбора. */
-.pm-save{font-size:9.5px;letter-spacing:.04em;padding:2px 5px;border-radius:99px;background:rgba(11,18,8,.22);color:inherit}
-.pmode button[aria-pressed="false"] .pm-save{background:rgba(196,240,0,.14);color:var(--accent)}
-.pm-save:empty{display:none}
 @media (max-width:400px){.pmode button{padding:6px 9px;font-size:10px;letter-spacing:.03em}}
 .pmode-note{display:none;margin:0 6px 13px;font-size:11.5px;line-height:1.45;color:var(--text-muted);letter-spacing:.01em}
 .pmode-note.on{display:block}
 
 /* «Отменить можно в любой момент» — ОДИН раз, под списком, крупно. */
-.row .cta{display:none;margin-top:8px;font-family:Oswald,sans-serif;font-weight:700;font-size:13px;letter-spacing:.03em;color:#0b1208;background:var(--accent);border-radius:9px;padding:6px 10px;text-align:center;white-space:nowrap}
-body.once-world .row .cta{display:block}
+.row .cta{flex:0 0 100%;display:block;margin-top:2px;font-family:Oswald,sans-serif;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#0b1208;background:var(--accent);border-radius:10px;padding:9px 10px;text-align:center}
 .foreign-link{margin:10px 6px 0;font-size:12.5px;color:var(--text-muted)}
 .foreign-link a{color:var(--accent)}
 .cancel-note{display:none;margin:14px 4px 0;padding:14px 16px;border-radius:var(--radius);background:rgba(196,240,0,.07);border:1px solid rgba(196,240,0,.34);text-align:center}
@@ -412,9 +408,17 @@ body.once-world .row .cta{display:block}
     <!-- 🔴 v1205 (владелец 15.09): «много текста». Герой — два слова:
          что открыто и что это не ловушка. Подстрока про «самый выгодный»
          и eyebrow «Оплата без сюрпризов» сняты. -->
+    <!-- 🔴 v1219 (владелец 17.09): герой обязан оправдывать цену в голове
+         мастера, а не описывать способ оплаты, и он ОДИН на оба мира —
+         с подпиской и без («чтобы там и там была одна и та же фраза»).
+         Про подписку или разовый платёж говорит подпись под тумблером.
+         Первый вариант «Обгоняй конкурентов. Технологии ТАТУ ТУТ» владелец
+         забраковал: «неправильно сказанная фраза, нужно по-человечески,
+         чтобы человек понял, что он среди тех, кто уже работает с
+         технологиями». Ниже — выбор из вариантов копирайтера 17.09. -->
     <h1>
-      <span class="big">подписка</span>
-      <span class="end">отменить можно в один тап.</span>
+      <span class="big">Твои</span>
+      <span class="end">коллеги уже рисуют тут.</span>
     </h1>
     <!-- 🔴 v1202 (заказ владельца 13.09): показать, что платить можно
          по-разному — «чтобы человек сразу видел, что мы можем принять разные
@@ -450,7 +454,7 @@ body.once-world .row .cta{display:block}
          (не литерал: владелец назвал «-30%», по факту максимум −25 % у Старта,
          и обещать больше, чем даём, на денежном экране нельзя). -->
     <div class="pmode" id="payMode" role="group" aria-label="Как платить">
-      <button type="button" data-pmode="sub" aria-pressed="true">Подписка<span class="pm-save" id="pmSave"></span></button>
+      <button type="button" data-pmode="sub" aria-pressed="true">Подписка</button>
       <button type="button" data-pmode="once" aria-pressed="false">Разово</button>
     </div>
     <span class="r" id="payModeFallback">Любой можно сменить</span>
@@ -1624,7 +1628,7 @@ const PRESENT = {
     resultSub:'печатай переводилки, не считая',
     // flagAxis: по этой оси решается, честно ли писать «эксклюзив».
     flagAxis:'animations',
-    flag:{ic:'🪄',tx:'<b>Оживление тату</b> — рисунок двигается: дым, дракон, пламя. Вирусный хук для Reels.'},
+    flag:{ic:'🪄',tx:'<b>Оживление тату</b> — рисунок двигается: дым, дракон, пламя. Хук для Reels.'},
   },
   atelier: {
     // v1006: средняя верхняя ступень. Не выдумана — 9 мастеров уже платили
@@ -1636,8 +1640,8 @@ const PRESENT = {
     cap:'✍️ Эскизов вдвое больше',
     hero:q => '✍️ ' + fmt(q.sketches) + ' эскизов в месяц',
     resultSub:'эскиз выходит дешевле, чем в Про',
-    flagAxis:'sketches',
-    flag:{ic:'✍️',tx:'<b>100 эскизов в месяц</b> — эскиз выходит дешевле, чем в Про, и не надо считать остаток.'},
+    // v1219: флагман снят — он трижды повторял то, что уже сказано подписью,
+    // главной строкой и сеткой квот; карточка от этого была самой длинной.
   },
   studio: {
     name:'МАКС', period:'мес', top:true, resultIcon:'🔥',
@@ -1645,7 +1649,7 @@ const PRESENT = {
     hero:q => '🎬 ' + fmt(q.sketches) + ' эскизов и видео-примерка',
     resultSub:'для салонов и трафика из Reels',
     flagAxis:'videos',
-    flag:{ic:'🎬',tx:'<b>Видео-примерка</b> — оживает сам клиент: тату на нём в движении. Живое видео для Reels.',warn:'⚠️ Оживление = двигается рисунок · Видео-примерка = двигается клиент (тату статична)'},
+    flag:{ic:'🎬',tx:'<b>Видео-примерка</b> — оживает сам клиент: тату на нём в движении. Живое видео для Reels.',warn:'Оживление — двигается рисунок · Видео-примерка — двигается клиент'},
   },
 };
 const ORDER = ['trial','solo','pro','atelier','studio'];
@@ -1813,21 +1817,21 @@ const CURRENT_TARIFF = (new URLSearchParams(location.search).get('current') || '
 var _FOREIGN_MODE = false;   // v1213: ссылка «картой другой страны» включает старый лист
 function _onceWorld(){ return SUB_ON_KNOWN && !SUB_OFFER; }
 function _applySubWorld(subOn){
-  var big = document.querySelector('.hero h1 .big');
-  var end = document.querySelector('.hero h1 .end');
   var flow = document.querySelector('.flow');
   var fl = document.getElementById('foreignLink');
   try { document.body.classList.toggle('once-world', !subOn); } catch(e) {}
   if (subOn){
-    if (big) big.textContent = 'подписка';
-    if (end) end.textContent = 'отменить можно в один тап.';
     if (flow) flow.hidden = false;
     if (fl) fl.hidden = true;
     return;
   }
-  // v1213 (Астра В3): разовый первый месяц — слова из её конфигурации
-  if (big) big.textContent = 'Доступ на 30 дней';
-  if (end) end.textContent = 'Один платёж. Продлеваешь сам.';
+  // 🔴 v1219 (владелец 17.09): в мире без подписки режим один — «Разово».
+  // Герой при этом НЕ меняется: одна фраза на оба мира. Слова Астры В3
+  // («Доступ на 30 дней. Один платёж. Продлеваешь сам») живут в подписи
+  // под тумблером (applyModeChrome) — там, где человек выбирает, как платить.
+  // Раньше герой говорил «Доступ на 30 дней», а тумблер под ним стоял на
+  // «Подписка» с подписью про списания — два экрана спорили друг с другом.
+  PAY_MODE = 'once';
   if (flow) flow.hidden = true;
   if (fl) fl.hidden = false;
 }
@@ -1896,6 +1900,14 @@ function row(t, i){
     const c = s.wow ? 'spec wow' : s.lock ? 'spec lock' : 'spec';
     return `<span class="${c}"><b>${s.n}</b> ${s.l}</span>`;
   }).join('');
+  // 🔴 v1219 (владелец 17.09, глядя на витрину): флагман стоял в узкой левой
+  // колонке рядом с ценой и растягивал карточку на девять строк, а CTA
+  // «Купить на 30 дней · N ₽» повторял цену и наползал на «₽ / день». Теперь
+  // флагман — отдельная строка на всю ширину карточки, CTA — тоже, и без
+  // цены: цена уже стоит строкой выше. CTA есть только в разовом режиме
+  // (тумблер «Разово» или мир без подписки); в подписке кнопка — стрелка.
+  const ctaOn = !t.trial && (onceOn
+    || (typeof _onceWorld === 'function' && _onceWorld()));
   const flag = t.flag
     ? `<div class="flagblock"><span class="fb-ic">${t.flag.ic}</span><span class="fb-tx">${t.flag.tx}${t.flagExcl ? '<span class="fb-excl">эксклюзив</span>' : ''}</span></div>`
       + (t.flag.warn ? `<div class="warn">${t.flag.warn}</div>` : '')
@@ -1907,7 +1919,6 @@ function row(t, i){
         <div class="cap">${t.cap}</div>
         ${unlims || (t.hero ? `<div class="hero">${t.hero}</div>` : '')}
         ${t.resultSub ? `<div class="res-sub">${t.resultSub}</div>` : ''}
-        ${flag}
         ${specs ? `<div class="specs"><span class="specs-label">В пакете</span>${specs}</div>` : ''}
         ${isMine ? '<span class="minechip">✓ Твой тариф</span>' : ''}${badge}
       </div>
@@ -1916,7 +1927,6 @@ function row(t, i){
         ${priceEl}
         <span class="u">/ ${onceOn ? '30 дней' : t.period}</span>
         ${shownPd ? `<span class="ph">≈ ${shownPd}&nbsp;₽ / день</span>` : ''}
-        ${(typeof _onceWorld === 'function' && _onceWorld() && !t.trial) ? `<span class="cta">Купить на 30 дней · ${fmt(shownP)} ₽</span>` : ''}
         ${onceOn ? `<span class="subhint">по подписке — <b>${fmt(t.price)}&nbsp;₽</b></span>` : ''}
         ${/* 🔴 v1202: пробный стоит в обоих режимах, и в обоих обязан сказать
               о себе правду — подпиской он не покупается, это один платёж.
@@ -1925,6 +1935,8 @@ function row(t, i){
         ${t.trial ? `<span class="subhint">разовый платёж — <b>не подписка</b></span>` : ''}
       </div>
       <div class="arrow"><svg><use href="#i-arrow"/></svg></div>
+      ${flag}
+      ${ctaOn ? `<span class="cta">Купить на 30 дней</span>` : ''}
     </div>`;
 }
 
@@ -1945,8 +1957,10 @@ var SUB_ON_KNOWN = false;
 function applyModeChrome(hasOnce){
   var box = document.getElementById('payMode');
   var note = document.getElementById('payModeNote');
+  // v1219: тумблера нет там, где нет выбора — в мире без подписки режим один.
+  var _oneMode = (typeof _onceWorld === 'function') && _onceWorld();
   if (box){
-    box.classList.toggle('on', !!hasOnce);
+    box.classList.toggle('on', !!hasOnce && !_oneMode);
     Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){
       b.setAttribute('aria-pressed', String(b.dataset.pmode === PAY_MODE));
     });
@@ -1955,23 +1969,8 @@ function applyModeChrome(hasOnce){
   // каталожных тарифов, посчитанная из тех же цен, что в карточках. Литерал
   // тут стоять не может: владелец назвал «-30%», по факту максимум −25 %, и
   // обещать на денежном экране больше, чем даём, нельзя.
-  var save = document.getElementById('pmSave');
-  if (save){
-    var best = 0;
-    Object.keys(ONCE_PRICES || {}).forEach(function(k){
-      var once = +ONCE_PRICES[k] || 0;
-      var sub  = +((LAST_QUOTAS || {})[k] || {}).price || 0;
-      if (once > sub && sub > 0) best = Math.max(best, once - sub);
-    });
-    // v1199: максимальная выгода В РУБЛЯХ — она у САМОГО ДОРОГОГО тарифа,
-    // то есть лестница читается «больше берёшь — больше экономишь».
-    // v1200: голое «до 1 000 ₽» на пилюле читалось как «до 1000 ₽ чего?».
-    // Пилюля узкая, поэтому слово короткое — «выгоднее», а рубли стоят
-    // строкой ниже, где для них есть место.
-    save.textContent = (hasOnce && best > 0) ? 'выгоднее' : '';
-  }
   if (note){
-    note.classList.toggle('on', !!hasOnce);
+    note.classList.toggle('on', !!hasOnce || _oneMode);
     // 🔴 v1200 (заказ владельца 13.09): «чтобы человеку было понятно, что у
     // него открылась самая выгодная страница, она подписочная, но есть
     // разовые оплаты». Раньше подпись описывала механику списания и про
@@ -1981,8 +1980,11 @@ function applyModeChrome(hasOnce){
     // v1205 (владелец 15.09): подпись — одна короткая фраза на режим.
     // Вилка выгоды в рублях отсюда снята: зачёркнутая цена на карточке
     // говорит то же самое без слов.
+    // v1219: в мире без подписки тумблера нет — подпись не зовёт «Разово справа»
+    // и не обещает подписку, которой человеку не дают.
     note.innerHTML = (PAY_MODE === 'once')
-      ? 'Один платёж, доступ на 30 дней, продлеваешь сам. <b>По подписке дешевле.</b>'
+      ? (_oneMode ? 'Доступ на 30 дней. Один платёж, продлеваешь сам.'
+                  : 'Один платёж, доступ на 30 дней, продлеваешь сам. <b>По подписке дешевле.</b>')
       : 'Списание раз в 30 дней, отмена в один тап. Нужен один месяц — <b>«Разово»</b> справа.';
   }
   // Про отмену пишем только там, где подписка и правда есть: сервер молчит

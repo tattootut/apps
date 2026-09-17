@@ -81,6 +81,14 @@
     font-size: 12px;
     margin-top: 4px;
   }
+  /* v1219: пилюля «💎 Тарифы» в шапке — та же дверь, что goPricing() */
+  .header-prices {
+    margin-left: auto; flex: 0 0 auto;
+    font-family: var(--font-display); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--color-accent);
+    border: 1px solid rgba(196,240,0,0.45); border-radius: 99px;
+    padding: 8px 12px; text-decoration: none; white-space: nowrap;
+  }
 
   /* CARD ─────────────────────── */
   .card {
@@ -1093,6 +1101,10 @@
     <div class="header-title">ТАТУ ТУТ</div>
     <div class="header-sub" id="headerSub">Кабинет мастера</div>
   </div>
+  <!-- 🔴 v1219 (владелец 17.09): выход к тарифам СВЕРХУ. Снизу переход
+       есть, а наверху человек не понимал, как выйти и посмотреть все цены;
+       единственную кнопку экрана он читал как «следующий шаг = покупка». -->
+  <a class="header-prices" id="headerPrices" href="#" role="button">💎 Тарифы</a>
 </div>
 
 <div id="errorBanner" class="error-banner hidden"></div>
@@ -2396,6 +2408,11 @@
         + encodeURIComponent(CURRENT_TARIFF_KEY || '') + '#addons');
     } catch (e) {}
   }
+  // v1219: пилюля «💎 Тарифы» в шапке — та же дверь, что и нижний переход.
+  try {
+    var _hp = document.getElementById('headerPrices');
+    if (_hp) _hp.addEventListener('click', function (e) { e.preventDefault(); goPricing(); });
+  } catch (e) {}
 
   // v217 (LAUNCH-BLOCKER #4): включён ли реальный retention-ops pipeline
   // (discount30/pause30/downgrade_lite). default false — пока YooKassa
