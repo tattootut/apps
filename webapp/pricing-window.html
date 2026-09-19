@@ -749,8 +749,32 @@ function goCabinet() {
   } catch (_) {}
   // Телеграм-авторизация мини-аппа живёт в initData и переживает переход
   // внутри одной сессии WebApp, поэтому её тащить в адрес не нужно.
+  // v1237: вход с панели — без initData, по подписи ?auth=; её несём дальше.
+  var a = '';
+  try { a = new URLSearchParams(window.location.search).get('auth') || ''; } catch (_) {}
+  var q = [];
+  if (v) q.push('v=' + encodeURIComponent(v));
+  if (a && !(tg && tg.initData)) q.push('auth=' + encodeURIComponent(a));
   try {
-    window.location.assign('tariffs-app.html' + (v ? '?v=' + encodeURIComponent(v) : ''));
+    window.location.assign('tariffs-app.html' + (q.length ? '?' + q.join('&') : ''));
+  } catch (_) {}
+}
+
+// v1237: строка зачёта пробного — та же, что дверь-сообщение показывала в чате.
+// Пусто — права на зачёт нет, плашки нет.
+function _showBridgeNote(txt) {
+  try {
+    txt = String(txt || '').trim();
+    if (!txt || document.getElementById('bridge-note')) return;
+    var el = document.createElement('div');
+    el.id = 'bridge-note';
+    el.textContent = txt;
+    el.style.cssText = 'margin:10px 16px 0;padding:10px 12px;border-radius:12px;'
+      + 'background:rgba(196,240,0,.08);border:1px solid rgba(196,240,0,.4);'
+      + 'color:var(--text);font-size:14px;line-height:1.35';
+    var top = document.querySelector('header.top');
+    if (top && top.parentNode) top.parentNode.insertBefore(el, top.nextSibling);
+    else document.body.insertBefore(el, document.body.firstChild);
   } catch (_) {}
 }
 try {
@@ -901,10 +925,10 @@ async function openPaidInvoice(tariffKey, extraQ){
   // Иначе быстрый тап после открытия витрины читал «разово» у пилота,
   // хотя счёт с сервера уходил подписочным (владелец 02.09, скриншот).
   try { await Promise.race([HYDRATED, new Promise(function(r){ setTimeout(r, 4000); })]); } catch(e) {}
-  if (!SUB_OFFER && tg.initData) {
+  if (!SUB_OFFER) {   // v1237: и по подписи ?auth= (вход с панели)
     try {
-      const _r2 = await fetch(BOT_API_BASE + '/api/cabinet?initData='
-        + encodeURIComponent(tg.initData), { method:'GET', cache:'no-store' });
+      const _r2 = await fetch(BOT_API_BASE + '/api/cabinet?' + _authQ(),
+        { method:'GET', cache:'no-store' });
       if (_r2.ok) {
         const _d2 = await _r2.json(); SUB_OFFER = !!(_d2 && _d2.sub_on);
         if (_d2 && Array.isArray(_d2.sub_methods) && _d2.sub_methods.length) SUB_METHODS = _d2.sub_methods.map(String);
@@ -2041,15 +2065,18 @@ document.addEventListener('click', function(e){
 // Ключи, скрытые из витрины на бэкенде (premium, pro_intro, pmu_*), сюда не
 // попадают — поэтому снятый тариф не может всплыть на витрине через payload.
 const HYDRATED = (async function hydrateTariffs(){
-  if (!tg || !tg.initData) return;
+  // v1237: с кнопки панели Telegram initData не даёт — вход по подписи ?auth=
+  // (её ставит бот в саму кнопку). Без данных сервера витрина врала бы про
+  // мир оплаты (подписка/разово) — класс v1058.
+  if (!tg || (!tg.initData && !/[?&]auth=/.test(location.search))) return;
   try {
     // v1204: src=pricing — сервер пишет pricing_open; from — какая дверь привела
-    const r = await fetch(BOT_API_BASE + '/api/cabinet?initData='
-      + encodeURIComponent(tg.initData) + '&src=pricing&from='
+    const r = await fetch(BOT_API_BASE + '/api/cabinet?' + _authQ() + '&src=pricing&from='
       + encodeURIComponent((new URLSearchParams(location.search).get('from') || '').slice(0, 32)),
       { method:'GET', cache:'no-store' });
     if (!r.ok) return;
     const d = await r.json();
+    try { if (typeof _showBridgeNote === 'function') _showBridgeNote(d && d.bridge_note); } catch (_) {}   // v1237
     const list = (d && d.tariffs) || [];
     // v1051: подписка при покупке — по правде с сервера; живые цены — для
     // подзаголовка листа способов (сумма и период).

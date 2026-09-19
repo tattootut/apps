@@ -1502,6 +1502,14 @@
     catch (_) {}
     var q = v ? ('?v=' + encodeURIComponent(v)) : '';
     if (extra) q += (q ? extra : '?' + String(extra).replace(/^&/, ''));
+    // v1237: кабинет открыт по подписи ?auth= (с панели initData нет) —
+    // несём её обратно в витрину, иначе оплата уходит в чат (двойной шаг).
+    try {
+      var _tg = window.Telegram && window.Telegram.WebApp;
+      if (window.__AUTH && !(_tg && _tg.initData)) {
+        q += (q ? '&' : '?') + 'auth=' + encodeURIComponent(window.__AUTH);
+      }
+    } catch (_) {}
     return 'pricing-window.html' + q;
   }
 
