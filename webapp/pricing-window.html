@@ -301,8 +301,15 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .pmode.on ~ .r{display:none}
 .pmode button{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;font-family:Oswald,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);transition:var(--tap);white-space:nowrap}
 .pmode button[aria-pressed="true"]{background:var(--accent);color:#0b1208}
-/* Скидка подписки — на самой кнопке, чтобы было видно ДО выбора. */
-@media (max-width:400px){.pmode button{padding:6px 9px;font-size:10px;letter-spacing:.03em}}
+/* Скидка подписки — на самой кнопке, чтобы было видно ДО выбора.
+   🔴 v1241 (владелец 20.09, глядя на витрину): «выгоднее у нас была плашка на
+   слове ПОДПИСКА сверху — сейчас она убралась». Плашку сняли v1219 по его же
+   замечанию 17.09; сегодня он её вернул. Слово одно и короткое, чтобы тумблер
+   не разъезжался на узком экране. */
+.pm-save{font-size:9.5px;letter-spacing:.04em;padding:2px 5px;border-radius:99px;background:rgba(11,18,8,.22);color:inherit}
+.pmode button[aria-pressed="false"] .pm-save{background:rgba(196,240,0,.14);color:var(--accent)}
+.pm-save:empty{display:none}
+@media (max-width:400px){.pmode button{padding:6px 9px;font-size:10px;letter-spacing:.03em}.pm-save{font-size:9px;padding:2px 4px}}
 .pmode-note{display:none;margin:0 6px 13px;font-size:11.5px;line-height:1.45;color:var(--text-muted);letter-spacing:.01em}
 .pmode-note.on{display:block}
 
@@ -454,7 +461,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
          (не литерал: владелец назвал «-30%», по факту максимум −25 % у Старта,
          и обещать больше, чем даём, на денежном экране нельзя). -->
     <div class="pmode" id="payMode" role="group" aria-label="Как платить">
-      <button type="button" data-pmode="sub" aria-pressed="true">Подписка</button>
+      <button type="button" data-pmode="sub" aria-pressed="true">Подписка<span class="pm-save" id="pmSave"></span></button>
       <button type="button" data-pmode="once" aria-pressed="false">Разово</button>
     </div>
     <span class="r" id="payModeFallback">Любой можно сменить</span>
@@ -1930,8 +1937,14 @@ function row(t, i){
   // флагман — отдельная строка на всю ширину карточки, CTA — тоже, и без
   // цены: цена уже стоит строкой выше. CTA есть только в разовом режиме
   // (тумблер «Разово» или мир без подписки); в подписке кнопка — стрелка.
-  const ctaOn = !t.trial && (onceOn
-    || (typeof _onceWorld === 'function' && _onceWorld()));
+  // 🔴 v1241 (владелец 20.09): в мире с тумблером большая кнопка была ТОЛЬКО в
+  // разовом режиме — в подписке её роль играет стрелка. Асимметрия читалась
+  // как «разовое покупают кнопкой, подписку как-то иначе», хотя тап по всей
+  // карточке ведёт в кассу одинаково (обработчик ловит [data-action] на самой
+  // карточке, не на кнопке). Кнопку оставляем только там, где тумблера нет
+  // вовсе — в мире без подписки она единственный призыв.
+  const ctaOn = !t.trial
+    && (typeof _onceWorld === 'function' && _onceWorld());
   const flag = t.flag
     ? `<div class="flagblock"><span class="fb-ic">${t.flag.ic}</span><span class="fb-tx">${t.flag.tx}${t.flagExcl ? '<span class="fb-excl">эксклюзив</span>' : ''}</span></div>`
       + (t.flag.warn ? `<div class="warn">${t.flag.warn}</div>` : '')
@@ -1988,6 +2001,21 @@ function applyModeChrome(hasOnce){
     Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){
       b.setAttribute('aria-pressed', String(b.dataset.pmode === PAY_MODE));
     });
+  }
+  // 🔴 v1241 (владелец 20.09): плашка «выгоднее» — на самой кнопке «Подписка»,
+  // видно ДО выбора режима. Показываем только там, где есть с чем сравнивать
+  // (пришли разовые цены) и экономия реальная; процент не пишем — владелец
+  // отклонял его дважды (v1197 → v1199), рубли стоят строкой под тумблером.
+  var save = document.getElementById('pmSave');
+  if (save){
+    var _best = 0;
+    try {
+      Object.keys(ONCE_PRICES || {}).forEach(function(k){
+        var _o = +ONCE_PRICES[k] || 0, _p = +(LIVE_PRICES || {})[k] || 0;
+        if (_o > _p && _p > 0 && _o - _p > _best) _best = _o - _p;
+      });
+    } catch (_) {}
+    save.textContent = (hasOnce && !_oneMode && _best > 0) ? 'выгоднее' : '';
   }
   // 🔴 v1197: «−N %» на кнопке подписки — МАКСИМАЛЬНАЯ РЕАЛЬНАЯ скидка среди
   // каталожных тарифов, посчитанная из тех же цен, что в карточках. Литерал
