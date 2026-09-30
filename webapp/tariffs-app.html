@@ -1125,10 +1125,10 @@
          Числа в разметке — только заглушка первого кадра. Раньше тут стояло
          «+ 25 примерок тату на тело» при реальных 12 (срезано ещё в v403) и
          три копии «299 ₽», которые пережили бы плановый флип 299→399. -->
-    <h1>Тариф Trial<br>7 дней за <span class="js-trial-price">499</span> ₽</h1>
+    <h1>Тариф Trial<br>7 дней за <span class="js-trial-price">599</span> ₽</h1>
     <p class="lead">
       Полный доступ к ИИ-инструментам тату-мастера на 7 дней
-      за <span class="js-trial-price">499</span> ₽ (оплата через СБП).
+      за <span class="js-trial-price">599</span> ₽ (оплата через СБП).
       Дальше — по выбранному тарифу.
     </p>
     <div class="features-mini" id="trialFeatures"></div>
@@ -1136,7 +1136,7 @@
       Активировать Пробный
     </button>
     <div class="small">
-      Разовая проба за <span class="js-trial-price">499</span> ₽ через СБП —
+      Разовая проба за <span class="js-trial-price">599</span> ₽ через СБП —
       <b>без подписки</b>.<br>
       Через 7 дней доступ закроется, дальше можно купить любой платный тариф.
     </div>
@@ -1449,7 +1449,7 @@
   // которой не существовало, — ст. 10 ЗоЗПП. Нет old_price → 0 → фронт не
   // рисует страйк (его условие `old_price > price`).
   const FALLBACK_TARIFFS = [
-    { key:'trial',   name:'Пробный',  price:499,  old_price:0,    days:7,  sketches:5,   stencils:5,   tryons:3,   extracts:3,   photo_retouch:3,  videos:0, clients_quota:25, animations:0,  demo_pool:25,   popular:false },
+    { key:'trial',   name:'Пробный',  price:599,  old_price:0,    days:7,  sketches:5,   stencils:5,   tryons:3,   extracts:3,   photo_retouch:3,  videos:0, clients_quota:25, animations:0,  demo_pool:25,   popular:false },
     { key:'solo',    name:'Старт',  price:1490, old_price:1990, days:30, sketches:12,  stencils:20,  tryons:5,   extracts:15,  photo_retouch:12, videos:1, clients_quota:5,  animations:1,  demo_pool:100,  popular:false },
     { key:'pro',     name:'Про',    price:2990, old_price:4990, days:30, sketches:60,  stencils:60,  tryons:10,  extracts:40,  photo_retouch:25, videos:2, clients_quota:10, animations:5,  demo_pool:600,  popular:true  },
     // 🔴 v1038: было price:4990 против 3990 в MASTER_TARIFFS. Фолбэк живёт,
