@@ -360,8 +360,8 @@
   .saved-head { display: flex; align-items: center; gap: 14px; }
   .saved-mini .sm-icon { font-size: 30px; flex: 0 0 auto; opacity: 0.9; }
   .saved-mini-num {
-    font-family: var(--font-display); font-weight: 700; font-size: 40px;
-    line-height: 1; color: var(--color-accent); letter-spacing: 0.5px;
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 8vw, 40px);
+    line-height: 1.15; color: var(--color-accent); letter-spacing: 0.5px;
   }
   .saved-mini-lab { font-size: 13px; color: var(--color-text-muted); line-height: 1.4; margin-top: 6px; }
   .saved-breakdown { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; }
@@ -382,6 +382,10 @@
     grid-column: 1 / -1;
     padding: 18px 18px 16px;
   }
+  @media (max-width: 420px) {
+    .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .metric-box .lab, .metric-box .val { overflow-wrap: anywhere; }
   .metric-grid .metric-hero .lab { font-size: 13px; margin-bottom: 8px; }
   .metric-grid .metric-hero .val { font-size: 32px; }
   .metric-grid .metric-hero .val .total { font-size: 22px; }
@@ -414,6 +418,11 @@
     color: var(--color-text-muted);
     font-weight: 500;
     font-size: 18px;
+  }
+  .metric-box .val .quota-note {
+    display: block; font-family: var(--font-text); font-size: 11px;
+    font-weight: 500; letter-spacing: 0; color: var(--color-text-muted);
+    line-height: 1.4; margin-top: 4px;
   }
   /* v998: пометка «сегодня» для ДНЕВНЫХ осей (бэкенд отдаёт q.daily с v995).
      На триале трансферы 15/день и примерки 3/день — без этой строки суточный
@@ -1200,7 +1209,7 @@
       <span class="sm-icon">⏱</span>
       <div>
         <div class="saved-mini-num" id="savedNum">0 ч</div>
-        <div class="saved-mini-lab" id="savedLab">рабочего времени бот вернул тебе</div>
+        <div class="saved-mini-lab" id="savedLab">примерная экономия за сохранённую историю</div>
       </div>
     </div>
     <div class="saved-breakdown" id="savedBreakdown"></div>
@@ -1731,6 +1740,7 @@
   // ЮKassa). Заменяет хрупкий deep-link ?start=bind_card, который из Mini App к
   // своему же боту НЕ перезапускал /start (просто закрывал кабинет → «не работает»).
   async function startCardBind() {
+    if (SUB_VERIFICATION_PENDING) return;
     const initData = (tg && tg.initData) ? tg.initData : '';
     if (!initData) { tg && tg.showAlert && tg.showAlert('Открой кабинет внутри Telegram.'); return; }
     try {
@@ -2134,20 +2144,17 @@
     const val = document.createElement('div');
     val.className = 'val';
     let pct = 0;
-    // v257: знаменатель = used + ЖИВОЙ остаток q.left (бэкенд отдаёт left с v242:
-    // master.quotas[op]_left). Это (а) включает ДОКУПКУ-overage → «2/2» после
-    // +5 видео становится «2/7»; (б) сбрасывается при продлении, поэтому после
-    // 1-го продления цифры НЕ разъезжаются. Fallback на q.limit, если left не
-    // пришёл. Коэрсим к числам — защита от строк/undefined (NaN-ширина).
-    const used = Number(q.used) || 0;
+    // used is lifetime usage; neither used + left nor the legacy limit is a
+    // current-period denominator. Show the live balance without inventing one.
     const left = Number(q.left);
     const baseLimit = Number(q.limit);
-    const hasLeft = isFinite(left);
-    const total = hasLeft ? (used + left) : baseLimit;  // честный «из скольки»
-    if ((!isFinite(baseLimit) || baseLimit <= 0) && !(hasLeft && left > 0)) {
+    const hasLeft = q.left != null && isFinite(left);
+    if (!q.unlimited && (!isFinite(baseLimit) || baseLimit <= 0) && !(hasLeft && left > 0)) {
       // операция недоступна на тарифе (и не докуплена оверажем)
       box.classList.add('unavailable');
-      val.innerHTML = '<span style="color:var(--color-text-muted)">Pro и выше</span>';
+      val.innerHTML = SUB_VERIFICATION_PENDING
+        ? '<span style="color:var(--color-text-muted)">Недоступно</span>'
+        : '<span style="color:var(--color-text-muted)">Pro и выше</span>';
     } else if (q.unlimited) {
       // 🔴 v1193-fix: ось без лимита на тарифе (бэкенд ставит q.unlimited).
       // Без этой ветки кабинет печатал «80 / 80», красил полосу как
@@ -2159,23 +2166,23 @@
       // одного и того же: в квадрате остатка одно, в карточке тарифа рядом —
       // «∞ Трансферы — БЕЗ ЛИМИТА». Слово одно на весь продукт, сторож K23.
       box.classList.add('unlimited');
-      val.innerHTML = `<span class="unlim-tag">∞ Без лимита</span><span class="unlim-used">использовано ${used}</span>`;
+      val.innerHTML = '<span class="unlim-tag">∞ Без лимита</span>';
       pct = 100;
-    } else if (baseLimit >= 9999) {
+    } else if (q.unlimited == null && baseLimit >= 9999) {
       // Наследие Премиум/owner: та же формулировка, что и выше — иначе на
       // соседних квадратах одного экрана стояли бы разные слова.
       box.classList.add('unlimited');
-      val.innerHTML = `<span class="unlim-tag">∞ Без лимита</span><span class="unlim-used">использовано ${used}</span>`;
+      val.innerHTML = '<span class="unlim-tag">∞ Без лимита</span>';
       pct = 100;
     } else {
-      val.innerHTML = `${used}<span class="total"> / ${total}</span>`;
-      pct = total > 0 ? Math.min(100, Math.round(used * 100 / total)) : 0;
-      if (hasLeft ? left <= 0 : used >= total) box.classList.add('full');
-      // v86: 0 used → лайм-намёк «стартовая позиция». Не серое, а «всё впереди».
-      if (used === 0) box.classList.add('zero');
+      val.innerHTML = hasLeft
+        ? `${Math.max(0, left)}<span class="quota-note">осталось</span>`
+        : '<span class="quota-note">Остаток уточняется</span>';
+      if (hasLeft && left <= 0) box.classList.add('full');
     }
     const bar = document.createElement('div');
     bar.className = 'bar';
+    if (!box.classList.contains('unlimited')) bar.classList.add('hidden');
     const fill = document.createElement('span');
     if (!isFinite(pct) || pct < 0) pct = 0;  // защита от NaN-ширины (битый/пустой limit)
     setTimeout(() => fill.style.width = pct + '%', 80);
@@ -2201,7 +2208,7 @@
   // Эскиз из фото ~40 (перерисовать/переколлажировать), трансфер ~25, примерка ~20,
   // улучшить фото ~30, видео ~60. Показываем расшифровку (принцип) в виджете.
   const SAVED_MIN_PER_OP = { sketches: 32, stencils: 25, tryons: 20, extracts: 32, photo_retouch: 30, videos: 43 };
-  const SAVED_OP_LABEL = { sketches: 'Создать эскиз', stencils: 'Трансфер', tryons: 'Примерка', extracts: 'Эскиз из фото', photo_retouch: 'Улучшить фото', videos: 'Видео' };
+  const SAVED_OP_LABEL = { sketches: 'Эскизы и правки', stencils: 'Трансфер', tryons: 'Примерка', extracts: 'Эскиз из фото', photo_retouch: 'Улучшить фото', videos: 'Видео' };
   const SAVED_RING_CIRC = 326.7; // длина окружности 2π·52
 
   function fmtSaved(mins) {
@@ -2274,7 +2281,7 @@
     });
   }
 
-  function renderSavedTime(quotas, tariff_key, registered_at_iso) {
+  function renderSavedTime(quotas, tariff_key, registered_at_iso, savings) {
     // v303: итог + расшифровка ПРИНЦИПА (минуты ручного времени мастера за действие)
     // + живые цифры по реальному usage.
     const $num = $('savedNum'), $lab = $('savedLab'), $bd = $('savedBreakdown');
@@ -2287,26 +2294,29 @@
     // ручного аналога не существует — это не замена работы, а новая
     // возможность. Любая минута здесь была бы выдумана.
     ['sketches', 'extracts', 'stencils', 'tryons', 'photo_retouch', 'videos'].forEach(function (op) {
-      const used = (quotas[op] && quotas[op].used) || 0;
-      const per = SAVED_MIN_PER_OP[op] || 0;
+      const used = Math.max(0, Number(quotas[op] && quotas[op].used) || 0);
+      const serverPer = savings && savings.minutes_per_operation
+        && savings.minutes_per_operation[op];
+      // Older servers have no lifetime_savings; keep their existing estimate.
+      const per = serverPer != null && isFinite(Number(serverPer)) && Number(serverPer) >= 0
+        ? Number(serverPer) : (SAVED_MIN_PER_OP[op] || 0);
       total += used * per;
       let right = '~' + per + ' мин';
       if (used > 0) right += ' × ' + used + ' = ' + (used * per) + ' мин';
       rows.push('<div class="sb-row"><span>' + SAVED_OP_LABEL[op] + '</span><span class="sb-rate">' + right + '</span></div>');
     });
-    if (total === 0) {
-      $num.textContent = '0 ч';
-      if ($lab) $lab.textContent = 'первая генерация запустит счётчик времени';
-    } else {
-      const saved_h = total / 60;
-      $num.textContent = (saved_h >= 1) ? (Math.round(saved_h) + ' ч') : (total + ' мин');
-      if ($lab) $lab.textContent = 'рабочего времени бот вернул тебе';
+    if (savings && savings.total_minutes != null
+        && isFinite(Number(savings.total_minutes)) && Number(savings.total_minutes) >= 0) {
+      total = Number(savings.total_minutes);
     }
+    total = Math.round(total);
+    $num.textContent = total === 0 ? '0 ч' : '≈ ' + fmtSaved(total);
+    if ($lab) $lab.textContent = 'примерная экономия за сохранённую историю';
     if ($bd) {
-      $bd.innerHTML = '<div class="sb-title">Из расчёта времени мастера за каждое действие:</div>' +
+      $bd.innerHTML = '<div class="sb-title">Примерное ручное время на каждое учтённое действие:</div>' +
         rows.join('') +
-        '<div class="sb-note">Бот делает за секунды то, на что вручную уходят десятки минут: ' +
-        'перерисовать эскиз, подготовить трансфер, примерить на клиенте, отретушировать фото.</div>';
+        '<div class="sb-note">Оценка по сохранённым действиям, а не замер времени. ' +
+        'Продление тарифа не обнуляет счётчик. Полный сброс аккаунта удаляет историю.</div>';
     }
   }
 
@@ -2341,11 +2351,10 @@
       // v94: первая метрика (Трансферы) — full-width hero
       if (i === 0) box.classList.add('metric-hero');
       grid.appendChild(box);
-      // v385: детект «квота почти исчерпана» (≥80%) для апсейл-CTA.
-      // Безлимит (9999) и недоступные (limit 0 без left) не считаем.
-      const used = Number(q.used) || 0;
+      // Lifetime usage cannot tell how much of this period has been spent.
+      // Offer more only for a confirmed empty live balance.
       const left = Number(q.left);
-      const total = isFinite(left) ? (used + left) : (Number(q.limit) || 0);
+      const limit = Number(q.limit) || 0;
       // v998: у ДНЕВНОЙ оси знаменатель — сегодняшний кап, а used считается за
       // всё время. Отношение used/total тут не значит «квота кончается», и
       // апсейл по нему сработал бы у триальщика в первый же день. Дневные оси
@@ -2354,12 +2363,12 @@
       // v1193-fix: безлимитная ось в детект «квота кончается» не входит —
       // иначе апсейл звал бы доплатить за то, что уже без лимита.
       if (q.unlimited) return;
-      if (total > 0 && total < 9999 && used / total >= 0.8) nearFull = true;
+      if (q.left != null && isFinite(left) && left <= 0 && limit > 0 && limit < 9999) nearFull = true;
     });
     // v385: апсейл-воронка — квоты кончаются → кнопка к прайсу.
     const upsell = $('limitsUpsell');
     if (upsell) {
-      upsell.classList.toggle('hidden', !nearFull);
+      upsell.classList.toggle('hidden', !nearFull || SUB_VERIFICATION_PENDING);
       const btn = $('limitsUpsellBtn');
       if (btn && !btn._bound) {
         btn._bound = true;
@@ -2396,10 +2405,15 @@
   //   • solo (Lite) — скрывать кнопку «Перейти на Lite» в step2
   let CURRENT_TARIFF_KEY = 'trial';
 
+  // A paid period can exist while the payment provider's renewal state is
+  // still being checked. Keep it separate from confirmed active/off states.
+  let SUB_VERIFICATION_PENDING = false;
+
   // v387: единая навигация в прайс — передаём текущий тариф, чтобы
   // pricing-window пометил его «✓ Твой тариф» (юзер не понимал, какой у
   // него сейчас, и видел CTA «купить» на собственном тарифе).
   function goPricing() {
+    if (SUB_VERIFICATION_PENDING) return;
     try {
       window.location.assign(_pricingUrl('&current=')
         + encodeURIComponent(CURRENT_TARIFF_KEY || ''));
@@ -2452,7 +2466,7 @@
   function applyExpiryBanner(daysLeft) {
     const banner = $('expiryBanner');
     if (!banner) return;
-    if (daysLeft == null || daysLeft > 3) {
+    if (SUB_VERIFICATION_PENDING || daysLeft == null || daysLeft > 3) {
       banner.classList.add('hidden');
       return;
     }
@@ -2489,6 +2503,9 @@
   }
 
   function applyCabinet(d) {
+    const sub = d.subscription || null;
+    SUB_VERIFICATION_PENDING = !!(sub
+      && (sub.state === 'unverified' || sub.verification_pending === true));
     showView('cabinet');
     startLiveRefresh();  // v388: автообновление лимитов раз в 25с пока кабинет открыт
     // v1194: подписка есть у этого человека или нет — правда сервера (sub_on),
@@ -2501,8 +2518,17 @@
     // v207: полоса тарифа компактна — только «осталось N дн».
     // Процент периода переехал в свёрнутый блок «Лимиты периода».
     $('tariffMeta').innerHTML = `Осталось <strong>${d.days_left}</strong> дн`;
-    // v214: loss-aversion expiry banner при ≤3 дн
-    applyExpiryBanner(d.days_left);
+    ['heroCta', 'headerPrices'].forEach(function (id) {
+      const el = $(id);
+      if (el) el.classList.toggle('hidden', SUB_VERIFICATION_PENDING);
+    });
+    // The link pool refreshes separately; remove its previous CTA immediately.
+    if (SUB_VERIFICATION_PENDING) {
+      const poolCta = $('linkPoolCta');
+      if (poolCta) poolCta.classList.add('hidden');
+      const pricingFallback = $('toPricingFallback');
+      if (pricingFallback) pricingFallback.remove();
+    }
     // v216 LAUNCH-BLOCKER #2: autorenew чекбокс врал — был always-checked
     // независимо от реального состояния. Теперь рендерим его только если
     // backend подтвердил autorenew_active=true (4 условия в bot.py
@@ -2512,8 +2538,10 @@
     // v1013: правда о подписке приходит блоком d.subscription (bot.py
     // _subscription_view). Откат на d.autorenew_active — для старых билдов
     // бэкенда: мини-апп живёт в чатах дольше, чем деплой, и наоборот.
-    const sub = d.subscription || null;
-    const subActive = sub ? (sub.state === 'active') : (d.autorenew_active === true);
+    const subActive = !SUB_VERIFICATION_PENDING
+      && (sub ? (sub.state === 'active') : (d.autorenew_active === true));
+    // An already scheduled renewal must not ask for a second manual payment.
+    applyExpiryBanner(subActive ? null : d.days_left);
     if (subActive) {
       if (renewBox) renewBox.classList.remove('hidden');
       if (renewNote) renewNote.classList.add('hidden');
@@ -2563,23 +2591,29 @@
       const tkey = d.tariff_key || 'trial';
       // v1013: состояний четыре, и «механика выключена» — не то же самое,
       // что «человек не подключил». Раньше оба показывались одинаково.
-      const sState = (sub && sub.state) || (tkey === 'trial' ? 'trial' : 'off');
+      const sState = SUB_VERIFICATION_PENDING ? 'unverified'
+        : ((sub && sub.state) || (tkey === 'trial' ? 'trial' : 'off'));
       const noteIcon = $('subNoteIcon');
       if (noteIcon) {
         noteIcon.textContent = (sState === 'trial') ? '🎁'
+          : (sState === 'unverified') ? '⏳'
           : (sState === 'unavailable') ? '💳' : '🔕';
       }
       if (note_title) {
         // v1004: платному без подписки — «Подписка не подключена» (макет);
         // триалу — как было.
         if (sState === 'trial') note_title.textContent = 'Активный триал';
+        else if (sState === 'unverified') note_title.textContent = 'Проверяем состояние подписки';
         else if (sState === 'unavailable') note_title.textContent = 'Активный тариф';
         else note_title.textContent = 'Подписка не подключена';
       }
       if (note_body) {
-        const till = fmtChargeDate(d.tariff_expires_at_iso);
+        const till = fmtChargeDate((sub && sub.access_until_iso) || d.tariff_expires_at_iso);
         if (sState === 'trial') {
           note_body.textContent = 'Пробный не продлевается сам — списаний не будет. Перед его концом придёт экран с тарифами.';
+        } else if (sState === 'unverified') {
+          note_body.textContent = (till ? 'Оплаченный доступ до ' + till + '. ' : '')
+            + 'Статус автопродления ещё не подтверждён. Проверяем данные. Повторно подключать подписку не нужно.';
         } else if (sState === 'unavailable') {
           note_body.textContent = 'Доступ до ' + (till || 'конца оплаченного периода')
             + '. Продление сейчас только вручную — напоминание придёт перед окончанием.';
@@ -2603,12 +2637,14 @@
       // с откатом на прежнее условие для старых билдов.
       const bindBtn = $('bindCardBtn');
       if (bindBtn) {
-        const canSub = sub ? !!sub.can_subscribe : (tkey !== 'trial');
+        const canSub = !SUB_VERIFICATION_PENDING
+          && (sub ? !!sub.can_subscribe : (tkey !== 'trial'));
         if (canSub) {
           bindBtn.classList.remove('hidden');
           if (!bindBtn._bound) {
             bindBtn._bound = true;
             bindBtn.addEventListener('click', function() {
+              if (SUB_VERIFICATION_PENDING) return;
               if (window.posthog) posthog.capture('cabinet_bind_card_click', {});
               // v1051 (этап 1): подписка не включается молча — человек
               // подтверждает сумму и период до похода в банк. Сумма из
@@ -2639,7 +2675,7 @@
     renderMetrics(d.quotas || {});
     // v86: сэкономленное время — большая лайм-цифра в Hero
     // v190: передаём registered_at_iso для подписи «с июня 2026»
-    renderSavedTime(d.quotas || {}, d.tariff_key || 'trial', d.registered_at_iso);
+    renderSavedTime(d.quotas || {}, d.tariff_key || 'trial', d.registered_at_iso, d.lifetime_savings);
     // v152: промокод больше не показывается отдельным блоком (QR-база удалена),
     // но нужен для партнёрской ссылки — храним в JS-переменной.
     PROMO_CODE = d.promo_code || '';
@@ -2655,7 +2691,12 @@
     // false → прячем 3 retention-кнопки в startCancelRetention (оставляем
     // только «Всё равно отменить»). True → старый 3-shot popup.
     RETENTION_OPS_ACTIVE = !!d.retention_ops_active;
-    renderCabinetTariffs(d.tariffs || FALLBACK_TARIFFS, d.tariff_key);
+    if (SUB_VERIFICATION_PENDING) {
+      const list = $('cabinetTariffsList');
+      if (list) list.innerHTML = '';
+    } else {
+      renderCabinetTariffs(d.tariffs || FALLBACK_TARIFFS, d.tariff_key);
+    }
     // v89: партнёрка — отображаем число приведённых мастеров и бонус
     // v267 (Task A): бонус = пакеты Lite (квота сверх тарифа), а не дни.
     const refs = d.referrals || {count: 0, lite_packages_earned: 0};
@@ -2707,6 +2748,7 @@
      Теперь при сбое ОСТАЁМСЯ на месте: ошибка + кнопка входа + ручная ссылка
      на тарифы. Редирект живёт ТОЛЬКО для честного «не зарегистрирован». */
   function offerPricingLink() {
+    if (SUB_VERIFICATION_PENDING) return;
     try {
       if (document.getElementById('toPricingFallback')) return;
       var a = document.createElement('a');
@@ -3439,7 +3481,7 @@
     cta.classList.add('hidden');
     cta.innerHTML = '';
 
-    if (unlim || total === 0) return;  // безлимит — докупать нечего; пула нет — тоже
+    if (SUB_VERIFICATION_PENDING || unlim || total === 0) return;
 
     if (pct >= 90) {
       bar.classList.add('danger');
