@@ -2976,16 +2976,39 @@
     });
   }
 
-  async function loadCabinet() {
+  let _cabinetLoadSeq = 0;
+  let _cabinetMetadataRefreshTimer = null;
+  let _cabinetMetadataRefreshes = 0;
+
+  function queueCabinetMetadataRefresh(data) {
+    clearTimeout(_cabinetMetadataRefreshTimer);
+    _cabinetMetadataRefreshTimer = null;
+    if (!data.metadata_refresh_pending || _cabinetMetadataRefreshes >= 2) return;
+    const delay = _cabinetMetadataRefreshes++ === 0 ? 750 : 4000;
+    _cabinetMetadataRefreshTimer = setTimeout(function () {
+      _cabinetMetadataRefreshTimer = null;
+      if (document.visibilityState === 'visible') loadCabinet(true);
+    }, delay);
+  }
+
+  async function loadCabinet(metadataRefresh) {
     if (DEMO_MODE) { hideError(); applyCabinet(DEMO_CABINET); return; }
+    const loadSeq = ++_cabinetLoadSeq;
+    if (!metadataRefresh) {
+      clearTimeout(_cabinetMetadataRefreshTimer);
+      _cabinetMetadataRefreshTimer = null;
+      _cabinetMetadataRefreshes = 0;
+    }
     let initData = tg && tg.initData ? tg.initData : '';
-    if (!initData) initData = await waitInitData(3000);
     /* v757: нативный macOS-клиент в menu-запуске НЕ передаёт initData вовсе.
-       Бот подписывает ссылку токеном (?auth=uid.exp.hmac) — берём его. */
+       Подписанный вход уже достаточен для серверной проверки: читаем его
+       до ожидания initData, иначе каждый вход зря стоял три секунды. */
     if (!initData) {
       var _au = (function(){try{return ((location.search.match(/[?&]auth=([^&]*)/)||[])[1]||'');}catch(e){return '';}})();
       if (_au){ window.__AUTH = _au; }
     }
+    if (!initData && !window.__AUTH) initData = await waitInitData(3000);
+    if (loadSeq !== _cabinetLoadSeq) return;
     if (!initData && !window.__AUTH) {
       // v755: ДИАГНОСТИКА в самом баннере. Владелец 05.08 на Telegram Desktop
       // (macOS) стабильно получает пустой initData даже после ожидания 3с —
@@ -3024,6 +3047,7 @@
         resp = await fetch(url, { method: 'GET', cache: 'no-store',
                                   signal: _ctl.signal });
       } finally { clearTimeout(_tmr); }
+      if (loadSeq !== _cabinetLoadSeq) return;
       if (resp.status === 401) {
         showError('Вход устарел. Жми кнопку — бот пришлёт свежий.');
         try {
@@ -3046,6 +3070,7 @@
         return;
       }
       const data = await resp.json();
+      if (loadSeq !== _cabinetLoadSeq) return;
       hideError();
       if (data.registered) {
         try {
@@ -3072,7 +3097,9 @@
         showView('showcase');
       }
       else applySignup(data.tariffs || FALLBACK_TARIFFS);
+      queueCabinetMetadataRefresh(data);
     } catch (e) {
+      if (loadSeq !== _cabinetLoadSeq) return;
       showError('Нет связи с сервером. Попробуй через минуту.');
       offerPricingLink();   // v884: обрыв связи ≠ «ты не зарегистрирован»
     }
