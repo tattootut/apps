@@ -973,7 +973,8 @@ async function openPaidInvoice(tariffKey, extraQ){
   // иначе человек молча уезжал бы в чат покупать подписку, то есть не то,
   // на что нажал.
   if (data && (data.error === 'once_not_needed'
-               || data.error === 'once_not_for_tariff')) {
+               || data.error === 'once_not_for_tariff'
+               || data.error === 'once_invoice_unavailable')) {
     try { tg.showAlert && tg.showAlert(data.message || 'Разовый месяц сейчас недоступен.'); } catch(e){}
     return true;
   }
@@ -1035,13 +1036,16 @@ function openDeepLinkFallback(startParam){
 var _PAY_BUSY = false;
 /* v1214: extraQ — хвост запроса к /api/invoice (разовый мир пилота шлёт
    '&once=1': чек «Разовый доступ», способ не сохраняется). Замок _PAY_BUSY
-   отпускается, как только запрос завершился, а не по таймеру — иначе после
-   быстрой ошибки человек 4 с тапал в пустоту (ревизия 16.09). */
+   общий для разовой оплаты и подписки. Отпускаем его только после ответа
+   или ошибки запроса: ожидание не разрешает создать второй счёт. */
 function paySbp(tariff, extraQ){
+  if (/(?:^|&)once=1(?:&|$)/.test(extraQ || '')) {
+    payOnce(tariff);
+    return;
+  }
   if (_PAY_BUSY) return;            // v1213: двойной тап — один счёт
   _PAY_BUSY = true;
-  var _busyT = setTimeout(function(){ _PAY_BUSY = false; }, 4000);
-  function _free(){ clearTimeout(_busyT); _PAY_BUSY = false; }
+  function _free(){ _PAY_BUSY = false; }
   openPaidInvoice(tariff, extraQ || '').then(ok => {
     _free();
     if (!ok){
@@ -1063,7 +1067,10 @@ function paySbp(tariff, extraQ){
    и его счёт ушёл бы по цене подписки — человек прочитал бы одну цену, а
    списалось бы другое. Ограничение названо в листе словами, а не спрятано. */
 function payOnce(tariff){
+  if (_PAY_BUSY) return;
+  _PAY_BUSY = true;
   openPaidInvoice(tariff, '&once=1').then(function(ok){
+    _PAY_BUSY = false;
     if (!ok) {
       // В deep-link `buy_<tariff>` НЕ падаем: в чате это подписка, то есть
       // другой товар и другая цена. Молчаливая подмена товара недопустима.
@@ -1071,6 +1078,7 @@ function payOnce(tariff){
         + 'или напиши в поддержку @tatututbot — оформим.');
     }
   }).catch(function(e){
+    _PAY_BUSY = false;
     console.error('[pricing] payOnce rejected', e);
     tg?.showAlert?.('Не получилось открыть разовую оплату. Попробуй ещё раз '
       + 'или напиши в поддержку @tatututbot — оформим.');
