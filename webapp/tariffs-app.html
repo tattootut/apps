@@ -1097,6 +1097,13 @@
   @media (max-width: 360px) {
     .pmode button { font-size: 11px; letter-spacing: .4px; padding: 10px 4px }
   }
+  .privacy-link {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 44px; margin-top: 8px; padding: 10px 8px;
+    color: var(--color-text, #0e1a14); font-size: 13px; line-height: 1.5;
+    text-align: center; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .privacy-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -1403,6 +1410,7 @@
   <button id="navFAQ">FAQ</button>
   <button id="navReferral">Рефералка</button>
 </div>
+<a id="privacyLink" class="privacy-link" href="https://ta2tut.ru/privacy" target="_blank" rel="noopener noreferrer">Политика обработки персональных данных</a>
 
 <div class="legal-notice">
   Используя бот, ты подтверждаешь что у клиента получено согласие
@@ -1427,6 +1435,19 @@
 
   const API_BASE = 'https://worker-production-c1cb.up.railway.app';
   const $ = (id) => document.getElementById(id);
+
+  // Public document navigation only; preserve the cabinet and its state.
+  document.getElementById('privacyLink').addEventListener('click', function (event) {
+    try {
+      if (tg && typeof tg.openLink === 'function') {
+        tg.openLink(this.href);
+        event.preventDefault();
+      }
+    } catch (_) {
+      // The ordinary external link remains available if the bridge fails.
+    }
+  });
+
 
   // v78: FALLBACK тарифы — показываются ТОЛЬКО если /api/cabinet не ответил.
   // Боевой источник чисел — d.tariffs (payload _public_tariffs_payload из
