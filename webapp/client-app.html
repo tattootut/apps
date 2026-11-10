@@ -407,6 +407,15 @@
   </div>
   <button type="button" id="closeDocuments" class="documents-close">Закрыть</button>
 </dialog>
-<script src="assets/documents/navigation.js?v=1" defer></script>
+<script src="assets/documents/navigation.js?v=2"></script>
+<script>
+  if (typeof window.initDocumentNavigation === 'function') {
+    window.initDocumentNavigation(
+      document.getElementById('openDocuments'),
+      document.getElementById('documentsDialog'),
+      document.getElementById('closeDocuments')
+    );
+  }
+</script>
 </body>
 </html>

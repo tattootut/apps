@@ -1,9 +1,6 @@
 /* Local navigation only. No profile, payment, consent or analytics writes. */
-(function () {
+window.initDocumentNavigation = function (opener, dialog, closer) {
   'use strict';
-  const opener = document.getElementById('openDocuments');
-  const dialog = document.getElementById('documentsDialog');
-  const closer = document.getElementById('closeDocuments');
   if (!opener || !dialog || !closer) return;
   let previousFocus;
   let previousScroll;
@@ -35,4 +32,4 @@
       }
     });
   });
-})();
+};
