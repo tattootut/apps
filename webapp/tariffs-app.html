@@ -1098,6 +1098,7 @@
     .pmode button { font-size: 11px; letter-spacing: .4px; padding: 10px 4px }
   }
 </style>
+<link rel="stylesheet" href="assets/documents/navigation.css?v=1">
 </head>
 <body>
 
@@ -1402,6 +1403,10 @@
   <button id="navHelp">Поддержка</button>
   <button id="navFAQ">FAQ</button>
   <button id="navReferral">Рефералка</button>
+</div>
+
+<div class="documents-nav">
+  <button type="button" id="openDocuments" aria-haspopup="dialog" aria-controls="documentsDialog">📄 Документы</button>
 </div>
 
 <div class="legal-notice">
@@ -3672,5 +3677,15 @@
   });
 </script>
 
+<!-- Document navigation only: opening a document does not confirm consent. -->
+<dialog id="documentsDialog" class="documents-dialog" aria-labelledby="documentsTitle">
+  <h2 id="documentsTitle">Документы</h2>
+  <div class="documents-links">
+    <a href="https://tattootut.github.io/apps/legal/oferta.pdf" target="_blank" rel="noopener noreferrer">Публичная оферта <span aria-hidden="true">↗</span></a>
+    <a href="https://ta2tut.ru/privacy" target="_blank" rel="noopener noreferrer">Политика обработки персональных данных <span aria-hidden="true">↗</span></a>
+  </div>
+  <button type="button" id="closeDocuments" class="documents-close">Закрыть</button>
+</dialog>
+<script src="assets/documents/navigation.js?v=1" defer></script>
 </body>
 </html>

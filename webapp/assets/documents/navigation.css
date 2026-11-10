@@ -1,0 +1,60 @@
+/* Shared document navigation for the master and client cabinets. */
+.documents-nav { margin-top: 16px; }
+.documents-nav button,
+.documents-dialog a,
+.documents-close {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border, var(--border, #dfe6dc));
+  border-radius: 12px;
+  background: var(--color-surface, var(--surface, #fff));
+  color: var(--color-text, var(--ink, #0e1a14));
+  font: 500 14px/1.5 var(--font-text, sans-serif);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.documents-nav button { justify-content: center; }
+.documents-nav button:focus-visible,
+.documents-dialog a:focus-visible,
+.documents-close:focus-visible {
+  outline: 3px solid var(--color-accent, var(--green, #3e9e56));
+  outline-offset: 3px;
+}
+.documents-dialog {
+  position: fixed;
+  inset: 0;
+  width: calc(100% - 32px);
+  max-width: 440px;
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 24px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--color-border, var(--border, #dfe6dc));
+  border-radius: 20px;
+  background: var(--color-surface, var(--surface, #fff));
+  color: var(--color-text, var(--ink, #0e1a14));
+  box-shadow: 0 18px 60px rgb(0 0 0 / 25%);
+}
+.documents-dialog::backdrop { background: rgb(0 0 0 / 55%); }
+.documents-dialog h2 {
+  margin: 0 0 20px;
+  font: 600 24px/1.3 var(--font-display, sans-serif);
+}
+.documents-links { display: grid; gap: 12px; }
+.documents-dialog a span { flex: 0 0 auto; }
+.documents-close {
+  justify-content: center;
+  margin-top: 24px;
+  background: var(--color-surface-2, var(--surface-2, #f4f8f2));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .documents-dialog[open] { animation: documents-appear 120ms ease-out; }
+  @keyframes documents-appear { from { opacity: 0; transform: translateY(6px); } }
+}
